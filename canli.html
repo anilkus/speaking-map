@@ -21,7 +21,7 @@ canvas{display:block;width:100%;height:100%}
 #tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:6px;opacity:0;transition:opacity .1s;max-width:260px;line-height:1.45;z-index:3}
 .legend{position:absolute;left:16px;top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
-#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.6;padding:20px}
+#empty{position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.6;padding:20px}
 .eopts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}.eopt{width:230px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;color:var(--text);cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;font-family:Inter,sans-serif;transition:border-color .15s}
 .eopt:hover{border-color:var(--text2)}.eopt span{font-size:26px}.eopt b{font-size:16px}.eopt small{color:var(--muted);font-size:12px;line-height:1.5}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:6px}.tabs a{font-size:12px;color:var(--text2);text-decoration:none;padding:4px 10px;border-radius:999px;border:1px solid transparent}
@@ -145,7 +145,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <button class="btn" id="reset">Temizle</button>
 </div>
 <div id="msg"></div>
-<div id="ver">sürüm 2026-11-11 16:35</div>
+<div id="ver">sürüm 2026-11-11 16:37</div>
 </div>
 <dialog id="dlg">
   <h2>Dosya ya da metin ekle</h2>
@@ -357,7 +357,7 @@ function ingest(raw,src){
 }
 // ---------- Türkçe konuş: düzeltme panosu ----------
 let lastF=null;
-function renderBoard(popKey){const el=document.getElementById("board");if(!el||MODE!=="turkce")return;
+function renderBoard(popKey){const el=document.getElementById("board");if(!el||MODE!=="turkce")return;if(rawWords>0)el.hidden=false;
   const ratio=trRatio(),list=[...fStats.values()].sort((a,b)=>b.t-a.t);
   const sug1=s=>s.sug?s.sug.split(",")[0].trim():"",sugR=s=>s.sug&&s.sug.includes(",")?s.sug.split(",").slice(1).join(",").trim():"";
   const form=s=>[...s.forms].sort((a,b)=>b[1]-a[1])[0][0];
@@ -769,7 +769,7 @@ function loop(){
   draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
 }
 const fmt=n=>n.toLocaleString("tr-TR");
-function stats(){renderTrPanel();if(MODE==="turkce"&&document.getElementById("board").querySelector(".mtop b")){const r=trRatio();document.querySelector("#board .mtop b").textContent="%"+r.toFixed(1);document.querySelector("#board .mbar i").style.width=r+"%"}if(MODE==="turkce"){const e=document.getElementById("sTR");if(e)e.textContent="%"+trRatio().toFixed(0)}
+function stats(){renderTrPanel();if(MODE==="turkce"){const bd=document.getElementById("board");const want=!(rawWords>0);if(bd.hidden!==want)bd.hidden=want}if(MODE==="turkce"&&document.getElementById("board").querySelector(".mtop b")){const r=trRatio();document.querySelector("#board .mtop b").textContent="%"+r.toFixed(1);document.querySelector("#board .mbar i").style.width=r+"%"}if(MODE==="turkce"){const e=document.getElementById("sTR");if(e)e.textContent="%"+trRatio().toFixed(0)}
   document.getElementById("sW").textContent=fmt(nWords);document.getElementById("sN").textContent=shown.length;document.getElementById("sE").textContent=fmt(E.size);
   if(startT){const s=Math.floor((Date.now()-startT)/1000);document.getElementById("sT").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 }
@@ -1100,7 +1100,7 @@ if(MODE==="yukle"){for(const id of ["mic","eMic"])document.getElementById(id).re
   document.getElementById("ePaste").onclick=()=>dlg.showModal();
 }else{for(const id of ["upBtn","paste","eUp"])document.getElementById(id).remove();
   document.querySelector("#empty .ewrap p").textContent=MODE==="turkce"?"Mikrofonu aç ve konuş. Yabancı bir kelime kullandığında burada kırmızı ✗ ile, Türkçesi yeşil 👍 ile belirecek:":"Mikrofonu aç ve konuş:";}
-if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("board").hidden=false;cv.style.display="none";document.getElementById("legend").style.display="none";for(const id of ["clBtn","png"]){const e=document.getElementById(id);if(e)e.remove()}for(const id of ["sN","sE"]){const e=document.getElementById(id);if(e)e.parentElement.style.display="none"}renderBoard();const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
+if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("board").hidden=true;cv.style.display="none";document.getElementById("legend").style.display="none";for(const id of ["clBtn","png"]){const e=document.getElementById(id);if(e)e.remove()}for(const id of ["sN","sE"]){const e=document.getElementById(id);if(e)e.parentElement.style.display="none"}renderBoard();const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
 renderLegend();renderTrPanel();
 requestAnimationFrame(loop);
 </script>
