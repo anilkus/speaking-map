@@ -4,7 +4,8 @@ d3 = open("d3force.min.js", encoding="utf-8").read()
 seq = open("seq.json", encoding="utf-8").read()
 t = open("nutuk_sablon.html", encoding="utf-8").read()
 open("../nutuk.html", "w", encoding="utf-8").write(t.replace("__D3__", d3).replace("__DATA__", seq).replace("�", ""))
-t = open("canli_sablon.html", encoding="utf-8").read().replace("__D3__", d3)
+import datetime
+t = open("canli_sablon.html", encoding="utf-8").read().replace("__D3__", d3).replace("__VER__", datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
 open("../canli.html", "w", encoding="utf-8").write(t)
 # Türkçe konuş sayfası: aynı şablon, data-mode="turkce"
 import re
