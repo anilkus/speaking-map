@@ -18,7 +18,9 @@ Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli g�
 4. **Ağ:** En sık 150 kelime düğüm; aynı cümlede birlikte geçme sayısı bağ ağırlığı. Okunabilirlik için en güçlü 220 bağ ve her düğümün en güçlü 3 bağı çizilir.
 5. **Yerleşim:** [d3-force](https://github.com/d3/d3-force) (sayfalara gömülü).
 
-Canlı sürümde lemmatizasyon tarayıcıda çalışan basit bir ek ayıklayıcıyla yapılır; birbirine yakın söylenen kelimeler (6 kelimelik pencere) bağlanır.
+Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıklayıcıyla yapılır: önce fiil ekleri (-ıyor, -acak, -dığı, -mış, edilgen -ıl...), sonra isim ekleri Türkçe sıralamasıyla katman katman (hal → iyelik → çoğul) sökülür. Aynı kelimenin farklı hallerinin aynı köke gitmesi için daha önce görülen köklerle eşleştirme yapılır; ünsüz yumuşaması (kitap/kitabı, renk/rengi) ve ünlü düşmesi (isim/ismi) de hesaba katılır. "vardı, dediğimiz, biliyorsunuz, etmiştir" gibi yardımcı fiil çekimleri ağa alınmaz. Birbirine yakın söylenen kelimeler (6 kelimelik pencere) bağlanır.
+
+İsimler de birleştirilir: küçük harfle tanınan haller ("turkcell" → Turkcell), türev halleri ("Galatasaraylı" → Galatasaray) ve tam adın kısmi geçişleri ("Bozok Üniversitesi" → Yozgat Bozok Üniversitesi, "Anıl" → Anıl Kuş, tek bir eşleşme varsa) aynı düğümde toplanır.
 
 ## Canlı sürüm hakkında
 
