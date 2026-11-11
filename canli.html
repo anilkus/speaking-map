@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konuştukça Oluşan Kelime Ağı</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#0f0f0e;--surface:#1a1a19;--border:#2e2d2b;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;--node:#3987e5;--hot:#d95926;--live:#e66767}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;height:100%}
+.app{display:flex;flex-direction:column;height:100vh;min-height:600px}
+header{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:16px 20px 8px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:24px;margin:0;font-weight:700}
+.sub{font-size:12px;color:var(--muted);margin-top:3px;max-width:640px;line-height:1.5}
+.stats{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+.stat b{display:block;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+.stage{position:relative;flex:1;min-height:300px}
+canvas{display:block;width:100%;height:100%}
+#tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:6px;opacity:0;transition:opacity .1s;max-width:260px;line-height:1.45;z-index:3}
+.legend{position:absolute;left:16px;top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.6;padding:20px;pointer-events:none}
+.caption{padding:10px 20px 4px;min-height:70px;display:flex;justify-content:center}
+#cap{font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.5;text-align:center;max-width:1000px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#cap .interim{color:var(--muted)}
+.controls{display:flex;align-items:center;gap:10px;padding:8px 20px 14px;flex-wrap:wrap}
+.btn{font:600 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);min-width:150px}
+.btn.rec{background:var(--live);border-color:var(--live);color:#fff}
+.btn.rec::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:8px;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+select{font:500 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
+.spacer{flex:1}
+#msg{font-size:12px;color:var(--muted);padding:0 20px 10px;line-height:1.5}
+dialog{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:18px;width:min(640px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{font-family:"Source Serif 4",Georgia,serif;margin:0 0 8px;font-size:20px}
+dialog p{color:var(--text2);font-size:13px;margin:0 0 10px}
+textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+@media (max-width:640px){#cap{font-size:15px}.stats{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
+  <div class="stats">
+    <div class="stat"><b id="sW">0</b><span>kelime</span></div>
+    <div class="stat"><b id="sN">0</b><span>düğüm</span></div>
+    <div class="stat"><b id="sE">0</b><span>bağ</span></div>
+    <div class="stat"><b id="sT">0:00</b><span>süre</span></div>
+  </div>
+</header>
+<div class="stage" id="stage">
+  <canvas id="cv"></canvas>
+  <div class="legend"><span><i style="background:var(--node)"></i>Kelime (boyu = tekrar sayısı)</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span></div>
+  <div id="empty">Başlamak için aşağıdan <b>&nbsp;Dinlemeye başla&nbsp;</b> düğmesine bas ve konuşmaya başla.</div>
+  <div id="tip"></div>
+</div>
+<div class="caption"><div id="cap"></div></div>
+<div class="controls">
+  <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
+  <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
+  <button class="btn" id="paste">Metin yapıştır</button>
+  <span class="spacer"></span>
+  <button class="btn" id="copy">Metni kopyala</button>
+  <button class="btn" id="png">PNG indir</button>
+  <button class="btn" id="reset">Temizle</button>
+</div>
+<div id="msg"></div>
+</div>
+<dialog id="dlg">
+  <h2>Metinden oynat</h2>
+  <p>Bir konuşma metni yapıştır; konuşuluyormuş gibi kelime kelime akar. Mikrofon desteklenmeyen tarayıcılarda da çalışır.</p>
+  <textarea id="txt" placeholder="Metni buraya yapıştır…"></textarea>
+  <div class="row"><select id="wps" aria-label="Hız"><option value="2.5">Konuşma hızı</option><option value="10">4×</option><option value="40" selected>16×</option><option value="200">Anında</option></select><button class="btn" id="cancel">Vazgeç</button><button class="btn primary" id="playTxt">Oynat</button></div>
+</dialog>
+<script>// https://d3js.org/d3-dispatch/ v3.0.2 Copyright 2010-2026 Mike Bostock
+!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((n="undefined"!=typeof globalThis?globalThis:n||self).d3=n.d3||{})}(this,function(n){"use strict";var e={value:()=>{}};function t(){for(var n,e=0,t=arguments.length,o={};e<t;++e){if(!(n=arguments[e]+"")||n in o||/[\s.]/.test(n))throw new Error("illegal type: "+n);o[n]=[]}return new r(o)}function r(n){this._=n}function o(n,e){for(var t,r=0,o=n.length;r<o;++r)if((t=n[r]).name===e)return t.value}function i(n,t,r){for(var o=0,i=n.length;o<i;++o)if(n[o].name===t){n[o]=e,n=n.slice(0,o).concat(n.slice(o+1));break}return null!=r&&n.push({name:t,value:r}),n}r.prototype=t.prototype={constructor:r,on:function(n,e){var t,r,f=this._,l=(r=f,(n+"").trim().split(/^|\s+/).map(function(n){var e="",t=n.indexOf(".");if(t>=0&&(e=n.slice(t+1),n=n.slice(0,t)),n&&!r.hasOwnProperty(n))throw new Error("unknown type: "+n);return{type:n,name:e}})),a=-1,u=l.length;if(!(arguments.length<2)){if(null!=e&&"function"!=typeof e)throw new Error("invalid callback: "+e);for(;++a<u;)if(t=(n=l[a]).type)f[t]=i(f[t],n.name,e);else if(null==e)for(t in f)f[t]=i(f[t],n.name,null);return this}for(;++a<u;)if((t=(n=l[a]).type)&&(t=o(f[t],n.name)))return t},copy:function(){var n={},e=this._;for(var t in e)n[t]=e[t].slice();return new r(n)},call:function(n,e){if((t=arguments.length-2)>0)for(var t,r,o=new Array(t),i=0;i<t;++i)o[i]=arguments[i+2];if(!this._.hasOwnProperty(n))throw new Error("unknown type: "+n);for(i=0,t=(r=this._[n]).length;i<t;++i)r[i].value.apply(e,o)},apply:function(n,e,t){if(!this._.hasOwnProperty(n))throw new Error("unknown type: "+n);for(var r=this._[n],o=0,i=r.length;o<i;++o)r[o].value.apply(e,t)}},n.dispatch=t});
+// https://d3js.org/d3-quadtree/ v3.0.2 Copyright 2010-2026 Mike Bostock
+!function(t,i){"object"==typeof exports&&"undefined"!=typeof module?i(exports):"function"==typeof define&&define.amd?define(["exports"],i):i((t="undefined"!=typeof globalThis?globalThis:t||self).d3=t.d3||{})}(this,function(t){"use strict";function i(t,i,r,n){if(isNaN(i)||isNaN(r))return t;var e,s,h,o,a,l,u,_,f,y=t._root,c={data:n},x=t._x0,d=t._y0,p=t._x1,v=t._y1;if(!y)return t._root=c,t;for(;y.length;)if((l=i>=(s=(x+p)/2))?x=s:p=s,(u=r>=(h=(d+v)/2))?d=h:v=h,e=y,!(y=y[_=u<<1|l]))return e[_]=c,t;if(o=+t._x.call(null,y.data),a=+t._y.call(null,y.data),i===o&&r===a)return c.next=y,e?e[_]=c:t._root=c,t;do{e=e?e[_]=new Array(4):t._root=new Array(4),(l=i>=(s=(x+p)/2))?x=s:p=s,(u=r>=(h=(d+v)/2))?d=h:v=h}while((_=u<<1|l)==(f=(a>=h)<<1|o>=s));return e[f]=y,e[_]=c,t}function r(t,i,r,n,e){this.node=t,this.x0=i,this.y0=r,this.x1=n,this.y1=e}function n(t){return t[0]}function e(t){return t[1]}function s(t,i,r){var s=new h(null==i?n:i,null==r?e:r,NaN,NaN,NaN,NaN);return null==t?s:s.addAll(t)}function h(t,i,r,n,e,s){this._x=t,this._y=i,this._x0=r,this._y0=n,this._x1=e,this._y1=s,this._root=void 0}function o(t){for(var i={data:t.data},r=i;t=t.next;)r=r.next={data:t.data};return i}var a=s.prototype=h.prototype;a.copy=function(){var t,i,r=new h(this._x,this._y,this._x0,this._y0,this._x1,this._y1),n=this._root;if(!n)return r;if(!n.length)return r._root=o(n),r;for(t=[{source:n,target:r._root=new Array(4)}];n=t.pop();)for(var e=0;e<4;++e)(i=n.source[e])&&(i.length?t.push({source:i,target:n.target[e]=new Array(4)}):n.target[e]=o(i));return r},a.add=function(t){const r=+this._x.call(null,t),n=+this._y.call(null,t);return i(this.cover(r,n),r,n,t)},a.addAll=function(t){Array.isArray(t)||(t=Array.from(t));const r=t.length,n=new Float64Array(r),e=new Float64Array(r);let s=1/0,h=s,o=-s,a=o;for(let i,l,u,_=0;_<r;++_)isNaN(l=+this._x.call(null,i=t[_]))||isNaN(u=+this._y.call(null,i))?n[_]=NaN:(n[_]=l,e[_]=u,l<s&&(s=l),l>o&&(o=l),u<h&&(h=u),u>a&&(a=u));if(s>o||h>a)return this;this.cover(s,h).cover(o,a);for(let s=0;s<r;++s)i(this,n[s],e[s],t[s]);return this},a.cover=function(t,i){if(isNaN(t=+t)||isNaN(i=+i))return this;var r=this._x0,n=this._y0,e=this._x1,s=this._y1;if(isNaN(r))e=(r=Math.floor(t))+1,s=(n=Math.floor(i))+1;else{for(var h,o,a=e-r||1,l=this._root;r>t||t>=e||n>i||i>=s;)switch(o=(i<n)<<1|t<r,(h=new Array(4))[o]=l,l=h,a*=2,o){case 0:e=r+a,s=n+a;break;case 1:r=e-a,s=n+a;break;case 2:e=r+a,n=s-a;break;case 3:r=e-a,n=s-a}this._root&&this._root.length&&(this._root=l)}return this._x0=r,this._y0=n,this._x1=e,this._y1=s,this},a.data=function(){var t=[];return this.visit(function(i){if(!i.length)do{t.push(i.data)}while(i=i.next)}),t},a.extent=function(t){return arguments.length?this.cover(+t[0][0],+t[0][1]).cover(+t[1][0],+t[1][1]):isNaN(this._x0)?void 0:[[this._x0,this._y0],[this._x1,this._y1]]},a.find=function(t,i,n){var e,s,h,o,a,l,u,_=this._x0,f=this._y0,y=this._x1,c=this._y1,x=[],d=this._root;for(d&&x.push(new r(d,_,f,y,c)),null==n?n=1/0:(_=t-n,f=i-n,y=t+n,c=i+n,n*=n);l=x.pop();)if(!(!(d=l.node)||(s=l.x0)>y||(h=l.y0)>c||(o=l.x1)<_||(a=l.y1)<f))if(d.length){var p=(s+o)/2,v=(h+a)/2;x.push(new r(d[3],p,v,o,a),new r(d[2],s,v,p,a),new r(d[1],p,h,o,v),new r(d[0],s,h,p,v)),(u=(i>=v)<<1|t>=p)&&(l=x[x.length-1],x[x.length-1]=x[x.length-1-u],x[x.length-1-u]=l)}else{var N=t-+this._x.call(null,d.data),w=i-+this._y.call(null,d.data),g=N*N+w*w;if(g<n){var A=Math.sqrt(n=g);_=t-A,f=i-A,y=t+A,c=i+A,e=d.data}}return e},a.remove=function(t){if(isNaN(s=+this._x.call(null,t))||isNaN(h=+this._y.call(null,t)))return this;var i,r,n,e,s,h,o,a,l,u,_,f,y=this._root,c=this._x0,x=this._y0,d=this._x1,p=this._y1;if(!y)return this;if(y.length)for(;;){if((l=s>=(o=(c+d)/2))?c=o:d=o,(u=h>=(a=(x+p)/2))?x=a:p=a,i=y,!(y=y[_=u<<1|l]))return this;if(!y.length)break;(i[_+1&3]||i[_+2&3]||i[_+3&3])&&(r=i,f=_)}for(;y.data!==t;)if(n=y,!(y=y.next))return this;return(e=y.next)&&delete y.next,n?(e?n.next=e:delete n.next,this):i?(e?i[_]=e:delete i[_],(y=i[0]||i[1]||i[2]||i[3])&&y===(i[3]||i[2]||i[1]||i[0])&&!y.length&&(r?r[f]=y:this._root=y),this):(this._root=e,this)},a.removeAll=function(t){for(var i=0,r=t.length;i<r;++i)this.remove(t[i]);return this},a.root=function(){return this._root},a.size=function(){var t=0;return this.visit(function(i){if(!i.length)do{++t}while(i=i.next)}),t},a.visit=function(t){var i,n,e,s,h,o,a=[],l=this._root;for(l&&a.push(new r(l,this._x0,this._y0,this._x1,this._y1));i=a.pop();)if(!t(l=i.node,e=i.x0,s=i.y0,h=i.x1,o=i.y1)&&l.length){var u=(e+h)/2,_=(s+o)/2;(n=l[3])&&a.push(new r(n,u,_,h,o)),(n=l[2])&&a.push(new r(n,e,_,u,o)),(n=l[1])&&a.push(new r(n,u,s,h,_)),(n=l[0])&&a.push(new r(n,e,s,u,_))}return this},a.visitAfter=function(t){var i,n=[],e=[];for(this._root&&n.push(new r(this._root,this._x0,this._y0,this._x1,this._y1));i=n.pop();){var s=i.node;if(s.length){var h,o=i.x0,a=i.y0,l=i.x1,u=i.y1,_=(o+l)/2,f=(a+u)/2;(h=s[0])&&n.push(new r(h,o,a,_,f)),(h=s[1])&&n.push(new r(h,_,a,l,f)),(h=s[2])&&n.push(new r(h,o,f,_,u)),(h=s[3])&&n.push(new r(h,_,f,l,u))}e.push(i)}for(;i=e.pop();)t(i.node,i.x0,i.y0,i.x1,i.y1);return this},a.x=function(t){return arguments.length?(this._x=t,this):this._x},a.y=function(t){return arguments.length?(this._y=t,this):this._y},t.quadtree=s});
+// https://d3js.org/d3-timer/ v3.0.2 Copyright 2010-2026 Mike Bostock
+!function(t,n){"object"==typeof exports&&"undefined"!=typeof module?n(exports):"function"==typeof define&&define.amd?define(["exports"],n):n((t="undefined"!=typeof globalThis?globalThis:t||self).d3=t.d3||{})}(this,function(t){"use strict";var n,e,o=0,i=0,r=0,l=0,a=0,u=0,c="object"==typeof performance&&performance.now?performance:Date,s="object"==typeof window&&window.requestAnimationFrame?window.requestAnimationFrame.bind(window):function(t){setTimeout(t,17)};function f(){return a||(s(_),a=c.now()+u)}function _(){a=0}function m(){this._call=this._time=this._next=null}function p(t,n,e){var o=new m;return o.restart(t,n,e),o}function w(){f(),++o;for(var t,e=n;e;)(t=a-e._time)>=0&&e._call.call(void 0,t),e=e._next;--o}function h(){a=(l=c.now())+u,o=i=0;try{w()}finally{o=0,function(){var t,o,i=n,r=1/0;for(;i;)i._call?(r>i._time&&(r=i._time),t=i,i=i._next):(o=i._next,i._next=null,i=t?t._next=o:n=o);e=t,y(r)}(),a=0}}function d(){var t=c.now(),n=t-l;n>1e3&&(u-=n,l=t)}function y(t){o||(i&&(i=clearTimeout(i)),t-a>24?(t<1/0&&(i=setTimeout(h,Math.ceil(t-c.now()-u)+1)),r&&(r=clearInterval(r))):(r||(l=c.now(),r=setInterval(d,1e3)),o=1,s(h)))}m.prototype=p.prototype={constructor:m,restart:function(t,o,i){if("function"!=typeof t)throw new TypeError("callback is not a function");i=(null==i?f():+i)+(null==o?0:+o),this._next||e===this||(e?e._next=this:n=this,e=this),this._call=t,this._time=i,y()},stop:function(){this._call&&(this._call=null,this._time=1/0,y())}},t.interval=function(t,n,e){var o=new m,i=n;return null==n?(o.restart(t,n,e),o):(o._restart=o.restart,o.restart=function(t,n,e){n=+n,e=null==e?f():+e,o._restart(function r(l){l+=i,o._restart(r,i+=n,e),t(l)},n,e)},o.restart(t,n,e),o)},t.now=f,t.timeout=function(t,n,e){var o=new m;return n=null==n?0:+n,o.restart(e=>{o.stop(),t(e+n)},n,e),o},t.timer=p,t.timerFlush=w});
+// https://d3js.org/d3-force/ v3.0.1 Copyright 2010-2026 Mike Bostock
+!function(n,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports,require("d3-quadtree"),require("d3-dispatch"),require("d3-timer")):"function"==typeof define&&define.amd?define(["exports","d3-quadtree","d3-dispatch","d3-timer"],t):t((n="undefined"!=typeof globalThis?globalThis:n||self).d3=n.d3||{},n.d3,n.d3,n.d3)}(this,function(n,t,r,e){"use strict";function i(n){return function(){return n}}function u(n){return 1e-6*(n()-.5)}function o(n){return n.x+n.vx}function f(n){return n.y+n.vy}function a(n){return n.index}function c(n,t){var r=n.get(t);if(!r)throw new Error("node not found: "+t);return r}const l=4294967296;function h(n){return n.x}function v(n){return n.y}var y=Math.PI*(3-Math.sqrt(5));n.forceCenter=function(n,t){var r,e=1;function i(){var i,u,o=r.length,f=0,a=0;for(i=0;i<o;++i)f+=(u=r[i]).x,a+=u.y;for(f=(f/o-n)*e,a=(a/o-t)*e,i=0;i<o;++i)(u=r[i]).x-=f,u.y-=a}return null==n&&(n=0),null==t&&(t=0),i.initialize=function(n){r=n},i.x=function(t){return arguments.length?(n=+t,i):n},i.y=function(n){return arguments.length?(t=+n,i):t},i.strength=function(n){return arguments.length?(e=+n,i):e},i},n.forceCollide=function(n){var r,e,a,c=1,l=1;function h(){for(var n,i,h,y,d,g,x,s=r.length,p=0;p<l;++p)for(i=t.quadtree(r,o,f).visitAfter(v),n=0;n<s;++n)h=r[n],g=e[h.index],x=g*g,y=h.x+h.vx,d=h.y+h.vy,i.visit(M);function M(n,t,r,e,i){var o=n.data,f=n.r,l=g+f;if(!o)return t>y+l||e<y-l||r>d+l||i<d-l;if(o.index>h.index){var v=y-o.x-o.vx,s=d-o.y-o.vy,p=v*v+s*s;p<l*l&&(0===v&&(p+=(v=u(a))*v),0===s&&(p+=(s=u(a))*s),p=(l-(p=Math.sqrt(p)))/p*c,h.vx+=(v*=p)*(l=(f*=f)/(x+f)),h.vy+=(s*=p)*l,o.vx-=v*(l=1-l),o.vy-=s*l)}}}function v(n){if(n.data)return n.r=e[n.data.index];for(var t=n.r=0;t<4;++t)n[t]&&n[t].r>n.r&&(n.r=n[t].r)}function y(){if(r){var t,i,u=r.length;for(e=new Array(u),t=0;t<u;++t)i=r[t],e[i.index]=+n(i,t,r)}}return"function"!=typeof n&&(n=i(null==n?1:+n)),h.initialize=function(n,t){r=n,a=t,y()},h.iterations=function(n){return arguments.length?(l=+n,h):l},h.strength=function(n){return arguments.length?(c=+n,h):c},h.radius=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),y(),h):n},h},n.forceLink=function(n){var t,r,e,o,f,l,h=a,v=function(n){return 1/Math.min(o[n.source.index],o[n.target.index])},y=i(30),d=1;function g(e){for(var i=0,o=n.length;i<d;++i)for(var a,c,h,v,y,g,x,s=0;s<o;++s)c=(a=n[s]).source,v=(h=a.target).x+h.vx-c.x-c.vx||u(l),y=h.y+h.vy-c.y-c.vy||u(l),v*=g=((g=Math.sqrt(v*v+y*y))-r[s])/g*e*t[s],y*=g,h.vx-=v*(x=f[s]),h.vy-=y*x,c.vx+=v*(x=1-x),c.vy+=y*x}function x(){if(e){var i,u,a=e.length,l=n.length,v=new Map(e.map((n,t)=>[h(n,t,e),n]));for(i=0,o=new Array(a);i<l;++i)(u=n[i]).index=i,"object"!=typeof u.source&&(u.source=c(v,u.source)),"object"!=typeof u.target&&(u.target=c(v,u.target)),o[u.source.index]=(o[u.source.index]||0)+1,o[u.target.index]=(o[u.target.index]||0)+1;for(i=0,f=new Array(l);i<l;++i)u=n[i],f[i]=o[u.source.index]/(o[u.source.index]+o[u.target.index]);t=new Array(l),s(),r=new Array(l),p()}}function s(){if(e)for(var r=0,i=n.length;r<i;++r)t[r]=+v(n[r],r,n)}function p(){if(e)for(var t=0,i=n.length;t<i;++t)r[t]=+y(n[t],t,n)}return null==n&&(n=[]),g.initialize=function(n,t){e=n,l=t,x()},g.links=function(t){return arguments.length?(n=t,x(),g):n},g.id=function(n){return arguments.length?(h=n,g):h},g.iterations=function(n){return arguments.length?(d=+n,g):d},g.strength=function(n){return arguments.length?(v="function"==typeof n?n:i(+n),s(),g):v},g.distance=function(n){return arguments.length?(y="function"==typeof n?n:i(+n),p(),g):y},g},n.forceManyBody=function(){var n,r,e,o,f,a=i(-30),c=1,l=1/0,y=.81;function d(e){var i,u=n.length,f=t.quadtree(n,h,v).visitAfter(x);for(o=e,i=0;i<u;++i)r=n[i],f.visit(s)}function g(){if(n){var t,r,e=n.length;for(f=new Array(e),t=0;t<e;++t)r=n[t],f[r.index]=+a(r,t,n)}}function x(n){var t,r,e,i,u,o=0,a=0;if(n.length){for(e=i=u=0;u<4;++u)(t=n[u])&&(r=Math.abs(t.value))&&(o+=t.value,a+=r,e+=r*t.x,i+=r*t.y);n.x=e/a,n.y=i/a}else{(t=n).x=t.data.x,t.y=t.data.y;do{o+=f[t.data.index]}while(t=t.next)}n.value=o}function s(n,t,i,a){if(!n.value)return!0;var h=n.x-r.x,v=n.y-r.y,d=a-t,g=h*h+v*v;if(d*d/y<g)return g<l&&(0===h&&(g+=(h=u(e))*h),0===v&&(g+=(v=u(e))*v),g<c&&(g=Math.sqrt(c*g)),r.vx+=h*n.value*o/g,r.vy+=v*n.value*o/g),!0;if(!(n.length||g>=l)){(n.data!==r||n.next)&&(0===h&&(g+=(h=u(e))*h),0===v&&(g+=(v=u(e))*v),g<c&&(g=Math.sqrt(c*g)));do{n.data!==r&&(d=f[n.data.index]*o/g,r.vx+=h*d,r.vy+=v*d)}while(n=n.next)}}return d.initialize=function(t,r){n=t,e=r,g()},d.strength=function(n){return arguments.length?(a="function"==typeof n?n:i(+n),g(),d):a},d.distanceMin=function(n){return arguments.length?(c=n*n,d):Math.sqrt(c)},d.distanceMax=function(n){return arguments.length?(l=n*n,d):Math.sqrt(l)},d.theta=function(n){return arguments.length?(y=n*n,d):Math.sqrt(y)},d},n.forceRadial=function(n,t,r){var e,u,o,f=i(.1);function a(n){for(var i=0,f=e.length;i<f;++i){var a=e[i],c=a.x-t||1e-6,l=a.y-r||1e-6,h=Math.sqrt(c*c+l*l),v=(o[i]-h)*u[i]*n/h;a.vx+=c*v,a.vy+=l*v}}function c(){if(e){var t,r=e.length;for(u=new Array(r),o=new Array(r),t=0;t<r;++t)o[t]=+n(e[t],t,e),u[t]=isNaN(o[t])?0:+f(e[t],t,e)}}return"function"!=typeof n&&(n=i(+n)),null==t&&(t=0),null==r&&(r=0),a.initialize=function(n){e=n,c()},a.strength=function(n){return arguments.length?(f="function"==typeof n?n:i(+n),c(),a):f},a.radius=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),c(),a):n},a.x=function(n){return arguments.length?(t=+n,a):t},a.y=function(n){return arguments.length?(r=+n,a):r},a},n.forceSimulation=function(n){var t,i=1,u=.001,o=1-Math.pow(u,1/300),f=0,a=.6,c=new Map,h=e.timer(g),v=r.dispatch("tick","end"),d=function(){let n=1;return()=>(n=(1664525*n+1013904223)%l)/l}();function g(){x(),v.call("tick",t),i<u&&(h.stop(),v.call("end",t))}function x(r){var e,u,l=n.length;void 0===r&&(r=1);for(var h=0;h<r;++h)for(i+=(f-i)*o,c.forEach(function(n){n(i)}),e=0;e<l;++e)null==(u=n[e]).fx?u.x+=u.vx*=a:(u.x=u.fx,u.vx=0),null==u.fy?u.y+=u.vy*=a:(u.y=u.fy,u.vy=0);return t}function s(){for(var t,r=0,e=n.length;r<e;++r){if((t=n[r]).index=r,null!=t.fx&&(t.x=t.fx),null!=t.fy&&(t.y=t.fy),isNaN(t.x)||isNaN(t.y)){var i=10*Math.sqrt(.5+r),u=r*y;t.x=i*Math.cos(u),t.y=i*Math.sin(u)}(isNaN(t.vx)||isNaN(t.vy))&&(t.vx=t.vy=0)}}function p(t){return t.initialize&&t.initialize(n,d),t}return null==n&&(n=[]),s(),t={tick:x,restart:function(){return h.restart(g),t},stop:function(){return h.stop(),t},nodes:function(r){return arguments.length?(n=r,s(),c.forEach(p),t):n},alpha:function(n){return arguments.length?(i=+n,t):i},alphaMin:function(n){return arguments.length?(u=+n,t):u},alphaDecay:function(n){return arguments.length?(o=+n,t):+o},alphaTarget:function(n){return arguments.length?(f=+n,t):f},velocityDecay:function(n){return arguments.length?(a=1-n,t):1-a},randomSource:function(n){return arguments.length?(d=n,c.forEach(p),t):d},force:function(n,r){return arguments.length>1?(null==r?c.delete(n):c.set(n,p(r)),t):c.get(n)},find:function(t,r,e){var i,u,o,f,a,c=0,l=n.length;for(null==e?e=1/0:e*=e,c=0;c<l;++c)(o=(i=t-(f=n[c]).x)*i+(u=r-f.y)*u)<e&&(a=f,e=o);return a},on:function(n,r){return arguments.length>1?(v.on(n,r),t):v.on(n)}}},n.forceX=function(n){var t,r,e,u=i(.1);function o(n){for(var i,u=0,o=t.length;u<o;++u)(i=t[u]).vx+=(e[u]-i.x)*r[u]*n}function f(){if(t){var i,o=t.length;for(r=new Array(o),e=new Array(o),i=0;i<o;++i)r[i]=isNaN(e[i]=+n(t[i],i,t))?0:+u(t[i],i,t)}}return"function"!=typeof n&&(n=i(null==n?0:+n)),o.initialize=function(n){t=n,f()},o.strength=function(n){return arguments.length?(u="function"==typeof n?n:i(+n),f(),o):u},o.x=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),f(),o):n},o},n.forceY=function(n){var t,r,e,u=i(.1);function o(n){for(var i,u=0,o=t.length;u<o;++u)(i=t[u]).vy+=(e[u]-i.y)*r[u]*n}function f(){if(t){var i,o=t.length;for(r=new Array(o),e=new Array(o),i=0;i<o;++i)r[i]=isNaN(e[i]=+n(t[i],i,t))?0:+u(t[i],i,t)}}return"function"!=typeof n&&(n=i(null==n?0:+n)),o.initialize=function(n){t=n,f()},o.strength=function(n){return arguments.length?(u="function"==typeof n?n:i(+n),f(),o):u},o.y=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),f(),o):n},o}});
+</script>
+<script>
+// ---------- dil işleme ----------
+const trLower=s=>s.replace(/I/g,"ı").replace(/İ/g,"i").toLowerCase();
+const STOP_TR=new Set(`ve veya ile ki de da bu şu o bir iki her hiç çok daha en pek gibi kadar için diye ama fakat lakin ancak yalnız ise ya mi mı mu mü ne niçin nasıl neden niye hem dahi bile zaten artık şimdi sonra önce yine tekrar ben sen biz siz onlar kendi böyle şöyle öyle bunlar şunlar orada burada şey şeyler bazı birçok diğer başka var yok değil olarak olan olduğu üzere dair rağmen göre karşı doğru beri ait aynı yani mesela belki elbette hatta işte hani falan filan tamam evet hayır ee eee ıı hmm aa yok bunu buna bunun bundan onu ona onun ondan şunu bizim bize bizi sizin size sizi benim bana beni onların onlara onları kim kimi hangi bütün tüm hep hiçbir biraz bazen sadece bence galiba acaba lütfen teşekkür ederim tabii tabi oldu olur olsun olmuş olacak oluyor olmak etmek yapmak ediyor ediyorum ettik ettim yaptık yaptım yapıyor yapıyoruz diyor dedim dedi demek gibi şimdi bugün yarın dün iyi kötü büyük küçük çünkü eğer veyahut şeyi şeyin şeye mı mi mu mü misin mısın musun müsün miyiz mıyız var mı yok mu sanki aslında açıkçası olabilir lazım gerek gerekiyor istiyorum istiyoruz bakın bak bakalım arkadaşlar efendim`.split(/\s+/));
+const STOP_EN=new Set(`the a an and or but if then so to of in on at by for with from as is are was were be been being am do does did have has had i you he she it we they me him her us them my your his its our their this that these those there here what which who whom whose when where why how all any both each few more most other some such no nor not only own same than too very can will just should now also about into over after before again once up down out off ok okay yeah yes um uh like really actually basically gonna wanna get got go going know think mean thing things lot well right`.split(/\s+/));
+const SUF=["lerinden","larından","lerinde","larında","lerini","larını","lerine","larına","lerin","ların","leri","ları","ler","lar","ımızın","imizin","ımızı","imizi","ımız","imiz","umuz","ümüz","ınız","iniz","unuz","ünüz","ndan","nden","nın","nin","nun","nün","dan","den","tan","ten","nda","nde","yla","yle","da","de","ta","te","ın","in","un","ün","ım","im","um","üm","sı","si","su","sü","yı","yi","yu","yü","ya","ye","na","ne","ı","i","u","ü","a","e"];
+let LANG="tr-TR";
+function key(raw){
+  let w=raw.replace(/[’']/g,"'");const ap=w.indexOf("'");if(ap>0)w=w.slice(0,ap);
+  w=(LANG.startsWith("tr")?trLower(w):w.toLowerCase()).replace(/[^\p{L}]/gu,"");
+  if(w.length<3)return null;
+  if(LANG.startsWith("tr")){
+    if(STOP_TR.has(w))return null;
+    let s=w;for(let pass=0;pass<3;pass++){let hit=false;for(const x of SUF){if(s.endsWith(x)&&s.length-x.length>=(x.length===1?3:4)){s=s.slice(0,-x.length);hit=true;break}}if(!hit)break}
+    if(STOP_TR.has(s))return null;return {k:s,w};
+  }else{
+    if(STOP_EN.has(w))return null;let s=w;
+    if(s.length>4&&s.endsWith("ies"))s=s.slice(0,-3)+"y";else if(s.length>4&&s.endsWith("s")&&!s.endsWith("ss"))s=s.slice(0,-1);
+    return {k:s,w};
+  }
+}
+// ---------- durum ----------
+const MAXN=130, WIN=6;
+let words=new Map(); // k -> node
+let E=new Map(), TOPE=[], maxW=1, buf=[], nWords=0, transcript="", startT=null, lastWordT=0;
+function label(n){let best="",bc=-1;for(const [f,c] of n.forms)if(c>bc){bc=c;best=f}return best}
+function ingest(raw){
+  const r=key(raw);if(!r)return;
+  const now=performance.now();if(now-lastWordT>6000)buf=[];lastWordT=now;
+  if(!startT)startT=Date.now();
+  let n=words.get(r.k);
+  if(!n){n={k:r.k,forms:new Map(),c:0,x:0,y:0,vx:0,vy:0,pulse:0,age:0,born:false,last:0};words.set(r.k,n)}
+  n.c++;n.forms.set(r.w,(n.forms.get(r.w)||0)+1);n.pulse=1;n.last=now;nWords++;
+  for(const o of buf){if(o===r.k)continue;const a=o<r.k?o:r.k,b=o<r.k?r.k:o,kk=a+"|"+b;let e=E.get(kk);if(!e){e={a,b,w:0,pulse:0};E.set(kk,e)}e.w++;e.pulse=1}
+  buf=buf.filter(x=>x!==r.k);buf.push(r.k);if(buf.length>WIN)buf.shift();
+  dirty=true;document.getElementById("empty").style.display="none";
+}
+let shown=[],dirty=false;
+function rank(){
+  const all=[...words.values()].sort((a,b)=>b.c-a.c||b.last-a.last);
+  const set=new Set(all.slice(0,MAXN).map(n=>n.k));
+  for(const n of words.values()){
+    if(set.has(n.k)&&!n.born){const nb=[...E.values()].filter(e=>(e.a===n.k||e.b===n.k)).map(e=>words.get(e.a===n.k?e.b:e.a)).filter(o=>o&&o.born);
+      if(nb.length){const cx=nb.reduce((s,o)=>s+o.x,0)/nb.length,cy=nb.reduce((s,o)=>s+o.y,0)/nb.length;n.x=cx+(Math.random()-.5)*50;n.y=cy+(Math.random()-.5)*50}
+      else{const a=Math.random()*6.28,rr=Math.min(W,H)*0.2*Math.random();n.x=W/2+Math.cos(a)*rr;n.y=H/2+Math.sin(a)*rr}
+      n.vx=n.vy=0;n.born=true;n.age=0}
+    else if(!set.has(n.k))n.born=false;
+  }
+  shown=all.filter(n=>n.born);
+  const arr=[...E.values()].filter(e=>words.get(e.a).born&&words.get(e.b).born).sort((p,q)=>q.w-p.w);
+  const pick=new Set(arr.slice(0,220));const per=new Map();
+  for(const e of arr){const pa=per.get(e.a)||0,pb=per.get(e.b)||0;if(pa<3||pb<3){pick.add(e);per.set(e.a,pa+1);per.set(e.b,pb+1)}}
+  TOPE=[...pick].sort((p,q)=>q.w-p.w);maxW=TOPE.length?TOPE[0].w:1;
+  syncSim();
+}
+// ---------- çizim & fizik ----------
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d"),stage=document.getElementById("stage");
+let W=0,H=0;
+function resize(){const d=Math.min(2,devicePixelRatio||1);W=stage.clientWidth;H=stage.clientHeight;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
+resize();addEventListener("resize",()=>{resize();syncSim();sim.alpha(.5)});
+const scale=()=>Math.max(.45,Math.min(1.3,Math.min(W,H)/650));
+function radius(n){const mx=shown.length?shown[0].c:1;return (4+16*Math.sqrt(n.c/Math.max(mx,1))+Math.min(6,Math.sqrt(n.c)))*scale()}
+const sim=d3.forceSimulation([]).stop().force("charge",d3.forceManyBody().distanceMax(450)).force("link",d3.forceLink([])).force("collide",d3.forceCollide().iterations(2)).force("x",d3.forceX(()=>W/2)).force("y",d3.forceY(()=>H/2+12)).alphaDecay(0.012).velocityDecay(0.38);
+function syncSim(){
+  const sc=scale();sim.nodes(shown);
+  sim.force("charge").strength(n=>-(34+radius(n)*7)*sc);
+  sim.force("link").links(TOPE.map(e=>({source:words.get(e.a),target:words.get(e.b),w:e.w}))).distance(l=>(50+radius(l.source)+radius(l.target))*sc).strength(l=>0.05+0.45*Math.log1p(l.w)/Math.log1p(maxW));
+  sim.force("collide").radius(n=>radius(n)+5);
+  sim.force("x").strength(W>H?0.035:0.07);sim.force("y").strength(W>H?0.08:0.035);
+  if(sim.alpha()<0.2)sim.alpha(0.2);
+}
+function rgba(hex,a){const v=parseInt(hex.slice(1),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`}
+const C={node:"#3987e5",hot:"#d95926",edge:"#c3c2b7"};
+let hover=null;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const hv=hover,nbr=k=>hv&&E.has((hv.k<k?hv.k+"|"+k:k+"|"+hv.k));
+  for(let t=TOPE.length-1;t>=0;t--){const e=TOPE[t],p=words.get(e.a),q=words.get(e.b);
+    const s=e.w/maxW;let a=0.07+0.35*Math.sqrt(s)+0.55*e.pulse,col=e.pulse>0.05?C.hot:C.edge;
+    if(hv){if(p===hv||q===hv){a=0.3+0.6*Math.sqrt(s);col=C.node}else a*=0.25}
+    ctx.strokeStyle=rgba(col,Math.min(.95,a));ctx.lineWidth=0.7+3*Math.sqrt(s)+1.5*e.pulse;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  const act=shown.slice().sort((a,b)=>a.c-b.c);
+  for(const n of act){const r=radius(n)*(1+0.3*n.pulse)*Math.min(1,n.age/15+.2);const dim=hv&&hv!==n&&!nbr(n.k);
+    if(n.pulse>0.05){ctx.fillStyle=rgba(C.hot,0.22*n.pulse);ctx.beginPath();ctx.arc(n.x,n.y,r+12*n.pulse+4,0,7);ctx.fill()}
+    const mix=n.pulse;const cn=parseInt(C.node.slice(1),16),ch=parseInt(C.hot.slice(1),16);
+    const R=((cn>>16&255)*(1-mix)+(ch>>16&255)*mix)|0,G=((cn>>8&255)*(1-mix)+(ch>>8&255)*mix)|0,B=((cn&255)*(1-mix)+(ch&255)*mix)|0;
+    ctx.fillStyle=`rgba(${R},${G},${B},${dim?0.25:0.95})`;ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fill();ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke()}
+  ctx.textAlign="center";ctx.textBaseline="middle";const boxes=[];
+  const order=act.slice().sort((a,b)=>((b===hv)*1e6+radius(b)+b.pulse*6)-((a===hv)*1e6+radius(a)+a.pulse*6));
+  for(const n of order){const r=radius(n),fs=Math.max(11,Math.min(24,8+r*0.55)),txt=label(n);
+    ctx.font=`${r>14?700:500} ${fs}px "Source Serif 4", Georgia, serif`;const tw=ctx.measureText(txt).width,ly=n.y-r-fs*0.6;
+    const bx={x:n.x-tw/2-2,y:ly-fs/2,w:tw+4,h:fs};
+    if(boxes.some(o=>bx.x<o.x+o.w&&bx.x+bx.w>o.x&&bx.y<o.y+o.h&&bx.y+bx.h>o.y))continue;boxes.push(bx);
+    const a=hv&&hv!==n&&!nbr(n.k)?0.3:Math.min(1,0.75+n.pulse);
+    ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(txt,n.x,ly);ctx.fillStyle=`rgba(240,239,236,${a})`;ctx.fillText(txt,n.x,ly)}
+}
+let frame=0;
+function loop(){
+  if(dirty&&frame%4===0){rank();dirty=false;stats()}
+  sim.tick();
+  for(const n of shown){const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+34,Math.min(H-r,n.y));n.pulse*=0.96;n.age++}
+  for(const e of TOPE)e.pulse*=0.95;
+  draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
+}
+const fmt=n=>n.toLocaleString("tr-TR");
+function stats(){
+  document.getElementById("sW").textContent=fmt(nWords);document.getElementById("sN").textContent=shown.length;document.getElementById("sE").textContent=fmt(E.size);
+  if(startT){const s=Math.floor((Date.now()-startT)/1000);document.getElementById("sT").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+}
+// ---------- altyazı ----------
+const cap=document.getElementById("cap"),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=esc(f)+(interim?` <span class="interim">${esc(interim)}</span>`:"")}
+// ---------- mikrofon ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
+let rec=null,listening=false,done=[];
+if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <b>Metin yapıştır</b> ile yine deneyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
+else msg.textContent="Konuşma tanıma tarayıcının kendi hizmetiyle yapılır (Chrome'da ses Google sunucularında metne çevrilir). Kelimeler ve ağ sadece bu sayfada tutulur.";
+function startRec(){
+  rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];
+  rec.onresult=e=>{let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i],t=res[0].transcript.trim(),ws=t.split(/\s+/).filter(Boolean);
+      const upto=res.isFinal?ws.length:Math.max(0,ws.length-1);const from=done[i]||0;
+      for(let k=from;k<upto;k++)ingest(ws[k]);done[i]=Math.max(from,upto);
+      if(res.isFinal){transcript+=(transcript?" ":"")+t}else interim+=t+" "}
+    showCap(transcript,interim.trim())};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
+  rec.onend=()=>{if(listening){try{startRec()}catch(_){}}};
+  try{rec.start()}catch(_){}
+}
+function stopRec(){listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary")}
+micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
+document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){stopRec();listening=true;micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
+// ---------- metinden oynat ----------
+const dlg=document.getElementById("dlg");let playTimer=null;
+document.getElementById("paste").onclick=()=>dlg.showModal();
+document.getElementById("cancel").onclick=()=>dlg.close();
+document.getElementById("playTxt").onclick=()=>{
+  const text=document.getElementById("txt").value.trim();if(!text)return;dlg.close();
+  const toks=text.split(/\s+/);let i=0;const wps=+document.getElementById("wps").value;clearInterval(playTimer);
+  const per=Math.max(1,Math.round(wps/30));let line="";
+  playTimer=setInterval(()=>{for(let j=0;j<per&&i<toks.length;j++,i++){ingest(toks[i]);line+=(line?" ":"")+toks[i];if(/[.!?]$/.test(toks[i])){transcript+=(transcript?" ":"")+line;line=""}}
+    showCap(transcript,line);if(i>=toks.length){clearInterval(playTimer);if(line)transcript+=" "+line}},Math.max(33,1000/wps));
+};
+// ---------- araçlar ----------
+document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
+document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
+document.getElementById("reset").onclick=()=>{clearInterval(playTimer);words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+// hover
+const tip=document.getElementById("tip");
+cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;
+  for(const n of shown){const d=Math.hypot(n.x-x,n.y-y);if(d<radius(n)+8&&d<bd){bd=d;best=n}}hover=best;if(!best){tip.style.opacity=0;return}
+  const nb=[];for(const e2 of E.values()){if(e2.a===best.k)nb.push([e2.b,e2.w]);else if(e2.b===best.k)nb.push([e2.a,e2.w])}nb.sort((a,b)=>b[1]-a[1]);
+  tip.innerHTML=`<b>${esc(label(best))}</b> · ${best.c} kez<br>Biçimler: ${esc([...best.forms.keys()].slice(0,5).join(", "))}<br>En güçlü bağlar: ${esc(nb.slice(0,4).map(([k,c])=>label(words.get(k))+" ("+c+")").join(", ")||"henüz yok")}`;
+  let tx=x+14,ty=y+14;tip.style.opacity=1;if(tx+tip.offsetWidth>W-8)tx=x-tip.offsetWidth-14;if(ty+tip.offsetHeight>H-8)ty=y-tip.offsetHeight-14;tip.style.left=tx+"px";tip.style.top=ty+"px"});
+cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
+window.__ingest=ingest;
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

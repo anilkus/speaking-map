@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nutuk Canlı Kelime Ağı</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#0f0f0e;--surface:#1a1a19;--border:#2e2d2b;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;
+--kisi:#3987e5;--yer:#d95926;--kurum:#199e70;--kavram:#c3c2b7;--hl:#5a4a12}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;height:100%}
+.app{display:flex;flex-direction:column;height:100vh;min-height:560px}
+header{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:16px 20px 8px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:24px;margin:0;font-weight:700}
+.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.stats{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+.stat b{display:block;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+.year{font-family:"Source Serif 4",Georgia,serif;font-size:30px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1}
+.stage{position:relative;flex:1;min-height:300px}
+canvas{display:block;width:100%;height:100%}
+#tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:6px;opacity:0;transition:opacity .1s;max-width:260px;line-height:1.45;z-index:3}
+#tip b{font-weight:600}
+.legend{position:absolute;left:16px;top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+#start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;background:radial-gradient(circle at center,rgba(15,15,14,.6),rgba(15,15,14,.95))}
+#start p{color:var(--text2);max-width:520px;line-height:1.6;font-size:14px;margin:0}
+#start button{font:600 15px Inter,sans-serif;background:var(--text);color:var(--bg);border:0;border-radius:999px;padding:12px 26px;cursor:pointer}
+.caption{padding:10px 20px 6px;min-height:84px;display:flex;align-items:flex-start;justify-content:center}
+#cap{font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.5;text-align:center;max-width:1000px;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#cap mark{background:none;color:inherit;border-bottom:2px solid;padding:0 1px}
+.controls{display:flex;align-items:center;gap:12px;padding:8px 20px 16px;flex-wrap:wrap}
+.btn{font:600 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;min-width:44px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;color:var(--text2);font:500 12px Inter,sans-serif;padding:8px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--text)}
+.pos{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:120px;text-align:right}
+@media (max-width:640px){#cap{font-size:15px}.stats{margin-left:0}.legend{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Nutuk, canlı kelime ağı</h1><div class="sub">Kelimeler söylendikçe doğar, aynı cümlede geçenler birbirine bağlanır. Bağ kalınlığı birlikte geçme sayısı, düğüm boyu kelimenin o ana kadarki sıklığı.</div></div>
+  <div class="stats">
+    <div class="stat"><b id="sP">%0</b><span>okundu</span></div>
+    <div class="stat"><b id="sN">0</b><span>düğüm</span></div>
+    <div class="stat"><b id="sE">0</b><span>bağ</span></div>
+    <div class="stat"><b id="sW">0</b><span>kelime söylendi</span></div>
+  </div>
+</header>
+<div class="stage" id="stage">
+  <canvas id="cv"></canvas>
+  <div class="legend" id="legend"></div>
+  <div id="tip"></div>
+  <div id="start"><p>Nutuk 15-20 Ekim 1927'de altı günde, yaklaşık 36 saatte okundu. Bu ağ, metni cümle cümle yeniden "konuşur". En sık geçen 150 kavram düğüm olur.</p><button id="go">▶ Konuşmayı başlat</button></div>
+</div>
+<div class="caption"><div id="cap"></div></div>
+<div class="controls">
+  <button class="btn" id="play" aria-label="Oynat/Duraklat">❚❚</button>
+  <div class="seg" id="speed" role="group" aria-label="Hız"></div>
+  <input type="range" id="seek" min="0" value="0" aria-label="Metinde konum">
+  <span class="pos" id="pos"></span>
+  <button class="btn" id="reset">Baştan</button>
+</div>
+</div>
+<script>__D3__</script>
+<script>
+const D=__DATA__;
+const N=D.nodes.length, S=D.s.length;
+const CAT={kisi:"Kişi & unvan",yer:"Yer & ulus",kurum:"Kurum & ordu",kavram:"Kavram"};
+const css=getComputedStyle(document.documentElement);
+const COL={};for(const k in CAT)COL[k]=css.getPropertyValue("--"+k).trim();
+document.getElementById("legend").innerHTML=Object.entries(CAT).map(([k,l])=>`<span><i style="background:${COL[k]}"></i>${l}</span>`).join("");
+const fmt=n=>n.toLocaleString("tr-TR");
+
+// yıl takibi
+const YEAR=new Array(S);{let y=1919;const re=/\b19\s?(19|2[0-7])\b/g;for(let i=0;i<S;i++){let m,last=null;re.lastIndex=0;while((m=re.exec(D.s[i])))last=m[1];if(last){const v=1900+ +last;if(Math.abs(v-y)<=3||v>y)y=v}YEAR[i]=y}}
+// kelime sayısı (söylenen) için kümülatif
+const WC=new Uint32Array(S+1);for(let i=0;i<S;i++)WC[i+1]=WC[i]+D.s[i].split(/\s+/).length;
+// kökler (altyazı vurgusu)
+const STEM=D.nodes.map(n=>n.w.replace(/(mak|mek)$/,"").replace(/[îâû]$/,""));
+
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d"),stage=document.getElementById("stage");
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=stage.clientWidth;H=stage.clientHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
+window.addEventListener("resize",()=>{resize();if(typeof syncSim==='function'){syncSim();sim.alpha(.5)}});resize();
+
+// durum
+const nd=D.nodes.map((n,i)=>({i,w:n.w,k:n.k,x:0,y:0,vx:0,vy:0,c:0,born:false,pulse:0,age:0}));
+let E=new Map();      // key -> {a,b,w,pulse}
+let TOPE=[], maxW=1, cur=0, playing=false, speed=50, acc=0, lastSentence=-1, hover=null;
+const SPEEDS=[[1,"1× (gerçek)"],[10,"10×"],[50,"50×"],[200,"200×"],[1000,"1000×"]];
+const sp=document.getElementById("speed");
+sp.innerHTML=SPEEDS.map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===speed}">${l}</button>`).join("");
+sp.onclick=e=>{const b=e.target.closest("button");if(!b)return;speed=+b.dataset.v;[...sp.children].forEach(x=>x.setAttribute("aria-pressed",x===b))};
+const seek=document.getElementById("seek");seek.max=S-1;
+
+function spawn(n,ids){
+  const born=ids.map(j=>nd[j]).filter(o=>o.born&&o!==n);
+  if(born.length){const cx=born.reduce((s,o)=>s+o.x,0)/born.length,cy=born.reduce((s,o)=>s+o.y,0)/born.length;n.x=cx+(Math.random()-.5)*60;n.y=cy+(Math.random()-.5)*60}
+  else{const a=Math.random()*Math.PI*2,r=Math.min(W,H)*0.25*Math.random();n.x=W/2+Math.cos(a)*r;n.y=H/2+Math.sin(a)*r}
+  n.vx=n.vy=0;n.born=true;n.age=0;
+}
+function speak(i,animate){
+  const ids=D.ids[i];
+  for(const j of ids){const n=nd[j];if(!n.born)spawn(n,ids);n.c++;if(animate)n.pulse=1}
+  for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){
+    const x=Math.min(ids[a],ids[b]),y=Math.max(ids[a],ids[b]),k=x*N+y;
+    let e=E.get(k);if(!e){e={a:x,b:y,w:0,pulse:0};E.set(k,e)}
+    e.w++;if(animate)e.pulse=1;
+  }
+}
+function rank(){
+  const arr=[...E.values()];arr.sort((p,q)=>q.w-p.w);
+  const pick=new Set(arr.slice(0,220));const per=new Array(N).fill(0);
+  for(const e of arr){if(per[e.a]<3||per[e.b]<3){pick.add(e);per[e.a]++;per[e.b]++}}
+  TOPE=[...pick].sort((p,q)=>q.w-p.w);maxW=TOPE.length?TOPE[0].w:1;
+}
+function caption(i){
+  const s=D.s[i]||"";const ids=D.ids[i]||[];
+  let html=s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  if(ids.length){
+    const parts=ids.map(j=>({st:STEM[j],col:COL[nd[j].k]})).sort((a,b)=>b.st.length-a.st.length);
+    const re=new RegExp("(^|[^\\p{L}])("+parts.map(p=>p.st.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")(\\p{L}*)","giu");
+    html=html.replace(re,(m,a,b,c)=>{const p=parts.find(p=>b.toLocaleLowerCase("tr")===p.st.toLocaleLowerCase("tr"))||parts[0];return a+`<mark style="border-color:${p.col}">`+b+c+"</mark>"});
+  }
+  document.getElementById("cap").innerHTML=html;
+}
+function stats(){
+  let n=0;for(const o of nd)if(o.born)n++;
+  document.getElementById("sN").textContent=n;
+  document.getElementById("sE").textContent=fmt(E.size);
+  document.getElementById("sW").textContent=fmt(WC[cur]);
+  document.getElementById("sP").textContent="%"+Math.round(cur/S*100);
+  document.getElementById("pos").textContent=`cümle ${fmt(cur)} / ${fmt(S)}`;
+  if(!dragging)seek.value=cur;
+}
+function rebuild(to){
+  for(const n of nd){n.c=0;n.pulse=0;}const keep=nd.map(n=>n.born);
+  for(const n of nd)n.born=false;E=new Map();
+  for(let i=0;i<to;i++){
+    const ids=D.ids[i];
+    for(const j of ids){const n=nd[j];if(!n.born){if(keep[j]){n.born=true}else spawn(n,ids)}n.c++;n.age=999}
+    for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){const x=Math.min(ids[a],ids[b]),y=Math.max(ids[a],ids[b]),k=x*N+y;let e=E.get(k);if(!e){e={a:x,b:y,w:0,pulse:0};E.set(k,e)}e.w++}
+  }
+  cur=to;rank();syncSim();sim.alpha(1);for(let t=0;t<220;t++)tick();caption(Math.max(0,to-1));stats();
+}
+// fizik
+function radius(n){const s=Math.min(W,H)/700;return (3+Math.sqrt(n.c)*0.62)*Math.max(.4,Math.min(1.3,s))}
+const sim=d3.forceSimulation([]).stop()
+  .force("charge",d3.forceManyBody().distanceMax(450))
+  .force("link",d3.forceLink([]))
+  .force("collide",d3.forceCollide().iterations(2))
+  .force("x",d3.forceX(()=>W/2))
+  .force("y",d3.forceY(()=>H/2+12))
+  .alphaDecay(0.012).velocityDecay(0.38);
+function syncSim(){
+  const sc=Math.max(.4,Math.min(1.3,Math.min(W,H)/700));
+  sim.nodes(nd.filter(n=>n.born));
+  const links=TOPE.filter(e=>nd[e.a].born&&nd[e.b].born).map(e=>({source:nd[e.a],target:nd[e.b],w:e.w}));
+  sim.force("charge").strength(n=>-(34+radius(n)*9)*sc);
+  sim.force("link").links(links).distance(l=>(46+radius(l.source)+radius(l.target))*sc).strength(l=>0.04+0.45*Math.log1p(l.w)/Math.log1p(maxW));
+  sim.force("collide").radius(n=>radius(n)+5);
+  sim.force("x").strength(W>H?0.035:0.07);sim.force("y").strength(W>H?0.08:0.035);
+  if(sim.alpha()<0.15)sim.alpha(0.15);
+}
+function tick(){
+  sim.tick();
+  for(const n of nd){if(!n.born)continue;const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+30,Math.min(H-r,n.y));n.pulse*=0.94;n.age++}
+  for(const e of TOPE)e.pulse*=0.93;
+}
+function rgba(hex,a){const v=parseInt(hex.slice(1),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const hv=hover;
+  for(let t=TOPE.length-1;t>=0;t--){const e=TOPE[t],p=nd[e.a],q=nd[e.b];if(!p.born||!q.born)continue;
+    const s=e.w/maxW;let a=0.05+0.35*Math.sqrt(s)+0.55*e.pulse;let col="#c3c2b7";
+    if(hv){if(e.a===hv.i||e.b===hv.i){a=0.25+0.6*Math.sqrt(s);col=COL[hv.k]}else a*=0.25}
+    else if(e.pulse>0.05){col=COL[p.c>=q.c?p.k:q.k]}
+    ctx.strokeStyle=rgba(col,Math.min(.95,a));ctx.lineWidth=0.6+3*Math.sqrt(s)+1.5*e.pulse;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  const act=nd.filter(n=>n.born).sort((a,b)=>a.c-b.c);
+  for(const n of act){const r=radius(n)*(1+0.35*n.pulse)*Math.min(1,n.age/18+.2);const col=COL[n.k];
+    let dim=hv&&hv!==n&&!E.has(Math.min(hv.i,n.i)*N+Math.max(hv.i,n.i));
+    if(n.pulse>0.05){ctx.fillStyle=rgba(col,0.18*n.pulse);ctx.beginPath();ctx.arc(n.x,n.y,r+10*n.pulse+4,0,7);ctx.fill()}
+    ctx.fillStyle=rgba(col,dim?0.25:0.95);ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fill();
+    ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke()}
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  const boxes=[];const isN=n=>hv&&E.has(Math.min(hv.i,n.i)*N+Math.max(hv.i,n.i));
+  const order=act.slice().sort((a,b)=>((b===hv)*1e6+b.pulse*1e4+b.c)-((a===hv)*1e6+a.pulse*1e4+a.c));
+  for(const n of order){const r=radius(n);const fs=Math.max(11,Math.min(22,7+r*0.55));
+    ctx.font=`${r>14?700:500} ${fs}px "Source Serif 4", Georgia, serif`;
+    const tw=ctx.measureText(n.w).width,ly=n.y-r-fs*0.6;
+    const bx={x:n.x-tw/2-2,y:ly-fs/2,w:tw+4,h:fs};
+    if(boxes.some(o=>bx.x<o.x+o.w&&bx.x+bx.w>o.x&&bx.y<o.y+o.h&&bx.y+bx.h>o.y))continue;
+    if(hv&&n!==hv&&!isN(n)&&r<12)continue;
+    boxes.push(bx);
+    const a=hv&&hv!==n&&!isN(n)?0.3:Math.min(1,0.72+n.pulse);
+    ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(n.w,n.x,ly);
+    ctx.fillStyle=`rgba(240,239,236,${a})`;ctx.fillText(n.w,n.x,ly)}
+}
+let lastT=performance.now(),frame=0;
+function loop(t){
+  const dt=Math.min(0.1,(t-lastT)/1000);lastT=t;
+  if(playing&&cur<S){
+    acc+=dt*speed;let n=0;
+    while(cur<S&&n<400){const dur=Math.max(0.8,D.s[cur].length/14);if(acc<dur)break;acc-=dur;speak(cur,true);cur++;n++}
+    if(n){caption(cur-1);if(frame%3===0||n>1){rank();syncSim()}stats()}
+    if(cur>=S){playing=false;setPlayIcon()}
+  }
+  tick();if(frame%30===0){rank();syncSim()}draw();frame++;requestAnimationFrame(loop);
+}
+function setPlayIcon(){document.getElementById("play").textContent=playing?"❚❚":"▶"}
+document.getElementById("play").onclick=()=>{if(cur>=S)rebuild(0);playing=!playing;setPlayIcon()};
+document.getElementById("go").onclick=()=>{document.getElementById("start").remove();playing=true;setPlayIcon()};
+document.getElementById("reset").onclick=()=>{for(const n of nd)n.born=false;rebuild(0);acc=0};
+let seekT,dragging=false;seek.oninput=()=>{const v=+seek.value;dragging=true;clearTimeout(seekT);seekT=setTimeout(()=>{rebuild(v);acc=0;dragging=false},80)};
+// hover
+const tip=document.getElementById("tip");
+cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.TOPE;
+  let best=null,bd=1e9;for(const n of nd){if(!n.born)continue;const d=Math.hypot(n.x-x,n.y-y);if(d<radius(n)+8&&d<bd){bd=d;best=n}}
+  hover=best;if(!best){tip.style.opacity=0;return}
+  const nb=[];for(const e of E.values()){if(e.a===best.i)nb.push([nd[e.b].w,e.w]);else if(e.b===best.i)nb.push([nd[e.a].w,e.w])}
+  nb.sort((a,b)=>b[1]-a[1]);
+  tip.innerHTML=`<b>${best.w}</b> · ${fmt(best.c)} kez · ${CAT[best.k]}<br>En güçlü bağlar: ${nb.slice(0,4).map(([w,c])=>`${w} (${c})`).join(", ")||"henüz yok"}`;
+  let tx=x+14,ty=y+14;tip.style.opacity=1;if(tx+tip.offsetWidth>W-8)tx=x-tip.offsetWidth-14;if(ty+tip.offsetHeight>H-8)ty=y-tip.offsetHeight-14;tip.style.left=tx+"px";tip.style.TOPE=ty+"px"});
+cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
+caption(0);stats();rank();syncSim();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

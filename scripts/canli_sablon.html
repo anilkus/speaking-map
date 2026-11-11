@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konuştukça Oluşan Kelime Ağı</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#0f0f0e;--surface:#1a1a19;--border:#2e2d2b;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;--node:#3987e5;--hot:#d95926;--live:#e66767}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;height:100%}
+.app{display:flex;flex-direction:column;height:100vh;min-height:600px}
+header{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:16px 20px 8px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:24px;margin:0;font-weight:700}
+.sub{font-size:12px;color:var(--muted);margin-top:3px;max-width:640px;line-height:1.5}
+.stats{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+.stat b{display:block;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+.stage{position:relative;flex:1;min-height:300px}
+canvas{display:block;width:100%;height:100%}
+#tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:6px;opacity:0;transition:opacity .1s;max-width:260px;line-height:1.45;z-index:3}
+.legend{position:absolute;left:16px;top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.6;padding:20px;pointer-events:none}
+.caption{padding:10px 20px 4px;min-height:70px;display:flex;justify-content:center}
+#cap{font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.5;text-align:center;max-width:1000px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#cap .interim{color:var(--muted)}
+.controls{display:flex;align-items:center;gap:10px;padding:8px 20px 14px;flex-wrap:wrap}
+.btn{font:600 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);min-width:150px}
+.btn.rec{background:var(--live);border-color:var(--live);color:#fff}
+.btn.rec::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:8px;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+select{font:500 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
+.spacer{flex:1}
+#msg{font-size:12px;color:var(--muted);padding:0 20px 10px;line-height:1.5}
+dialog{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:18px;width:min(640px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{font-family:"Source Serif 4",Georgia,serif;margin:0 0 8px;font-size:20px}
+dialog p{color:var(--text2);font-size:13px;margin:0 0 10px}
+textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+@media (max-width:640px){#cap{font-size:15px}.stats{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
+  <div class="stats">
+    <div class="stat"><b id="sW">0</b><span>kelime</span></div>
+    <div class="stat"><b id="sN">0</b><span>düğüm</span></div>
+    <div class="stat"><b id="sE">0</b><span>bağ</span></div>
+    <div class="stat"><b id="sT">0:00</b><span>süre</span></div>
+  </div>
+</header>
+<div class="stage" id="stage">
+  <canvas id="cv"></canvas>
+  <div class="legend"><span><i style="background:var(--node)"></i>Kelime (boyu = tekrar sayısı)</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span></div>
+  <div id="empty">Başlamak için aşağıdan <b>&nbsp;Dinlemeye başla&nbsp;</b> düğmesine bas ve konuşmaya başla.</div>
+  <div id="tip"></div>
+</div>
+<div class="caption"><div id="cap"></div></div>
+<div class="controls">
+  <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
+  <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
+  <button class="btn" id="paste">Metin yapıştır</button>
+  <span class="spacer"></span>
+  <button class="btn" id="copy">Metni kopyala</button>
+  <button class="btn" id="png">PNG indir</button>
+  <button class="btn" id="reset">Temizle</button>
+</div>
+<div id="msg"></div>
+</div>
+<dialog id="dlg">
+  <h2>Metinden oynat</h2>
+  <p>Bir konuşma metni yapıştır; konuşuluyormuş gibi kelime kelime akar. Mikrofon desteklenmeyen tarayıcılarda da çalışır.</p>
+  <textarea id="txt" placeholder="Metni buraya yapıştır…"></textarea>
+  <div class="row"><select id="wps" aria-label="Hız"><option value="2.5">Konuşma hızı</option><option value="10">4×</option><option value="40" selected>16×</option><option value="200">Anında</option></select><button class="btn" id="cancel">Vazgeç</button><button class="btn primary" id="playTxt">Oynat</button></div>
+</dialog>
+<script>__D3__</script>
+<script>
+// ---------- dil işleme ----------
+const trLower=s=>s.replace(/I/g,"ı").replace(/İ/g,"i").toLowerCase();
+const STOP_TR=new Set(`ve veya ile ki de da bu şu o bir iki her hiç çok daha en pek gibi kadar için diye ama fakat lakin ancak yalnız ise ya mi mı mu mü ne niçin nasıl neden niye hem dahi bile zaten artık şimdi sonra önce yine tekrar ben sen biz siz onlar kendi böyle şöyle öyle bunlar şunlar orada burada şey şeyler bazı birçok diğer başka var yok değil olarak olan olduğu üzere dair rağmen göre karşı doğru beri ait aynı yani mesela belki elbette hatta işte hani falan filan tamam evet hayır ee eee ıı hmm aa yok bunu buna bunun bundan onu ona onun ondan şunu bizim bize bizi sizin size sizi benim bana beni onların onlara onları kim kimi hangi bütün tüm hep hiçbir biraz bazen sadece bence galiba acaba lütfen teşekkür ederim tabii tabi oldu olur olsun olmuş olacak oluyor olmak etmek yapmak ediyor ediyorum ettik ettim yaptık yaptım yapıyor yapıyoruz diyor dedim dedi demek gibi şimdi bugün yarın dün iyi kötü büyük küçük çünkü eğer veyahut şeyi şeyin şeye mı mi mu mü misin mısın musun müsün miyiz mıyız var mı yok mu sanki aslında açıkçası olabilir lazım gerek gerekiyor istiyorum istiyoruz bakın bak bakalım arkadaşlar efendim`.split(/\s+/));
+const STOP_EN=new Set(`the a an and or but if then so to of in on at by for with from as is are was were be been being am do does did have has had i you he she it we they me him her us them my your his its our their this that these those there here what which who whom whose when where why how all any both each few more most other some such no nor not only own same than too very can will just should now also about into over after before again once up down out off ok okay yeah yes um uh like really actually basically gonna wanna get got go going know think mean thing things lot well right`.split(/\s+/));
+const SUF=["lerinden","larından","lerinde","larında","lerini","larını","lerine","larına","lerin","ların","leri","ları","ler","lar","ımızın","imizin","ımızı","imizi","ımız","imiz","umuz","ümüz","ınız","iniz","unuz","ünüz","ndan","nden","nın","nin","nun","nün","dan","den","tan","ten","nda","nde","yla","yle","da","de","ta","te","ın","in","un","ün","ım","im","um","üm","sı","si","su","sü","yı","yi","yu","yü","ya","ye","na","ne","ı","i","u","ü","a","e"];
+let LANG="tr-TR";
+function key(raw){
+  let w=raw.replace(/[’']/g,"'");const ap=w.indexOf("'");if(ap>0)w=w.slice(0,ap);
+  w=(LANG.startsWith("tr")?trLower(w):w.toLowerCase()).replace(/[^\p{L}]/gu,"");
+  if(w.length<3)return null;
+  if(LANG.startsWith("tr")){
+    if(STOP_TR.has(w))return null;
+    let s=w;for(let pass=0;pass<3;pass++){let hit=false;for(const x of SUF){if(s.endsWith(x)&&s.length-x.length>=(x.length===1?3:4)){s=s.slice(0,-x.length);hit=true;break}}if(!hit)break}
+    if(STOP_TR.has(s))return null;return {k:s,w};
+  }else{
+    if(STOP_EN.has(w))return null;let s=w;
+    if(s.length>4&&s.endsWith("ies"))s=s.slice(0,-3)+"y";else if(s.length>4&&s.endsWith("s")&&!s.endsWith("ss"))s=s.slice(0,-1);
+    return {k:s,w};
+  }
+}
+// ---------- durum ----------
+const MAXN=130, WIN=6;
+let words=new Map(); // k -> node
+let E=new Map(), TOPE=[], maxW=1, buf=[], nWords=0, transcript="", startT=null, lastWordT=0;
+function label(n){let best="",bc=-1;for(const [f,c] of n.forms)if(c>bc){bc=c;best=f}return best}
+function ingest(raw){
+  const r=key(raw);if(!r)return;
+  const now=performance.now();if(now-lastWordT>6000)buf=[];lastWordT=now;
+  if(!startT)startT=Date.now();
+  let n=words.get(r.k);
+  if(!n){n={k:r.k,forms:new Map(),c:0,x:0,y:0,vx:0,vy:0,pulse:0,age:0,born:false,last:0};words.set(r.k,n)}
+  n.c++;n.forms.set(r.w,(n.forms.get(r.w)||0)+1);n.pulse=1;n.last=now;nWords++;
+  for(const o of buf){if(o===r.k)continue;const a=o<r.k?o:r.k,b=o<r.k?r.k:o,kk=a+"|"+b;let e=E.get(kk);if(!e){e={a,b,w:0,pulse:0};E.set(kk,e)}e.w++;e.pulse=1}
+  buf=buf.filter(x=>x!==r.k);buf.push(r.k);if(buf.length>WIN)buf.shift();
+  dirty=true;document.getElementById("empty").style.display="none";
+}
+let shown=[],dirty=false;
+function rank(){
+  const all=[...words.values()].sort((a,b)=>b.c-a.c||b.last-a.last);
+  const set=new Set(all.slice(0,MAXN).map(n=>n.k));
+  for(const n of words.values()){
+    if(set.has(n.k)&&!n.born){const nb=[...E.values()].filter(e=>(e.a===n.k||e.b===n.k)).map(e=>words.get(e.a===n.k?e.b:e.a)).filter(o=>o&&o.born);
+      if(nb.length){const cx=nb.reduce((s,o)=>s+o.x,0)/nb.length,cy=nb.reduce((s,o)=>s+o.y,0)/nb.length;n.x=cx+(Math.random()-.5)*50;n.y=cy+(Math.random()-.5)*50}
+      else{const a=Math.random()*6.28,rr=Math.min(W,H)*0.2*Math.random();n.x=W/2+Math.cos(a)*rr;n.y=H/2+Math.sin(a)*rr}
+      n.vx=n.vy=0;n.born=true;n.age=0}
+    else if(!set.has(n.k))n.born=false;
+  }
+  shown=all.filter(n=>n.born);
+  const arr=[...E.values()].filter(e=>words.get(e.a).born&&words.get(e.b).born).sort((p,q)=>q.w-p.w);
+  const pick=new Set(arr.slice(0,220));const per=new Map();
+  for(const e of arr){const pa=per.get(e.a)||0,pb=per.get(e.b)||0;if(pa<3||pb<3){pick.add(e);per.set(e.a,pa+1);per.set(e.b,pb+1)}}
+  TOPE=[...pick].sort((p,q)=>q.w-p.w);maxW=TOPE.length?TOPE[0].w:1;
+  syncSim();
+}
+// ---------- çizim & fizik ----------
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d"),stage=document.getElementById("stage");
+let W=0,H=0;
+function resize(){const d=Math.min(2,devicePixelRatio||1);W=stage.clientWidth;H=stage.clientHeight;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
+resize();addEventListener("resize",()=>{resize();syncSim();sim.alpha(.5)});
+const scale=()=>Math.max(.45,Math.min(1.3,Math.min(W,H)/650));
+function radius(n){const mx=shown.length?shown[0].c:1;return (4+16*Math.sqrt(n.c/Math.max(mx,1))+Math.min(6,Math.sqrt(n.c)))*scale()}
+const sim=d3.forceSimulation([]).stop().force("charge",d3.forceManyBody().distanceMax(450)).force("link",d3.forceLink([])).force("collide",d3.forceCollide().iterations(2)).force("x",d3.forceX(()=>W/2)).force("y",d3.forceY(()=>H/2+12)).alphaDecay(0.012).velocityDecay(0.38);
+function syncSim(){
+  const sc=scale();sim.nodes(shown);
+  sim.force("charge").strength(n=>-(34+radius(n)*7)*sc);
+  sim.force("link").links(TOPE.map(e=>({source:words.get(e.a),target:words.get(e.b),w:e.w}))).distance(l=>(50+radius(l.source)+radius(l.target))*sc).strength(l=>0.05+0.45*Math.log1p(l.w)/Math.log1p(maxW));
+  sim.force("collide").radius(n=>radius(n)+5);
+  sim.force("x").strength(W>H?0.035:0.07);sim.force("y").strength(W>H?0.08:0.035);
+  if(sim.alpha()<0.2)sim.alpha(0.2);
+}
+function rgba(hex,a){const v=parseInt(hex.slice(1),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`}
+const C={node:"#3987e5",hot:"#d95926",edge:"#c3c2b7"};
+let hover=null;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const hv=hover,nbr=k=>hv&&E.has((hv.k<k?hv.k+"|"+k:k+"|"+hv.k));
+  for(let t=TOPE.length-1;t>=0;t--){const e=TOPE[t],p=words.get(e.a),q=words.get(e.b);
+    const s=e.w/maxW;let a=0.07+0.35*Math.sqrt(s)+0.55*e.pulse,col=e.pulse>0.05?C.hot:C.edge;
+    if(hv){if(p===hv||q===hv){a=0.3+0.6*Math.sqrt(s);col=C.node}else a*=0.25}
+    ctx.strokeStyle=rgba(col,Math.min(.95,a));ctx.lineWidth=0.7+3*Math.sqrt(s)+1.5*e.pulse;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  const act=shown.slice().sort((a,b)=>a.c-b.c);
+  for(const n of act){const r=radius(n)*(1+0.3*n.pulse)*Math.min(1,n.age/15+.2);const dim=hv&&hv!==n&&!nbr(n.k);
+    if(n.pulse>0.05){ctx.fillStyle=rgba(C.hot,0.22*n.pulse);ctx.beginPath();ctx.arc(n.x,n.y,r+12*n.pulse+4,0,7);ctx.fill()}
+    const mix=n.pulse;const cn=parseInt(C.node.slice(1),16),ch=parseInt(C.hot.slice(1),16);
+    const R=((cn>>16&255)*(1-mix)+(ch>>16&255)*mix)|0,G=((cn>>8&255)*(1-mix)+(ch>>8&255)*mix)|0,B=((cn&255)*(1-mix)+(ch&255)*mix)|0;
+    ctx.fillStyle=`rgba(${R},${G},${B},${dim?0.25:0.95})`;ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fill();ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke()}
+  ctx.textAlign="center";ctx.textBaseline="middle";const boxes=[];
+  const order=act.slice().sort((a,b)=>((b===hv)*1e6+radius(b)+b.pulse*6)-((a===hv)*1e6+radius(a)+a.pulse*6));
+  for(const n of order){const r=radius(n),fs=Math.max(11,Math.min(24,8+r*0.55)),txt=label(n);
+    ctx.font=`${r>14?700:500} ${fs}px "Source Serif 4", Georgia, serif`;const tw=ctx.measureText(txt).width,ly=n.y-r-fs*0.6;
+    const bx={x:n.x-tw/2-2,y:ly-fs/2,w:tw+4,h:fs};
+    if(boxes.some(o=>bx.x<o.x+o.w&&bx.x+bx.w>o.x&&bx.y<o.y+o.h&&bx.y+bx.h>o.y))continue;boxes.push(bx);
+    const a=hv&&hv!==n&&!nbr(n.k)?0.3:Math.min(1,0.75+n.pulse);
+    ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(txt,n.x,ly);ctx.fillStyle=`rgba(240,239,236,${a})`;ctx.fillText(txt,n.x,ly)}
+}
+let frame=0;
+function loop(){
+  if(dirty&&frame%4===0){rank();dirty=false;stats()}
+  sim.tick();
+  for(const n of shown){const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+34,Math.min(H-r,n.y));n.pulse*=0.96;n.age++}
+  for(const e of TOPE)e.pulse*=0.95;
+  draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
+}
+const fmt=n=>n.toLocaleString("tr-TR");
+function stats(){
+  document.getElementById("sW").textContent=fmt(nWords);document.getElementById("sN").textContent=shown.length;document.getElementById("sE").textContent=fmt(E.size);
+  if(startT){const s=Math.floor((Date.now()-startT)/1000);document.getElementById("sT").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+}
+// ---------- altyazı ----------
+const cap=document.getElementById("cap"),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=esc(f)+(interim?` <span class="interim">${esc(interim)}</span>`:"")}
+// ---------- mikrofon ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
+let rec=null,listening=false,done=[];
+if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <b>Metin yapıştır</b> ile yine deneyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
+else msg.textContent="Konuşma tanıma tarayıcının kendi hizmetiyle yapılır (Chrome'da ses Google sunucularında metne çevrilir). Kelimeler ve ağ sadece bu sayfada tutulur.";
+function startRec(){
+  rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];
+  rec.onresult=e=>{let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i],t=res[0].transcript.trim(),ws=t.split(/\s+/).filter(Boolean);
+      const upto=res.isFinal?ws.length:Math.max(0,ws.length-1);const from=done[i]||0;
+      for(let k=from;k<upto;k++)ingest(ws[k]);done[i]=Math.max(from,upto);
+      if(res.isFinal){transcript+=(transcript?" ":"")+t}else interim+=t+" "}
+    showCap(transcript,interim.trim())};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
+  rec.onend=()=>{if(listening){try{startRec()}catch(_){}}};
+  try{rec.start()}catch(_){}
+}
+function stopRec(){listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary")}
+micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
+document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){stopRec();listening=true;micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
+// ---------- metinden oynat ----------
+const dlg=document.getElementById("dlg");let playTimer=null;
+document.getElementById("paste").onclick=()=>dlg.showModal();
+document.getElementById("cancel").onclick=()=>dlg.close();
+document.getElementById("playTxt").onclick=()=>{
+  const text=document.getElementById("txt").value.trim();if(!text)return;dlg.close();
+  const toks=text.split(/\s+/);let i=0;const wps=+document.getElementById("wps").value;clearInterval(playTimer);
+  const per=Math.max(1,Math.round(wps/30));let line="";
+  playTimer=setInterval(()=>{for(let j=0;j<per&&i<toks.length;j++,i++){ingest(toks[i]);line+=(line?" ":"")+toks[i];if(/[.!?]$/.test(toks[i])){transcript+=(transcript?" ":"")+line;line=""}}
+    showCap(transcript,line);if(i>=toks.length){clearInterval(playTimer);if(line)transcript+=" "+line}},Math.max(33,1000/wps));
+};
+// ---------- araçlar ----------
+document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
+document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
+document.getElementById("reset").onclick=()=>{clearInterval(playTimer);words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+// hover
+const tip=document.getElementById("tip");
+cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;
+  for(const n of shown){const d=Math.hypot(n.x-x,n.y-y);if(d<radius(n)+8&&d<bd){bd=d;best=n}}hover=best;if(!best){tip.style.opacity=0;return}
+  const nb=[];for(const e2 of E.values()){if(e2.a===best.k)nb.push([e2.b,e2.w]);else if(e2.b===best.k)nb.push([e2.a,e2.w])}nb.sort((a,b)=>b[1]-a[1]);
+  tip.innerHTML=`<b>${esc(label(best))}</b> · ${best.c} kez<br>Biçimler: ${esc([...best.forms.keys()].slice(0,5).join(", "))}<br>En güçlü bağlar: ${esc(nb.slice(0,4).map(([k,c])=>label(words.get(k))+" ("+c+")").join(", ")||"henüz yok")}`;
+  let tx=x+14,ty=y+14;tip.style.opacity=1;if(tx+tip.offsetWidth>W-8)tx=x-tip.offsetWidth-14;if(ty+tip.offsetHeight>H-8)ty=y-tip.offsetHeight-14;tip.style.left=tx+"px";tip.style.top=ty+"px"});
+cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
+window.__ingest=ingest;
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
