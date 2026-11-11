@@ -39,6 +39,21 @@ Canlı sayfada **📊 Rapor** (mikrofon durdurulunca otomatik açılır) şunlar
 
 Çıkarımlar kural tabanlıdır (eşikler yaklaşık değerlerdir), herhangi bir yapay zekâ servisine veri gönderilmez.
 
+## Özel isimler, yerler ve kalıp ifadeler
+
+Canlı sayfa kelimeleri dört tipe ayırır, ağda her tip ayrı şekil ve renkle çizilir:
+
+| Tip | Nasıl bulunur | Şekil |
+|---|---|---|
+| **Yer** | Gömülü liste: 81 il, bilinen ilçeler, ülkeler, bölgeler ve büyük dünya şehirleri (ekli halleri de: "Ankara'da", "İzmir'e") | yeşil kare |
+| **Kişi / kurum / marka** | Cümle ortasında büyük harfle başlayan, kesme işaretiyle ek almış ya da tamamı büyük harf olan kelimeler (Google, TÜBİTAK, OpenAI). Art arda gelen isimler tek düğüm olur ("Mustafa Kemal Atatürk", "Yozgat Bozok Üniversitesi"); "Prof.", "Dr." gibi unvanlar atlanır | sarı baklava |
+| **Kalıp ifade** | En az 3 kez yan yana geçen ve çoğunlukla birlikte kullanılan kelime ikilileri otomatik birleşir ("yapay zekâ", "dil modelleri") | mor altıgen |
+| **Kelime** | Diğer her şey | mavi daire |
+
+Raporda "Bahsedilen yerler", "Kişi, kurum ve markalar" ve "Kalıp ifadeler" bölümleri bunları sayılarıyla listeler.
+
+Sınırlamalar: tespit, konuşma tanıma motorunun büyük harf ve kesme işareti kullanımına dayanır. Cümlenin ilk kelimesi olan tek kelimelik isimler (ör. cümle başında "Meta") ancak konuşmada bir kez daha cümle ortasında geçtikten sonra isim olarak tanınır. Kişi, kurum ve marka birbirinden ayrılmaz. "Ordu", "Van", "Tokat" gibi aynı zamanda sıradan kelime olan il adları yalnızca büyük harfle ve cümle ortasında yazıldığında yer sayılır.
+
 ## Yeniden üretmek
 
 ```bash
