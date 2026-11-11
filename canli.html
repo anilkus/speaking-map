@@ -145,7 +145,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <button class="btn" id="reset">Temizle</button>
 </div>
 <div id="msg"></div>
-<div id="ver">sürüm 2026-11-11 16:37</div>
+<div id="ver">sürüm 2026-11-11 16:45</div>
 </div>
 <dialog id="dlg">
   <h2>Dosya ya da metin ekle</h2>
@@ -366,7 +366,7 @@ function renderBoard(popKey){const el=document.getElementById("board");if(!el||M
    (hero?`<div class="hero k-${hero.k}${popKey===hero.key?" pop":""}"><div class="bad"><span class="ic">${hero.k==="e"?"⚠":"✗"}</span><s>${esc(form(hero))}</s>${hero.c>1?`<i>×${hero.c}</i>`:""}</div><div class="arr">→</div><div class="good"><span class="ic">👍</span>${hero.sug?esc(sug1(hero)):"Türkçesini bulabilir misin?"}${sugR(hero)?`<small>ya da: ${esc(sugR(hero))}</small>`:""}</div>${hero.k==="e"?`<p class="note">Eski kullanım, Türkçesi isteğe bağlı</p>`:""}</div>`:"")+
    (list.length>1?`<div class="cards">${list.slice(1).map(s=>`<div class="fc k-${s.k}${popKey===s.key?" pop":""}"><div class="bad"><span class="ic">${s.k==="e"?"⚠":"✗"}</span><s>${esc(form(s))}</s>${s.c>1?`<i>×${s.c}</i>`:""}</div><div class="good"><span class="ic">👍</span>${s.sug?esc(sug1(s)):"?"}</div></div>`).join("")}</div>`:"")}
 function capMarkForeign(html){if(MODE!=="turkce")return html;
-  return html.replace(/(^|[\s(“"])([^\s<>]+)/g,(m,a,w)=>{const f=foreignOf(w.replace(/&amp;/g,"&"),false);return f&&f.k!=="o"?a+`<span class="fw k-${f.k}">${w}</span>`:a+w})}
+  return html.replace(/(^|[\s(“"])([^\s<>]+)/g,(m,a,w)=>{const f=foreignOf(w.replace(/&amp;/g,"&"),true);return f?a+`<span class="fw k-${f.k}">${w}</span>`:a+w})}
 
 // ---------- Türkçe Konuş modu ----------
 const MODE=document.documentElement.dataset.mode||"genel";
@@ -654,9 +654,196 @@ tazyik|baskı|e
 muvakkat|geçici|e
 daimi|kalıcı|e
 muhit|çevre|e
-sathi|yüzeysel|e`;
+sathi|yüzeysel|e
+amazing|harika, inanılmaz|b
+awesome|müthiş, harika|b
+perfect|mükemmel, kusursuz|b
+cute|tatlı, şirin|b
+crazy|çılgın, deli|b
+random|rastgele|b
+literally|resmen, kelimenin tam anlamıyla|b
+basically|temelde, kısacası|b
+whatever|her neyse|b
+anyway|neyse|b
+actually|aslında|b
+happy|mutlu|b
+sad|üzgün|b
+bad|kötü|b
+good|iyi|b
+great|harika, çok iyi|b
+best|en iyi|b
+love|aşk, sevgi|b
+baby|bebeğim, canım|b
+friend|arkadaş|b
+job|iş|b
+money|para|b
+life|hayat, yaşam|b
+time|zaman|b
+family|aile|b
+home|ev|b
+house|ev|b
+car|araba|b
+school|okul|b
+game|oyun|b
+music|müzik|b
+song|şarkı|b
+party|eğlence, parti|b
+food|yemek|b
+coffee|kahve|b
+boss|patron|b
+win|kazanmak|b
+lose|kaybetmek|b
+fail|başarısızlık|b
+success|başarı|b
+easy|kolay|b
+hard|zor|b
+fast|hızlı|b
+slow|yavaş|b
+please|lütfen|b
+yes|evet|b
+yeah|evet|b
+wow|vay, vay be|b
+bye|hoşça kal, görüşürüz|b
+hello|merhaba|b
+sure|tabii, elbette|b
+really|gerçekten|b
+maybe|belki|b
+always|her zaman|b
+never|asla|b
+sometimes|bazen|b
+enjoy|keyfini çıkar|b
+fun|eğlence|b
+funny|komik|b
+boring|sıkıcı|b
+interesting|ilginç|b
+important|önemli|b
+special|özel|b
+free|ücretsiz, serbest|b
+busy|meşgul, yoğun|b
+tired|yorgun|b
+ready|hazır|b
+done|bitti, tamam|b
+wait|bekle|b
+stop|dur|b
+idea|fikir, düşünce|b
+chill|rahat, sakin|b
+relax|rahatla|b
+vibe|hava, atmosfer|b
+mood|ruh hâli|b
+style|tarz|b
+fashion|moda|b
+sale|indirim|b
+discount|indirim|b
+price|fiyat|b
+cash|nakit|b
+shop|dükkân|b
+store|mağaza|b
+brand|marka|b
+quality|nitelik, kalite|b
+service|hizmet|b
+customer|müşteri|b
+client|müşteri|b
+product|ürün|b
+office|ofis, büro|b
+report|rapor|b
+project|proje|b
+goal|hedef, amaç|b
+strategy|strateji, yol haritası|b
+manager|yönetici|b
+leader|önder, lider|b
+employee|çalışan|b
+company|şirket|b
+message|mesaj, ileti|b
+chat|sohbet|b
+phone|telefon|b
+computer|bilgisayar|b
+screen|ekran|b
+app|uygulama|b
+website|web sitesi|b
+click|tıklamak|b
+scroll|kaydırmak|b
+follow|takip etmek|b
+subscribe|abone olmak|b
+live|canlı|b
+news|haber|b
+comment|yorum|b
+support|destek|b
+help|yardım|b
+solution|çözüm|b
+answer|yanıt, cevap|b
+question|soru|b
+research|araştırma|b
+study|çalışma|b
+training|eğitim|b
+experience|deneyim|b
+career|kariyer, meslek yaşamı|b
+interview|görüşme, mülakat|b
+salary|maaş|b
+bonus|prim|b
+holiday|tatil|b
+travel|seyahat, yolculuk|b
+trip|gezi|b
+flight|uçuş|b
+ticket|bilet|b
+hotel|otel|b
+room|oda|b
+city|şehir, kent|b
+country|ülke|b
+world|dünya|b
+people|insanlar|b
+guy|adam|b
+girl|kız|b
+woman|kadın|b
+kid|çocuk|b
+brother|kardeş|b
+sister|kız kardeş|b
+mom|anne|b
+dad|baba|b
+heart|kalp, yürek|b
+beautiful|güzel|b
+sweet|tatlı|b
+hot|sıcak|b
+cold|soğuk|b
+weird|tuhaf|b
+strange|garip|b
+true|doğru|b
+real|gerçek|b
+fake|sahte|b
+original|özgün|b
+new|yeni|b
+big|büyük|b
+small|küçük|b
+short|kısa|b
+long|uzun|b
+high|yüksek|b
+low|düşük|b
+next|sonraki|b
+last|son|b
+first|ilk|b
+open|açık|b
+close|kapat, yakın|b
+simple|basit, yalın|b
+basic|temel|b
+power|güç|b
+energy|enerji, erke|b
+healthy|sağlıklı|b
+gym|spor salonu|b
+diet|diyet, perhiz|b
+morning|sabah|b
+night|gece|b
+today|bugün|b
+tomorrow|yarın|b
+friends|arkadaşlar|b
+super|süper, harika|b
+lucky|şanslı|b
+thank|teşekkürler|b
+welcome|hoş geldin|b
+congrats|tebrikler|b`;
 const FMAP=new Map();
 for(const l of FD.trim().split("\n")){const [ks,sug,k]=l.split("|");const vars=ks.split(",").map(s=>s.trim()).filter(Boolean);const main=vars[0];for(const v of vars)FMAP.set(v,{key:main,sug,k})}
+const ENDOM=new Set("".split(" ").filter(Boolean)),TRX=new Set("".split(" ").filter(Boolean));
+const EXT=/^(l[ae](n|ş|t|y)?|d[ıiuü]r|s[ıiuü]n|[ıiuü]m|[ıiuü]z|t[ıiuü]|d[ıiuü])/;
+function endomHit(w){if(ENDOM.has(w))return w;for(let cut=1;cut<=6;cut++){if(w.length-cut<4)break;const b=w.slice(0,-cut),rest=w.slice(-cut);if(ENDOM.has(b)&&(ANYSUF.has(rest)||EXT.test(rest)))return b}return null}
 const FKEYS=[...FMAP.keys()].sort((a,b)=>b.length-a.length);
 const VERBAL=/^l[ae](n|ş|t|y)?/;
 let trLevel="all",fStats=new Map(),fHits=0,lastToast=new Map();
@@ -667,9 +854,12 @@ function foreignOf(raw,start){
   const isCapMid=/^\p{Lu}/u.test(base)&&!start;
   const ok=e=>e&&(trLevel==="all"||e.k!=="e");
   let e=FMAP.get(lowH)||FMAP.get(low);if(ok(e)&&!isCapMid)return {...e,form:base};
+  if(TRX.has(low)||TRX.has(lowH))return null;
   if(!isCapMid)for(const fk of FKEYS){if(fk.length<3||!low.startsWith(fk)||low===fk)continue;const rest=low.slice(fk.length);
     const good=fk.length>=5?(rest.length<=9&&/^[a-zçğıöşüâîû]+$/.test(rest)&&(ANYSUF.has(rest)||VERBAL.test(rest)||/^(l[ae]r|l[ıiuü]|s[ıiuü]z|c[ıiuü]|ç[ıiuü]|ş|[ıiuüae]n)/.test(rest))):(ANYSUF.has(rest)||VERBAL.test(rest));
     if(good){const en=FMAP.get(fk);if(ok(en))return {...en,form:base}}}
+  // İngilizce sıklık listesine göre: İngilizcede belirgin şekilde daha sık geçen kelimeler
+  if(ENDOM.size&&LANG.startsWith("tr")&&!isCapMid&&!TRX.has(low)&&/^[a-z]+$/.test(low)){const b=endomHit(low);if(b){const en=FMAP.get(b);if(en)return ok(en)?{...en,form:base}:null;return {key:b,sug:"",k:"o",form:base}}}
   // sözlükte yok ama İngilizce yazımlı görünüyor
   if(low.length>=4&&!isCapMid&&!/^\p{Lu}/u.test(base)&&!GAZ.has(low)&&(/[wxq]/.test(low)||/(th|sh|ck|oo|ee|ea|ou|tion|ing)$/.test(low)||/^(th|sh|wh)/.test(low)))
     return {key:low,sug:"",k:"o",form:base};

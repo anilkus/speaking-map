@@ -43,10 +43,13 @@ Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıkl
 
 `turkce.html`, Konuş sayfasıyla aynı motoru kullanır (mikrofonla); ek olarak:
 
-- **Sözlük:** yaklaşık 280 kelimelik elle derlenmiş bir karşılıklar listesi. TDK'nin *Yabancı Sözlere Karşılıklar Kılavuzu* çalışması ve yaygın kullanım esas alınmıştır. TDK'nin ilkesine uygun olarak Türkçeye çoktan yerleşmiş kelimelere (televizyon, kitap, ofis...) karşılık önerilmez.
+- **Sözlük:** yaklaşık 470 kelimelik elle derlenmiş bir karşılıklar listesi. TDK'nin *Yabancı Sözlere Karşılıklar Kılavuzu* çalışması ve yaygın kullanım esas alınmıştır. TDK'nin ilkesine uygun olarak Türkçeye çoktan yerleşmiş kelimelere (televizyon, kitap, ofis...) karşılık önerilmez.
 - **İki düzey:** Batı kökenli, yerleşmemiş kelimeler (meeting → toplantı, feedback → geri bildirim, spesifik → belirli) kırmızı; eski Arapça/Farsça kullanımlar (istikbal → gelecek, mütemadiyen → sürekli) pembe ve isteğe bağlı. Kapsam menüden "Yalnız Batı kökenli" yapılabilir.
 - **Ekli halleri tanır:** "meeting'de", "feedback'lerinizi", "konsepti", "update'leri", "focuslanmak".
-- Sözlükte olmayan ama İngilizce yazımlı görünen kelimeler (w, x, q, th, -ing...) "yabancı olabilir" diye işaretlenir.
+- **Sözlükte olmayan İngilizce kelimeler de yakalanır:** her kelimenin İngilizce ve Türkçe konuşma dilindeki sıklığı karşılaştırılır ([FrequencyWords](https://github.com/hermitdave/FrequencyWords), OpenSubtitles 2018, CC BY-SA 4.0). İngilizcede en az 8 kat daha sık geçen yaklaşık 28.000 kelime yabancı sayılır; Türkçede de yaygın olanlar (can, son, ben, plan, film) ya da Türkçe ekli halleri sık geçenler (boy → boyunca) Türkçe kabul edilir. Ek alan haller de tanınır ("meetingde", "feedbackleri", "deadlineımız"). Türkçe olduğu halde sonu ek gibi okununca İngilizceye benzeyen kelimeler (araba, banka, makine, bugün, posta) istisna listesindedir. Liste `scripts/yabanci_liste.py` ile yeniden üretilir.
+- Önerisi olan yaklaşık 470 kelimede Türkçe karşılık gösterilir; diğerlerinde "Türkçesini bulabilir misin?" sorulur.
+- Sözlükte olmayan ama İngilizce yazımlı görünen kelimeler (w, x, q, th, -ing...) da "yabancı olabilir" diye işaretlenir.
+- Sınırlama: Chrome'un Türkçe tanıyıcısı İngilizce bir kelimeyi Türkçe bir kelime gibi yazarsa (ör. "cool" → "kul") yakalanamaz.
 - **Düzeltme panosu:** son kullanılan yabancı kelime büyük kartta (✗ kırmızı, üstü çizili → 👍 yeşil Türkçesi), öncekiler altta kart kart birikir; tekrar sayısı gösterilir. Üstte Türkçe oranı çubuğu, altyazıda yabancı kelimeler kırmızıyla işaretlenir; raporda öneri listesi.
 
 ## Konuşma raporu
