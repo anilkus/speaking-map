@@ -38,7 +38,15 @@ dialog{background:var(--surface);color:var(--text);border:1px solid var(--border
 dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog h2{font-family:"Source Serif 4",Georgia,serif;margin:0 0 8px;font-size:20px}
 dialog p{color:var(--text2);font-size:13px;margin:0 0 10px}
-textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
+#drop{border:1.5px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:10px}
+#drop span{font-size:12px;color:var(--muted)}#drop.over,#drop:hover{border-color:var(--text2);background:var(--bg)}
+.asr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin-bottom:6px}
+.hint{font-size:12px!important;color:var(--muted)!important}
+#job{position:absolute;right:16px;top:10px;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;width:min(340px,80%);font-size:12px;color:var(--text2);display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#job[hidden]{display:none}
+.jb{height:6px;background:var(--bg);border-radius:4px;overflow:hidden}.jb i{display:block;height:100%;background:var(--node);border-radius:0 4px 4px 0;transition:width .3s}
+#job .btn{align-self:flex-end;padding:5px 10px;font-size:12px}
+textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
 .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
 #report{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--surface);border-left:1px solid var(--border);overflow:auto;padding:18px 18px 24px;z-index:4;box-shadow:-12px 0 30px rgba(0,0,0,.35)}
 .rp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -79,12 +87,13 @@ textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1
   <div id="empty">Başlamak için aşağıdan <b>&nbsp;Dinlemeye başla&nbsp;</b> düğmesine bas ve konuşmaya başla.</div>
   <div id="tip"></div>
   <aside id="report" hidden></aside>
+  <div id="job" hidden></div>
 </div>
 <div class="caption"><div id="cap"></div></div>
 <div class="controls">
   <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
   <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
-  <button class="btn" id="paste">Metin yapıştır</button>
+  <button class="btn" id="paste">＋ Dosya / metin</button>
   <span class="spacer"></span>
   <button class="btn" id="clBtn" aria-pressed="false">Kümeler</button>
   <button class="btn" id="rpBtn">📊 Rapor</button>
@@ -95,9 +104,12 @@ textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1
 <div id="msg"></div>
 </div>
 <dialog id="dlg">
-  <h2>Metinden oynat</h2>
-  <p>Bir konuşma metni yapıştır; konuşuluyormuş gibi kelime kelime akar. Mikrofon desteklenmeyen tarayıcılarda da çalışır.</p>
-  <textarea id="txt" placeholder="Metni buraya yapıştır…"></textarea>
+  <h2>Dosya ya da metin ekle</h2>
+  <div id="drop" tabindex="0" role="button" aria-label="Dosya seç"><b>Dosyayı buraya sürükle</b> ya da tıklayıp seç<br><span>Metin: .txt .md .pdf .docx · Altyazı: .srt .vtt · Ses/video: .mp3 .wav .m4a .mp4 .webm .mov</span></div>
+  <input type="file" id="file" hidden accept=".txt,.md,.markdown,.csv,.html,.htm,.pdf,.docx,.srt,.vtt,.sbv,audio/*,video/*">
+  <div class="asr"><label for="asrModel">Ses/video için tanıma modeli</label><select id="asrModel"><option value="Xenova/whisper-tiny">Hızlı (Whisper tiny, ~40 MB)</option><option value="Xenova/whisper-base" selected>Dengeli (Whisper base, ~80 MB)</option><option value="Xenova/whisper-small">Daha doğru (Whisper small, ~250 MB, yavaş)</option></select></div>
+  <p class="hint">Ses ve video tamamen tarayıcında yazıya dökülür, hiçbir sunucuya gönderilmez. Dil, ana ekrandaki dil seçimine göre ayarlanır.</p>
+  <textarea id="txt" placeholder="…ya da metni buraya yapıştır"></textarea>
   <div class="row"><select id="wps" aria-label="Hız"><option value="2.5">Konuşma hızı</option><option value="10">4×</option><option value="40" selected>16×</option><option value="200">Anında</option></select><button class="btn" id="cancel">Vazgeç</button><button class="btn primary" id="playTxt">Oynat</button></div>
 </dialog>
 <script>__D3__</script>
@@ -257,7 +269,7 @@ function flushAll(){flushP();commitHold()}
 function onWordPair(a,b){
   const bk=a.k+" "+b.k,c=(bigram.get(bk)||0)+1;bigram.set(bk,c);
   if(phrases.has(bk))return true;
-  const m=Math.min(tokCount.get(a.k)||1,tokCount.get(b.k)||1);
+  const m=Math.max(tokCount.get(a.k)||1,tokCount.get(b.k)||1);
   if(c>=3&&c/m>=0.6){
     phrases.add(bk);
     // geçmiş tekrarları kalıba taşı
@@ -380,7 +392,7 @@ function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=esc(f)+(inte
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
 let rec=null,listening=false,done=[];
-if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <b>Metin yapıştır</b> ile yine deneyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
+if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <b>＋ Dosya / metin</b> ile metin, belge, ses ya da video ekleyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
 else msg.textContent="Konuşma tanıma tarayıcının kendi hizmetiyle yapılır (Chrome'da ses Google sunucularında metne çevrilir). Kelimeler ve ağ sadece bu sayfada tutulur.";
 function startRec(){
   rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];
@@ -398,17 +410,97 @@ function startRec(){
 function stopRec(){if(micStart){micMs+=Date.now()-micStart;micStart=null}const was=listening;listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary");if(was&&nWords>=30)openReport()}
 micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
 document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
-// ---------- metinden oynat ----------
-const dlg=document.getElementById("dlg");let playTimer=null;
+// ---------- kaynaklar: metin, dosya, ses/video ----------
+const CDN={tf:"https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2/dist/transformers.web.min.js",
+  pdf:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.min.mjs",pdfw:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.worker.min.mjs",
+  mammoth:"https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js"};
+const dlg=document.getElementById("dlg"),jobEl=document.getElementById("job");
+let playTimer=null,Q=[],line="",srcOpen=false,srcLabel="",cancelJob=false;
+// ortak oynatma kuyruğu
+function enqueue(text){const toks=text.split(/\s+/).filter(Boolean);if(!toks.length)return;Q.push(...toks);startPlayer()}
+function startPlayer(){if(playTimer)return;
+  playTimer=setInterval(()=>{const wps=+document.getElementById("wps").value;const per=Math.max(1,Math.round(wps/30),Math.ceil(Q.length/(srcOpen?90:1e9)));
+    for(let j=0;j<per&&Q.length;j++){const w=Q.shift();ingest(w,"file");line+=(line?" ":"")+w;if(/[.!?…]["')»]*$/.test(w)){transcript+=(transcript?" ":"")+line;line=""}}
+    showCap(transcript,line);
+    if(!Q.length&&!srcOpen){clearInterval(playTimer);playTimer=null;flushAll();if(line){transcript+=(transcript?" ":"")+line;line=""}if(nWords>=30)setTimeout(openReport,800)}},33)}
+function job(msg,pct,cancellable){if(msg===null){jobEl.hidden=true;return}jobEl.hidden=false;
+  jobEl.innerHTML=`<div class="jt">${msg}</div>${pct!=null?`<div class="jb"><i style="width:${Math.max(2,pct).toFixed(1)}%"></i></div>`:""}${cancellable?`<button class="btn" id="jobX">İptal</button>`:""}`;
+  const x=document.getElementById("jobX");if(x)x.onclick=()=>{cancelJob=true;x.disabled=true;x.textContent="Durduruluyor…"}}
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(new Error("yüklenemedi: "+src));document.head.appendChild(s)})}
+// metin çıkarıcılar
+function cleanSubs(t){return t.replace(/^﻿/,"").split(/\r?\n/).filter(l=>!/^\s*\d+\s*$/.test(l)&&!/-->/.test(l)&&!/^WEBVTT|^NOTE|^STYLE/.test(l)).map(l=>l.replace(/<[^>]+>/g,"").replace(/\{[^}]+\}/g,"")).join(" ")}
+async function pdfText(file){const pdfjs=await import(CDN.pdf);pdfjs.GlobalWorkerOptions.workerSrc=CDN.pdfw;
+  const doc=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise;let out="";
+  for(let p=1;p<=doc.numPages;p++){job(`PDF okunuyor: ${p}/${doc.numPages} sayfa`,p/doc.numPages*100);const tc=await (await doc.getPage(p)).getTextContent();
+    out+=tc.items.map(i=>i.str+(i.hasEOL?"\n":"")).join(" ").replace(/-\s*\n\s*/g,"")+"\n"}
+  return out}
+async function docxText(file){if(!window.mammoth)await loadScript(CDN.mammoth);const r=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});return r.value}
+// ses / video
+let asr=null,asrModel="";
+async function decodeAudio(file){
+  job("Ses çözülüyor…",null);
+  const buf=await file.arrayBuffer();const ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+  let ab;try{ab=await ctx.decodeAudioData(buf)}finally{ctx.close&&ctx.close()}
+  if(ab.numberOfChannels===1)return ab.getChannelData(0);
+  const L=ab.length,out=new Float32Array(L);for(let c=0;c<ab.numberOfChannels;c++){const d=ab.getChannelData(c);for(let i=0;i<L;i++)out[i]+=d[i]/ab.numberOfChannels}return out}
+async function getASR(model){
+  if(asr&&asrModel===model)return asr;
+  job("Konuşma tanıma modeli indiriliyor (ilk seferde bir kaç dakika sürebilir, sonra tarayıcıda saklanır)…",0);
+  const T=await import(CDN.tf);
+  const prog={};const cb=p=>{if(p.status==="progress"&&p.file){prog[p.file]=[p.loaded||0,p.total||0];let a=0,b=0;for(const [l,t] of Object.values(prog)){a+=l;b+=t}if(b)job(`Model indiriliyor: ${(a/1e6).toFixed(0)} / ${(b/1e6).toFixed(0)} MB`,a/b*100)}};
+  asr=await T.pipeline("automatic-speech-recognition",model,{progress_callback:cb});asrModel=model;return asr}
+async function transcribe(file){
+  const model=document.getElementById("asrModel").value;
+  const audio=await decodeAudio(file);const total=audio.length/16000;
+  const pipe=await getASR(model);
+  const lang=LANG.startsWith("tr")?"turkish":"english";
+  const BLOCK=60*16000;srcOpen=true;cancelJob=false;const t0=performance.now();
+  try{
+    for(let s=0,b=0;s<audio.length;s+=BLOCK,b++){
+      if(cancelJob)break;
+      const done=s/16000,el=(performance.now()-t0)/1000,eta=done>0?el/done*(total-done):null;
+      job(`Yazıya dökülüyor: ${fmtMin(done)} / ${fmtMin(total)}${eta!=null?` · kalan ~${fmtMin(eta)}`:""}`,done/total*100,true);
+      const chunk=audio.subarray(s,Math.min(audio.length,s+BLOCK));
+      if(chunk.length<16000*0.5)continue;
+      const out=await pipe(chunk,{language:lang,task:"transcribe",chunk_length_s:30,stride_length_s:5});
+      const txt=(out&&out.text||"").trim();if(txt)enqueue(txt+(/[.!?…]$/.test(txt)?"":"."));
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }finally{srcOpen=false;startPlayer();job(cancelJob?"Yazıya dökme durduruldu.":"Yazıya dökme tamamlandı.",100);setTimeout(()=>job(null),2500)}
+}
+function fmtMin(s){s=Math.round(s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+const TEXT_EXT=/\.(txt|md|markdown|csv|json|html?)$/i,SUB_EXT=/\.(srt|vtt|sbv|ass)$/i;
+async function handleFile(file){
+  dlg.close();document.getElementById("empty").style.display="none";
+  try{
+    const name=file.name||"dosya",type=file.type||"";
+    if(/^audio\/|^video\//.test(type)||/\.(mp3|wav|m4a|aac|ogg|oga|opus|flac|webm|mp4|m4v|mov|mkv)$/i.test(name)){
+      if(file.size>700e6){job("Dosya çok büyük (700 MB üstü). Daha kısa bir parça dene.",null);setTimeout(()=>job(null),5000);return}
+      await transcribe(file);return}
+    let text="";
+    if(/\.pdf$/i.test(name)||type==="application/pdf")text=await pdfText(file);
+    else if(/\.docx$/i.test(name))text=await docxText(file);
+    else if(SUB_EXT.test(name))text=cleanSubs(await file.text());
+    else if(TEXT_EXT.test(name)||/^text\//.test(type))text=await file.text();
+    else{job("Bu dosya türü desteklenmiyor: "+esc(name),null);setTimeout(()=>job(null),4000);return}
+    if(/\.html?$/i.test(name)){const d=new DOMParser().parseFromString(text,"text/html");text=d.body?d.body.innerText||d.body.textContent:text}
+    text=text.replace(/\s+/g," ").trim();
+    if(!text){job("Dosyada okunabilir metin bulunamadı (taranmış bir PDF olabilir).",null);setTimeout(()=>job(null),5000);return}
+    job(`${esc(name)}: ${fmt(text.split(" ").length)} kelime oynatılıyor`,null);setTimeout(()=>job(null),3000);
+    atStart=true;enqueue(text);
+  }catch(e){console.error(e);job("Dosya işlenemedi: "+esc(String(e.message||e)),null);setTimeout(()=>job(null),6000);srcOpen=false}
+}
 document.getElementById("paste").onclick=()=>dlg.showModal();
 document.getElementById("cancel").onclick=()=>dlg.close();
-document.getElementById("playTxt").onclick=()=>{
-  const text=document.getElementById("txt").value.trim();if(!text)return;dlg.close();
-  const toks=text.split(/\s+/);let i=0;atStart=true;const wps=+document.getElementById("wps").value;clearInterval(playTimer);
-  const per=Math.max(1,Math.round(wps/30));let line="";
-  playTimer=setInterval(()=>{for(let j=0;j<per&&i<toks.length;j++,i++){ingest(toks[i]);line+=(line?" ":"")+toks[i];if(/[.!?]$/.test(toks[i])){transcript+=(transcript?" ":"")+line;line=""}}
-    showCap(transcript,line);if(i>=toks.length){clearInterval(playTimer);flushAll();if(line)transcript+=" "+line;if(nWords>=30)setTimeout(openReport,800)}},Math.max(33,1000/wps));
-};
+document.getElementById("playTxt").onclick=()=>{const text=document.getElementById("txt").value.trim();if(!text)return;dlg.close();atStart=true;enqueue(text)};
+document.getElementById("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)handleFile(f)};
+const dz=document.getElementById("drop");
+dz.onclick=()=>document.getElementById("file").click();
+dz.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();document.getElementById("file").click()}};
+for(const el of [document.body]){
+  el.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("over")});
+  el.addEventListener("dragleave",()=>dz.classList.remove("over"));
+  el.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("over");const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f)})}
 // ---------- analiz ----------
 let RES=0.75;
 function louvain(n,edges,res){
@@ -538,7 +630,7 @@ function nodeColor(n){if(!clusterOn)return TYPE_C[n.type||"kelime"];const i=clus
 // ---------- araçlar ----------
 document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
 document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
-document.getElementById("reset").onclick=()=>{clearInterval(playTimer);words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+document.getElementById("reset").onclick=()=>{clearInterval(playTimer);playTimer=null;Q=[];line="";cancelJob=true;words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];clusterOn=false;document.getElementById("clBtn").setAttribute("aria-pressed","false");renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
 // hover
 const tip=document.getElementById("tip");
 cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;

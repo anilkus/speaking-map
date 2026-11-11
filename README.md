@@ -7,7 +7,7 @@ Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli g�
 | Sayfa | Ne yapar |
 |---|---|
 | [`nutuk.html`](nutuk.html) | Nutuk'u cümle cümle "konuşturur". Kelimeler ilk söylendiklerinde düğüm olarak doğar, aynı cümlede geçen kelimeler bağlanır. 1× hız gerçek konuşma temposudur (Nutuk ~36 saatte okunmuştu). |
-| [`canli.html`](canli.html) | Mikrofondan konuşmayı dinler, konuştukça kelime ağını anlık kurar. Türkçe ve İngilizce. Mikrofon yoksa metin yapıştırıp oynatılabilir. |
+| [`canli.html`](canli.html) | Mikrofondan konuşmayı dinler, konuştukça kelime ağını anlık kurar. Türkçe ve İngilizce. Ayrıca metin, belge (.pdf, .docx, .txt), altyazı (.srt, .vtt) ya da ses/video dosyası eklenebilir. |
 | [`kelime-bulutu.html`](kelime-bulutu.html) | En sık geçen 180 kelimenin bulutu ve tablosu; kelimeye tıklayınca örnek cümleler. |
 
 ## Yöntem
@@ -28,6 +28,14 @@ Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıkl
 - Chrome'da ses, metne çevrilmek üzere Google'ın sunucularına gönderilir. Oluşan kelimeler ve ağ yalnızca tarayıcıda tutulur, hiçbir yere kaydedilmez.
 - Mikrofon yalnızca https üzerinden (GitHub Pages gibi) veya `localhost`'ta çalışır.
 - Süre sınırı yok: tarayıcı tanıma oturumunu kapattığında sayfa otomatik yeniden başlatır. Kelime sayısı da sınırsız; ekranda en sık 130 kelime gösterilir, geri kalanı arka planda sayılmaya devam eder.
+
+## Dosya, belge, ses ve video eklemek
+
+**＋ Dosya / metin** düğmesiyle ya da dosyayı sayfaya sürükleyerek:
+
+- **Metin ve belgeler:** .txt, .md, .pdf ([pdf.js](https://mozilla.github.io/pdf.js/)), .docx ([mammoth](https://github.com/mwilliamson/mammoth.js)). Taranmış (görüntü) PDF'lerde metin olmadığı için çalışmaz.
+- **Altyazılar:** .srt, .vtt (zaman damgaları ve etiketler temizlenir). YouTube videolarının altyazısını indirip buradan yükleyebilirsin.
+- **Ses ve video:** .mp3, .wav, .m4a, .mp4, .webm, .mov... Ses, [Transformers.js](https://github.com/huggingface/transformers.js) ile tarayıcıda çalışan **Whisper** modeliyle yazıya dökülür; dosya hiçbir sunucuya gönderilmez. Model ilk kullanımda Hugging Face'ten indirilir (tiny ~40 MB, base ~80 MB, small ~250 MB) ve tarayıcıda saklanır. Ses 60 saniyelik bloklar halinde işlenir, ağ her blok yazıya döküldükçe büyür. Hız bilgisayara bağlıdır; uzun kayıtlarda bekleme süresi gösterilir ve işlem iptal edilebilir. En fazla 700 MB.
 
 ## Konuşma raporu
 
