@@ -27,6 +27,18 @@ Canlı sürümde lemmatizasyon tarayıcıda çalışan basit bir ek ayıklayıc�
 - Mikrofon yalnızca https üzerinden (GitHub Pages gibi) veya `localhost`'ta çalışır.
 - Süre sınırı yok: tarayıcı tanıma oturumunu kapattığında sayfa otomatik yeniden başlatır. Kelime sayısı da sınırsız; ekranda en sık 130 kelime gösterilir, geri kalanı arka planda sayılmaya devam eder.
 
+## Konuşma raporu
+
+Canlı sayfada **📊 Rapor** (mikrofon durdurulunca otomatik açılır) şunları verir:
+
+- **Özet:** toplam/anlamlı kelime, farklı kök sayısı, konuşma hızı (kelime/dk, yalnız mikrofonda), kelime çeşitliliği (MATTR, 100 kelimelik kayan pencere), dinleme süresi
+- **Konu kümeleri:** kelimeler birlikte geçme benzerliğine (kosinüs, her kelime için en yakın 6 komşu) göre Louvain yöntemiyle kümelenir; **Kümeler** düğmesi ağı bu kümelere göre renklendirir
+- **Çıkarımlar:** ana eksen, konu sayısı, farklı konuları bağlayan köprü kelime, konuşmanın akışı (başta / ortada / sonda öne çıkan kelimeler), çeşitlilik ve hız yorumu, dolgu kelime oranı ("yani", "işte", "şey"...)
+- **En sık kelimeler, en güçlü bağlar** ve en çok bağlantı kuran kelimeler
+- Rapor Markdown olarak kopyalanabilir ya da indirilebilir
+
+Çıkarımlar kural tabanlıdır (eşikler yaklaşık değerlerdir), herhangi bir yapay zekâ servisine veri gönderilmez.
+
 ## Yeniden üretmek
 
 ```bash

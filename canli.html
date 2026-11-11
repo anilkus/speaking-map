@@ -40,13 +40,31 @@ dialog h2{font-family:"Source Serif 4",Georgia,serif;margin:0 0 8px;font-size:20
 dialog p{color:var(--text2);font-size:13px;margin:0 0 10px}
 textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
 .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
-@media (max-width:640px){#cap{font-size:15px}.stats{margin-left:0}}
+#report{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--surface);border-left:1px solid var(--border);overflow:auto;padding:18px 18px 24px;z-index:4;box-shadow:-12px 0 30px rgba(0,0,0,.35)}
+.rp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+#report h2{font-family:"Source Serif 4",Georgia,serif;font-size:22px;margin:0}
+#report h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 0 8px;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.kpi b{display:block;font-size:17px;font-variant-numeric:tabular-nums}.kpi span{font-size:11px;color:var(--muted)}
+.ins{margin:0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--text2)}.ins li{margin-bottom:7px}.ins b{color:var(--text)}
+.cl{border-bottom:2px solid var(--c);color:var(--text)}
+.bars .br{display:grid;grid-template-columns:110px 1fr 34px;gap:8px;align-items:center;font-size:13px;margin-bottom:5px}
+.bl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bt{height:10px}.bt i{display:block;height:100%;background:var(--node);border-radius:0 4px 4px 0}
+.bv{text-align:right;color:var(--text2);font-variant-numeric:tabular-nums}
+.clu{display:flex;gap:10px;margin-bottom:10px;font-size:13px}.sw{width:12px;height:12px;border-radius:50%;flex:none;margin-top:3px}.cw{color:var(--text2);margin-top:2px}
+.pairs div,.flow div{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
+.pairs b{font-variant-numeric:tabular-nums}.flow span{color:var(--muted);min-width:56px}.flow b{text-align:right;font-weight:500}
+.note-r{font-size:12px;color:var(--muted);line-height:1.55}.note-r b{color:var(--text2);font-weight:600}
+.empty-r{color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+@media (max-width:640px){#cap{font-size:15px}.stats{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}#report{position:fixed;inset:0;width:100%;z-index:20}}
 </style>
 </head>
 <body>
 <div class="app">
 <header>
-  <div><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
+  <div><a href="./" style="font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;letter-spacing:.04em">SPEAKING MAP</a><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
   <div class="stats">
     <div class="stat"><b id="sW">0</b><span>kelime</span></div>
     <div class="stat"><b id="sN">0</b><span>düğüm</span></div>
@@ -56,9 +74,10 @@ textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1
 </header>
 <div class="stage" id="stage">
   <canvas id="cv"></canvas>
-  <div class="legend"><span><i style="background:var(--node)"></i>Kelime (boyu = tekrar sayısı)</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span></div>
+  <div class="legend" id="legend"><span><i style="background:var(--node)"></i>Kelime (boyu = tekrar sayısı)</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span></div>
   <div id="empty">Başlamak için aşağıdan <b>&nbsp;Dinlemeye başla&nbsp;</b> düğmesine bas ve konuşmaya başla.</div>
   <div id="tip"></div>
+  <aside id="report" hidden></aside>
 </div>
 <div class="caption"><div id="cap"></div></div>
 <div class="controls">
@@ -66,6 +85,8 @@ textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1
   <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
   <button class="btn" id="paste">Metin yapıştır</button>
   <span class="spacer"></span>
+  <button class="btn" id="clBtn" aria-pressed="false">Kümeler</button>
+  <button class="btn" id="rpBtn">📊 Rapor</button>
   <button class="btn" id="copy">Metni kopyala</button>
   <button class="btn" id="png">PNG indir</button>
   <button class="btn" id="reset">Temizle</button>
@@ -90,7 +111,7 @@ textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1
 <script>
 // ---------- dil işleme ----------
 const trLower=s=>s.replace(/I/g,"ı").replace(/İ/g,"i").toLowerCase();
-const STOP_TR=new Set(`ve veya ile ki de da bu şu o bir iki her hiç çok daha en pek gibi kadar için diye ama fakat lakin ancak yalnız ise ya mi mı mu mü ne niçin nasıl neden niye hem dahi bile zaten artık şimdi sonra önce yine tekrar ben sen biz siz onlar kendi böyle şöyle öyle bunlar şunlar orada burada şey şeyler bazı birçok diğer başka var yok değil olarak olan olduğu üzere dair rağmen göre karşı doğru beri ait aynı yani mesela belki elbette hatta işte hani falan filan tamam evet hayır ee eee ıı hmm aa yok bunu buna bunun bundan onu ona onun ondan şunu bizim bize bizi sizin size sizi benim bana beni onların onlara onları kim kimi hangi bütün tüm hep hiçbir biraz bazen sadece bence galiba acaba lütfen teşekkür ederim tabii tabi oldu olur olsun olmuş olacak oluyor olmak etmek yapmak ediyor ediyorum ettik ettim yaptık yaptım yapıyor yapıyoruz diyor dedim dedi demek gibi şimdi bugün yarın dün iyi kötü büyük küçük çünkü eğer veyahut şeyi şeyin şeye mı mi mu mü misin mısın musun müsün miyiz mıyız var mı yok mu sanki aslında açıkçası olabilir lazım gerek gerekiyor istiyorum istiyoruz bakın bak bakalım arkadaşlar efendim`.split(/\s+/));
+const STOP_TR=new Set(`ve veya ile ki de da bu şu o bir iki her hiç çok daha en pek gibi kadar için diye ama fakat lakin ancak yalnız ise ya mi mı mu mü ne niçin nasıl neden niye hem dahi bile zaten artık şimdi sonra önce yine tekrar ben sen biz siz onlar kendi böyle şöyle öyle bunlar şunlar orada burada şey şeyler bazı birçok diğer başka var yok değil olarak olan olduğu üzere dair rağmen göre karşı doğru beri ait aynı yani mesela belki elbette hatta işte hani falan filan tamam evet hayır ee eee ıı hmm aa yok bunu buna bunun bundan onu ona onun ondan şunu bizim bize bizi sizin size sizi benim bana beni onların onlara onları kim kimi hangi bütün tüm hep hiçbir biraz bazen sadece bence galiba acaba lütfen teşekkür ederim tabii tabi oldu olur olsun olmuş olacak oluyor olmak etmek yapmak ediyor ediyorum ettik ettim yaptık yaptım yapıyor yapıyoruz diyor dedim dedi demek gibi şimdi bugün yarın dün iyi kötü büyük küçük çünkü eğer veyahut şeyi şeyin şeye mı mi mu mü misin mısın musun müsün miyiz mıyız var mı yok mu sanki aslında açıkçası olabilir lazım gerek gerekiyor idi idir imiş olduğunu olduğu ettiği eden edilen edildi tarafından beraber istiyorum istiyoruz istiyor gelelim geçelim olduktan son bakın bak bakalım arkadaşlar efendim`.split(/\s+/));
 const STOP_EN=new Set(`the a an and or but if then so to of in on at by for with from as is are was were be been being am do does did have has had i you he she it we they me him her us them my your his its our their this that these those there here what which who whom whose when where why how all any both each few more most other some such no nor not only own same than too very can will just should now also about into over after before again once up down out off ok okay yeah yes um uh like really actually basically gonna wanna get got go going know think mean thing things lot well right`.split(/\s+/));
 const SUF=["lerinden","larından","lerinde","larında","lerini","larını","lerine","larına","lerin","ların","leri","ları","ler","lar","ımızın","imizin","ımızı","imizi","ımız","imiz","umuz","ümüz","ınız","iniz","unuz","ünüz","ndan","nden","nın","nin","nun","nün","dan","den","tan","ten","nda","nde","yla","yle","da","de","ta","te","ın","in","un","ün","ım","im","um","üm","sı","si","su","sü","yı","yi","yu","yü","ya","ye","na","ne","ı","i","u","ü","a","e"];
 let LANG="tr-TR";
@@ -111,10 +132,14 @@ function key(raw){
 // ---------- durum ----------
 const MAXN=130, WIN=6;
 let words=new Map(); // k -> node
+let rawWords=0,rawMicWords=0,fillers=new Map(),seqKeys=[],micMs=0,micStart=null;
+const FILL_TR=new Set("yani işte şey hani falan filan ee eee ııı ıı hmm aslında açıkçası tabii".split(" ")),FILL_EN=new Set("um uh umm erm like basically actually literally".split(" "));
 let E=new Map(), TOPE=[], maxW=1, buf=[], nWords=0, transcript="", startT=null, lastWordT=0;
 function label(n){let best="",bc=-1;for(const [f,c] of n.forms)if(c>bc){bc=c;best=f}return best}
-function ingest(raw){
-  const r=key(raw);if(!r)return;
+function ingest(raw,src){
+  const lw=(LANG.startsWith("tr")?trLower(raw):raw.toLowerCase()).replace(/[^\p{L}]/gu,"");
+  if(lw){rawWords++;if(src==="mic")rawMicWords++;if((LANG.startsWith("tr")?FILL_TR:FILL_EN).has(lw))fillers.set(lw,(fillers.get(lw)||0)+1)}
+  const r=key(raw);if(!r)return;seqKeys.push(r.k);
   const now=performance.now();if(now-lastWordT>6000)buf=[];lastWordT=now;
   if(!startT)startT=Date.now();
   let n=words.get(r.k);
@@ -170,13 +195,13 @@ function draw(){
   const hv=hover,nbr=k=>hv&&E.has((hv.k<k?hv.k+"|"+k:k+"|"+hv.k));
   for(let t=TOPE.length-1;t>=0;t--){const e=TOPE[t],p=words.get(e.a),q=words.get(e.b);
     const s=e.w/maxW;let a=0.07+0.35*Math.sqrt(s)+0.55*e.pulse,col=e.pulse>0.05?C.hot:C.edge;
-    if(hv){if(p===hv||q===hv){a=0.3+0.6*Math.sqrt(s);col=C.node}else a*=0.25}
+    if(hv){if(p===hv||q===hv){a=0.3+0.6*Math.sqrt(s);col=nodeColor(hv)}else a*=0.25}
     ctx.strokeStyle=rgba(col,Math.min(.95,a));ctx.lineWidth=0.7+3*Math.sqrt(s)+1.5*e.pulse;
     ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
   const act=shown.slice().sort((a,b)=>a.c-b.c);
   for(const n of act){const r=radius(n)*(1+0.3*n.pulse)*Math.min(1,n.age/15+.2);const dim=hv&&hv!==n&&!nbr(n.k);
     if(n.pulse>0.05){ctx.fillStyle=rgba(C.hot,0.22*n.pulse);ctx.beginPath();ctx.arc(n.x,n.y,r+12*n.pulse+4,0,7);ctx.fill()}
-    const mix=n.pulse;const cn=parseInt(C.node.slice(1),16),ch=parseInt(C.hot.slice(1),16);
+    const mix=n.pulse;const cn=parseInt(nodeColor(n).slice(1),16),ch=parseInt(C.hot.slice(1),16);
     const R=((cn>>16&255)*(1-mix)+(ch>>16&255)*mix)|0,G=((cn>>8&255)*(1-mix)+(ch>>8&255)*mix)|0,B=((cn&255)*(1-mix)+(ch&255)*mix)|0;
     ctx.fillStyle=`rgba(${R},${G},${B},${dim?0.25:0.95})`;ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fill();ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke()}
   ctx.textAlign="center";ctx.textBaseline="middle";const boxes=[];
@@ -194,6 +219,7 @@ function loop(){
   sim.tick();
   for(const n of shown){const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+34,Math.min(H-r,n.y));n.pulse*=0.96;n.age++}
   for(const e of TOPE)e.pulse*=0.95;
+  if(clusterOn&&performance.now()-lastClusterT>2000){lastClusterT=performance.now();clusterize();renderLegend()}
   draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
 }
 const fmt=n=>n.toLocaleString("tr-TR");
@@ -215,16 +241,16 @@ function startRec(){
   rec.onresult=e=>{let interim="";
     for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i],t=res[0].transcript.trim(),ws=t.split(/\s+/).filter(Boolean);
       const upto=res.isFinal?ws.length:Math.max(0,ws.length-1);const from=done[i]||0;
-      for(let k=from;k<upto;k++)ingest(ws[k]);done[i]=Math.max(from,upto);
+      for(let k=from;k<upto;k++)ingest(ws[k],"mic");done[i]=Math.max(from,upto);
       if(res.isFinal){transcript+=(transcript?" ":"")+t}else interim+=t+" "}
     showCap(transcript,interim.trim())};
   rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
   rec.onend=()=>{if(listening){try{startRec()}catch(_){}}};
   try{rec.start()}catch(_){}
 }
-function stopRec(){listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary")}
-micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
-document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){stopRec();listening=true;micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
+function stopRec(){if(micStart){micMs+=Date.now()-micStart;micStart=null}const was=listening;listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary");if(was&&nWords>=30)openReport()}
+micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
+document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
 // ---------- metinden oynat ----------
 const dlg=document.getElementById("dlg");let playTimer=null;
 document.getElementById("paste").onclick=()=>dlg.showModal();
@@ -234,12 +260,128 @@ document.getElementById("playTxt").onclick=()=>{
   const toks=text.split(/\s+/);let i=0;const wps=+document.getElementById("wps").value;clearInterval(playTimer);
   const per=Math.max(1,Math.round(wps/30));let line="";
   playTimer=setInterval(()=>{for(let j=0;j<per&&i<toks.length;j++,i++){ingest(toks[i]);line+=(line?" ":"")+toks[i];if(/[.!?]$/.test(toks[i])){transcript+=(transcript?" ":"")+line;line=""}}
-    showCap(transcript,line);if(i>=toks.length){clearInterval(playTimer);if(line)transcript+=" "+line}},Math.max(33,1000/wps));
+    showCap(transcript,line);if(i>=toks.length){clearInterval(playTimer);if(line)transcript+=" "+line;if(nWords>=30)setTimeout(openReport,800)}},Math.max(33,1000/wps));
 };
+// ---------- analiz ----------
+let RES=0.75;
+function louvain(n,edges,res){
+  let comm=[...Array(n).keys()];
+  let N=n,E2=edges.slice(),map=[...Array(n).keys()];
+  for(let level=0;level<6;level++){
+    const adj=Array.from({length:N},()=>new Map());let m2=0;
+    for(const [i,j,w] of E2){if(i===j){adj[i].set(i,(adj[i].get(i)||0)+2*w);m2+=2*w;continue}adj[i].set(j,(adj[i].get(j)||0)+w);adj[j].set(i,(adj[j].get(i)||0)+w);m2+=2*w}
+    if(m2===0)break;
+    const k=adj.map(m=>{let s=0;for(const v of m.values())s+=v;return s});
+    const c=[...Array(N).keys()],tot=k.slice();let moved=true,any=false,guard=0;
+    while(moved&&guard++<30){moved=false;
+      for(let i=0;i<N;i++){const ci=c[i];tot[ci]-=k[i];const wt=new Map();
+        for(const [j,w] of adj[i])if(j!==i)wt.set(c[j],(wt.get(c[j])||0)+w);
+        let best=ci,bg=(wt.get(ci)||0)-res*tot[ci]*k[i]/m2;
+        for(const [cc,w] of wt){const g=w-res*tot[cc]*k[i]/m2;if(g>bg+1e-12){bg=g;best=cc}}
+        c[i]=best;tot[best]+=k[i];if(best!==ci){moved=true;any=true}}}
+    if(!any)break;
+    const ren=new Map();c.forEach(x=>{if(!ren.has(x))ren.set(x,ren.size)});
+    map=map.map(x=>ren.get(c[x]));
+    const agg=new Map();for(const [i,j,w] of E2){const a=ren.get(c[i]),b=ren.get(c[j]);const key=a<b?a+","+b:b+","+a;agg.set(key,(agg.get(key)||0)+w)}
+    E2=[...agg].map(([kk,w])=>{const [a,b]=kk.split(",").map(Number);return [a,b,w]});N=ren.size}
+  return map}
+const PAL=["#3987e5","#d95926","#199e70","#c98500","#d55181","#9085e9"],OTHER="#6b6a65";
+let clusterOn=false,clusterOf=new Map(),clusterList=[],lastClusterT=0;
+function clusterize(){
+  const nodes=shown.slice(),idx=new Map(nodes.map((n,i)=>[n.k,i])),L=nodes.length;
+  const nbrs=nodes.map(()=>[]);
+  for(let i=0;i<L;i++){const cand=[];
+    for(let j=0;j<L;j++){if(i===j)continue;const e=E.get(ek(nodes[i].k,nodes[j].k));if(!e||e.w<2)continue;
+      cand.push([j,e.w/Math.sqrt(nodes[i].c*nodes[j].c)])}
+    cand.sort((a,b)=>b[1]-a[1]);for(const [j,s] of cand.slice(0,6)){nbrs[i].push([j,s]);nbrs[j].push([i,s])}}
+  const ed=[];for(let i=0;i<L;i++)for(const [j,s] of nbrs[i])if(i<j)ed.push([i,j,s]);
+  const lab=louvain(L,ed,RES);
+  const groups=new Map();nodes.forEach((n,i)=>{if(!groups.has(lab[i]))groups.set(lab[i],[]);groups.get(lab[i]).push(n)});
+  let cl=[...groups.values()].filter(g=>g.length>=3).map(g=>{g.sort((a,b)=>b.c-a.c);return {nodes:g,total:g.reduce((s,n)=>s+n.c,0)}}).sort((a,b)=>b.total-a.total).slice(0,PAL.length);
+  cl.forEach((c,i)=>{c.color=PAL[i];c.name=c.nodes.slice(0,3).map(label).join(" · ")});
+  clusterOf=new Map();cl.forEach((c,i)=>c.nodes.forEach(n=>clusterOf.set(n.k,i)));
+  clusterList=cl;
+  // köprü: komşuları en çok farklı kümeye dağılan kelime
+  let bridge=null,bs=0;
+  nodes.forEach((n,i)=>{const set=new Set(nbrs[i].map(([j])=>clusterOf.get(nodes[j].k)).filter(x=>x!==undefined));if(set.size>=2){const s=set.size*Math.sqrt(n.c);if(s>bs){bs=s;bridge=n}}});
+  return {clusters:cl,bridge};
+}
+function mattr(keys,win=100){if(keys.length<win){return keys.length?new Set(keys).size/keys.length:0}
+  const cnt=new Map();let uniq=0,sum=0,nW=0;
+  for(let i=0;i<keys.length;i++){const k=keys[i];const v=(cnt.get(k)||0)+1;cnt.set(k,v);if(v===1)uniq++;
+    if(i>=win){const o=keys[i-win];const ov=cnt.get(o)-1;cnt.set(o,ov);if(ov===0)uniq--}
+    if(i>=win-1){sum+=uniq/win;nW++}}
+  return sum/nW}
+function flow(){const n=seqKeys.length;if(n<60)return null;
+  const tot=new Map();for(const k of seqKeys)tot.set(k,(tot.get(k)||0)+1);
+  const parts=[0,1,2].map(p=>{const a=Math.floor(n*p/3),b=Math.floor(n*(p+1)/3),m=new Map();for(let i=a;i<b;i++)m.set(seqKeys[i],(m.get(seqKeys[i])||0)+1);
+    return [...m].filter(([k,c])=>c>=2).map(([k,c])=>({k,c,lift:c/((tot.get(k))/3)})).sort((x,y)=>(y.lift*Math.log1p(y.c))-(x.lift*Math.log1p(x.c))).slice(0,4).map(o=>words.get(o.k)).filter(Boolean)});
+  return parts}
+function fmtDur(ms){const s=Math.round(ms/1000);return Math.floor(s/60)+" dk "+String(s%60).padStart(2,"0")+" sn"}
+function buildReport(){
+  const {clusters,bridge}=clusterize();
+  const all=[...words.values()].sort((a,b)=>b.c-a.c);
+  const top10=all.slice(0,10);
+  const pairs=[...E.values()].filter(e=>e.w>=2).sort((a,b)=>b.w-a.w).slice(0,8).map(e=>[label(words.get(e.a)),label(words.get(e.b)),e.w]);
+  const deg=new Map();for(const e of E.values()){deg.set(e.a,(deg.get(e.a)||0)+1);deg.set(e.b,(deg.get(e.b)||0)+1)}
+  const hubs=[...deg].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,d])=>({w:label(words.get(k)),d}));
+  const div=mattr(seqKeys);
+  const listenMs=micMs+(micStart?Date.now()-micStart:0);
+  const wpm=listenMs>30000&&rawMicWords>20?Math.round(rawMicWords/(listenMs/60000)):null;
+  const fill=[...fillers].sort((a,b)=>b[1]-a[1]);const fillN=fill.reduce((s,x)=>s+x[1],0);
+  const fl=flow();
+  const once=all.filter(n=>n.c===1).length;
+  const ins=[];
+  if(top10.length)ins.push(`Konuşmanın ana ekseni <b>${esc(label(top10[0]))}</b> (${top10[0].c} kez)`+(top10[1]?`, onu <b>${esc(label(top10[1]))}</b> ve <b>${esc(label(top10[2]||top10[1]))}</b> izliyor.`:"."));
+  if(clusters.length>=2)ins.push(`Konuşma ${clusters.length} belirgin konu etrafında toplanıyor: ${clusters.map(c=>`<span class="cl" style="--c:${c.color}">${esc(c.name)}</span>`).join(", ")}.`);
+  else if(clusters.length===1)ins.push(`Konuşma tek bir konu etrafında yoğunlaşıyor: <span class="cl" style="--c:${clusters[0].color}">${esc(clusters[0].name)}</span>.`);
+  if(bridge)ins.push(`<b>${esc(label(bridge))}</b> farklı konuları birbirine bağlayan köprü kelime.`);
+  if(fl){const a=fl[0].slice(0,2).map(label),c=fl[2].slice(0,2).map(label);if(a.length&&c.length)ins.push(`Başta <b>${esc(a.join(", "))}</b> öne çıkıyor, sonlara doğru konu <b>${esc(c.join(", "))}</b> tarafına kayıyor.`)}
+  if(seqKeys.length>=100)ins.push(`Kelime çeşitliliği ${div>=0.8?"yüksek":div>=0.65?"orta":"düşük"} (${div.toFixed(2)}): ${div>=0.8?"konuşma geniş bir sözcük dağarcığıyla ilerliyor.":div>=0.65?"bazı kavramlar bilinçli olarak tekrar ediliyor.":"aynı kelimelere sık dönülüyor, konuşma birkaç kavrama odaklı."}`);
+  if(wpm)ins.push(`Konuşma hızı dakikada yaklaşık <b>${wpm}</b> kelime: ${wpm<110?"sakin ve yavaş bir tempo.":wpm<=160?"rahat takip edilen, doğal bir tempo.":"hızlı bir tempo, dinleyici için yer yer zorlayıcı olabilir."}`);
+  if(rawWords>=50&&fillN>0){const r=fillN/rawWords*100;ins.push(`Dolgu kelimeler toplam kelimelerin %${r.toFixed(1)}'i${fill.length?` (en çok "${esc(fill[0][0])}", ${fill[0][1]} kez)`:""}: ${r<2?"oldukça akıcı.":r<5?"normal düzeyde.":"azaltılabilir."}`)}
+  return {clusters,bridge,top10,pairs,hubs,div,wpm,fill,fillN,fl,once,ins,listenMs};
+}
+const drawer=document.getElementById("report");
+function openReport(){
+  if(nWords<5){drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div><p class="empty-r">Rapor için biraz daha konuşman gerekiyor.</p>`;drawer.hidden=false;document.getElementById("rpClose").onclick=closeReport;return}
+  const R=buildReport();clusterOn=true;document.getElementById("clBtn").setAttribute("aria-pressed","true");
+  const mx=R.top10[0].c;
+  const card=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div>
+  <div class="kpis">${card(fmt(rawWords),"toplam kelime")}${card(fmt(nWords),"anlamlı kelime")}${card(fmt(words.size),"farklı kök")}${card(R.wpm?R.wpm:"–","kelime/dk")}${card(seqKeys.length>=100?R.div.toFixed(2):"–","çeşitlilik")}${card(R.listenMs>0?fmtDur(R.listenMs):"–","dinleme süresi")}</div>
+  <h3>Çıkarımlar</h3><ul class="ins">${R.ins.map(s=>`<li>${s}</li>`).join("")}</ul>
+  <h3>En sık 10 kelime</h3><div class="bars">${R.top10.map(n=>`<div class="br"><span class="bl">${esc(label(n))}</span><span class="bt"><i style="width:${(n.c/mx*100).toFixed(1)}%"></i></span><span class="bv">${n.c}</span></div>`).join("")}</div>
+  ${R.clusters.length?`<h3>Konu kümeleri</h3>${R.clusters.map(c=>`<div class="clu"><span class="sw" style="background:${c.color}"></span><div><b>${esc(c.name)}</b><div class="cw">${c.nodes.slice(0,10).map(label).map(esc).join(", ")}</div></div></div>`).join("")}`:""}
+  ${R.pairs.length?`<h3>En güçlü bağlar</h3><div class="pairs">${R.pairs.map(([a,b,w])=>`<div><span>${esc(a)} — ${esc(b)}</span><b>${w}</b></div>`).join("")}</div>`:""}
+  ${R.fl?`<h3>Konuşmanın akışı</h3><div class="flow">${["Başta","Ortada","Sonda"].map((t,i)=>`<div><span>${t}</span><b>${R.fl[i].map(label).map(esc).join(", ")||"–"}</b></div>`).join("")}</div>`:""}
+  ${R.hubs.length?`<h3>En çok bağlantı kuran kelimeler</h3><p class="note-r">${R.hubs.map(h=>`<b>${esc(h.w)}</b> (${h.d} farklı kelimeyle)`).join(", ")}</p>`:""}
+  ${R.fill.length?`<h3>Dolgu kelimeler</h3><p class="note-r">${R.fill.slice(0,6).map(([w,c])=>`${esc(w)} ×${c}`).join(", ")}</p>`:""}
+  <p class="note-r">Kümeler birlikte geçme sıklığına göre otomatik bulunur, ağdaki renkler bu kümeleri gösterir. Çeşitlilik 100 kelimelik kayan pencereyle ölçülür (MATTR); hız yalnızca mikrofonla ölçülür. ${R.once} kök yalnızca bir kez geçti.</p>
+  <div class="row"><button class="btn" id="rpCopy">Raporu kopyala</button><button class="btn" id="rpMd">Markdown indir</button></div>`;
+  drawer.hidden=false;
+  document.getElementById("rpClose").onclick=closeReport;
+  const md=()=>{const t=document.createElement("div");return "# Speaking Map · Konuşma raporu\n\n"+
+    `- Toplam kelime: ${rawWords}\n- Anlamlı kelime: ${nWords}\n- Farklı kök: ${words.size}\n`+(R.wpm?`- Hız: ${R.wpm} kelime/dk\n`:"")+(seqKeys.length>=100?`- Çeşitlilik (MATTR): ${R.div.toFixed(2)}\n`:"")+
+    "\n## Çıkarımlar\n\n"+R.ins.map(s=>{t.innerHTML=s;return "- "+t.textContent}).join("\n")+
+    "\n\n## En sık kelimeler\n\n"+R.top10.map((n,i)=>`${i+1}. ${label(n)} (${n.c})`).join("\n")+
+    (R.clusters.length?"\n\n## Konu kümeleri\n\n"+R.clusters.map(c=>`- **${c.name}**: ${c.nodes.slice(0,10).map(label).join(", ")}`).join("\n"):"")+
+    (R.pairs.length?"\n\n## En güçlü bağlar\n\n"+R.pairs.map(([a,b,w])=>`- ${a} – ${b} (${w})`).join("\n"):"")+"\n"};
+  document.getElementById("rpCopy").onclick=async e=>{try{await navigator.clipboard.writeText(md());e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Raporu kopyala",1500)};
+  document.getElementById("rpMd").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([md()],{type:"text/markdown"}));a.download="konusma-raporu.md";a.click()};
+}
+function closeReport(){drawer.hidden=true}
+document.getElementById("rpBtn").onclick=()=>drawer.hidden?openReport():closeReport();
+document.getElementById("clBtn").onclick=e=>{clusterOn=!clusterOn;e.currentTarget.setAttribute("aria-pressed",clusterOn);if(clusterOn)clusterize();renderLegend()};
+function renderLegend(){const lg=document.getElementById("legend");
+  if(clusterOn&&clusterList.length)lg.innerHTML=clusterList.map(c=>`<span><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join("")+`<span><i style="background:${OTHER}"></i>Diğer</span>`;
+  else lg.innerHTML=`<span><i style="background:var(--node)"></i>Kelime (boyu = tekrar sayısı)</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span>`}
+function nodeColor(n){if(!clusterOn)return C.node;const i=clusterOf.get(n.k);return i===undefined?OTHER:PAL[i]}
+
 // ---------- araçlar ----------
 document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
 document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
-document.getElementById("reset").onclick=()=>{clearInterval(playTimer);words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+document.getElementById("reset").onclick=()=>{clearInterval(playTimer);words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
 // hover
 const tip=document.getElementById("tip");
 cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;
