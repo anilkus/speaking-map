@@ -41,10 +41,11 @@ Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıkl
 
 Canlı sayfada **📊 Rapor** (mikrofon durdurulunca otomatik açılır) şunları verir:
 
-- **Özet:** toplam/anlamlı kelime, farklı kök sayısı, konuşma hızı (kelime/dk, yalnız mikrofonda), kelime çeşitliliği (MATTR, 100 kelimelik kayan pencere), dinleme süresi
+- **Otomatik özet:** konuşmayı en iyi temsil eden 3, 5 ya da 8 cümle, özgün sırasıyla. Kelime ağına PageRank uygulanır (TextRank, Mihalcea ve Tarau 2004), cümleler içerdikleri merkezi kelimelere göre puanlanır (Luhn 1958) ve birbirini tekrar eden cümleler elenir (MMR, Carbonell ve Goldstein 1998). Ayrıca her konu kümesi için onu en iyi temsil eden bir cümle seçilir.
+- **Sayılar:** toplam/anlamlı kelime, farklı kök sayısı, konuşma hızı (kelime/dk, yalnız mikrofonda), kelime çeşitliliği (MATTR, 100 kelimelik kayan pencere), dinleme süresi
 - **Konu kümeleri:** kelimeler birlikte geçme benzerliğine (kosinüs, her kelime için en yakın 6 komşu) göre Louvain yöntemiyle kümelenir; **Kümeler** düğmesi ağı bu kümelere göre renklendirir
 - **Çıkarımlar:** ana eksen, konu sayısı, farklı konuları bağlayan köprü kelime, konuşmanın akışı (başta / ortada / sonda öne çıkan kelimeler), çeşitlilik ve hız yorumu, dolgu kelime oranı ("yani", "işte", "şey"...)
-- **En sık kelimeler, en güçlü bağlar** ve en çok bağlantı kuran kelimeler
+- **En sık kelimeler, en güçlü bağlar** ve en merkezi kelimeler (PageRank)
 - Rapor Markdown olarak kopyalanabilir ya da indirilebilir
 
 Çıkarımlar kural tabanlıdır (eşikler yaklaşık değerlerdir), herhangi bir yapay zekâ servisine veri gönderilmez.
