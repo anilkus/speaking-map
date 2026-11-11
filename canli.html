@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Konuştukça Oluşan Kelime Ağı</title>
+<title>Speaking Map · Konuştukça oluşan ağ</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=Inter:wght@400;500;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#0f0f0e;--surface:#1a1a19;--border:#2e2d2b;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;--node:#3987e5;--hot:#d95926;--live:#e66767}
@@ -125,18 +125,22 @@ function ingest(raw){
   dirty=true;document.getElementById("empty").style.display="none";
 }
 let shown=[],dirty=false;
+const ek=(a,b)=>a<b?a+"|"+b:b+"|"+a;
+let lastRank=0;
 function rank(){
+  lastRank=performance.now();
   const all=[...words.values()].sort((a,b)=>b.c-a.c||b.last-a.last);
-  const set=new Set(all.slice(0,MAXN).map(n=>n.k));
-  for(const n of words.values()){
-    if(set.has(n.k)&&!n.born){const nb=[...E.values()].filter(e=>(e.a===n.k||e.b===n.k)).map(e=>words.get(e.a===n.k?e.b:e.a)).filter(o=>o&&o.born);
-      if(nb.length){const cx=nb.reduce((s,o)=>s+o.x,0)/nb.length,cy=nb.reduce((s,o)=>s+o.y,0)/nb.length;n.x=cx+(Math.random()-.5)*50;n.y=cy+(Math.random()-.5)*50}
-      else{const a=Math.random()*6.28,rr=Math.min(W,H)*0.2*Math.random();n.x=W/2+Math.cos(a)*rr;n.y=H/2+Math.sin(a)*rr}
-      n.vx=n.vy=0;n.born=true;n.age=0}
-    else if(!set.has(n.k))n.born=false;
-  }
-  shown=all.filter(n=>n.born);
-  const arr=[...E.values()].filter(e=>words.get(e.a).born&&words.get(e.b).born).sort((p,q)=>q.w-p.w);
+  const top=all.slice(0,MAXN),set=new Set(top.map(n=>n.k));
+  for(const n of words.values())if(n.born&&!set.has(n.k))n.born=false;
+  const born=top.filter(n=>n.born);
+  for(const n of top){if(n.born)continue;
+    const nb=born.filter(o=>E.has(ek(o.k,n.k)));
+    if(nb.length){const cx=nb.reduce((s,o)=>s+o.x,0)/nb.length,cy=nb.reduce((s,o)=>s+o.y,0)/nb.length;n.x=cx+(Math.random()-.5)*50;n.y=cy+(Math.random()-.5)*50}
+    else{const a=Math.random()*6.28,rr=Math.min(W,H)*0.2*Math.random();n.x=W/2+Math.cos(a)*rr;n.y=H/2+Math.sin(a)*rr}
+    n.vx=n.vy=0;n.born=true;n.age=0;born.push(n)}
+  shown=top;
+  const arr=[];for(let i=0;i<top.length;i++)for(let j=i+1;j<top.length;j++){const e=E.get(ek(top[i].k,top[j].k));if(e)arr.push(e)}
+  arr.sort((p,q)=>q.w-p.w);
   const pick=new Set(arr.slice(0,220));const per=new Map();
   for(const e of arr){const pa=per.get(e.a)||0,pb=per.get(e.b)||0;if(pa<3||pb<3){pick.add(e);per.set(e.a,pa+1);per.set(e.b,pb+1)}}
   TOPE=[...pick].sort((p,q)=>q.w-p.w);maxW=TOPE.length?TOPE[0].w:1;
@@ -186,7 +190,7 @@ function draw(){
 }
 let frame=0;
 function loop(){
-  if(dirty&&frame%4===0){rank();dirty=false;stats()}
+  if(dirty&&performance.now()-lastRank>200){rank();dirty=false;stats()}
   sim.tick();
   for(const n of shown){const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+34,Math.min(H-r,n.y));n.pulse*=0.96;n.age++}
   for(const e of TOPE)e.pulse*=0.95;

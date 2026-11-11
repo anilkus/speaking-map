@@ -1,6 +1,6 @@
-# Speaking Map: Nutuk Kelime Ağı
+# Speaking Map
 
-Atatürk'ün **Nutuk** (1919-1927) metnini kelime düzeyinde inceleyen üç etkileşimli görselleştirme, ayrıca mikrofonla konuştukça kendi kelime ağını kuran canlı bir sürüm.
+Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli görselleştirmeler: Atatürk'ün **Nutuk**'u (1919-1927) üzerine üç sayfa ve mikrofonla konuştukça kendi kelime ağını kuran canlı bir sürüm.
 
 **Canlı site:** https://anilkus.github.io/speaking-map/
 
@@ -25,6 +25,7 @@ Canlı sürümde lemmatizasyon tarayıcıda çalışan basit bir ek ayıklayıc�
 - Konuşma tanıma tarayıcının yerleşik **Web Speech API**'si ile yapılır: Chrome, Edge ve Safari'de çalışır, Firefox'ta çalışmaz.
 - Chrome'da ses, metne çevrilmek üzere Google'ın sunucularına gönderilir. Oluşan kelimeler ve ağ yalnızca tarayıcıda tutulur, hiçbir yere kaydedilmez.
 - Mikrofon yalnızca https üzerinden (GitHub Pages gibi) veya `localhost`'ta çalışır.
+- Süre sınırı yok: tarayıcı tanıma oturumunu kapattığında sayfa otomatik yeniden başlatır. Kelime sayısı da sınırsız; ekranda en sık 130 kelime gösterilir, geri kalanı arka planda sayılmaya devam eder.
 
 ## Yeniden üretmek
 
