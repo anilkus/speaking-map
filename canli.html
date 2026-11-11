@@ -42,8 +42,14 @@ dialog p{color:var(--text2);font-size:13px;margin:0 0 10px}
 #drop span{font-size:12px;color:var(--muted)}#drop.over,#drop:hover{border-color:var(--text2);background:var(--bg)}
 .asr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin-bottom:6px}
 .hint{font-size:12px!important;color:var(--muted)!important}
-#job{position:absolute;right:16px;top:10px;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;width:min(340px,80%);font-size:12px;color:var(--text2);display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#job{position:absolute;left:50%;transform:translateX(-50%);top:10px;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;width:min(340px,80%);font-size:12px;color:var(--text2);display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 #job[hidden]{display:none}
+#toast{position:absolute;left:50%;bottom:14px;transform:translate(-50%,12px);background:#163a2a;color:#e8f6ee;border:1px solid #2c6b4c;border-radius:999px;padding:9px 18px;font-size:15px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:6;text-align:center;max-width:90%}
+#toast.on{opacity:1;transform:translate(-50%,0)}#toast b{color:#7ee2ad}#toast span{display:block;font-size:12px;color:#a9d8bf}
+#trp{position:absolute;right:16px;top:44px;width:min(280px,42%);max-height:calc(100% - 60px);overflow:auto;background:rgba(26,26,25,.92);border:1px solid var(--border);border-radius:12px;padding:12px;z-index:3;font-size:13px}
+#trp[hidden]{display:none}.trh{display:flex;gap:16px;margin-bottom:10px}.trh b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.trh span{font-size:11px;color:var(--muted)}
+.tri{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--border)}.tw{color:#f2a3a3;font-weight:600}.k-e .tw{color:#e89ac0}.k-o .tw{color:#f2a3a3;font-style:italic}
+.tw i{font-style:normal;color:var(--muted);font-weight:400;margin-left:5px;font-size:11px}.ts{color:#7ee2ad;text-align:right}.tre{color:var(--muted);font-size:12px;margin:0}.trl.rp{font-size:13px}
 .jb{height:6px;background:var(--bg);border-radius:4px;overflow:hidden}.jb i{display:block;height:100%;background:var(--node);border-radius:0 4px 4px 0;transition:width .3s}
 #job .btn{align-self:flex-end;padding:5px 10px;font-size:12px}
 textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
@@ -79,6 +85,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
 <header>
   <div><a href="./" style="font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;letter-spacing:.04em">SPEAKING MAP</a><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
   <div class="stats">
+    <div class="stat" id="stTR" hidden><b id="sTR">%100</b><span>Türkçe</span></div>
     <div class="stat"><b id="sW">0</b><span>kelime</span></div>
     <div class="stat"><b id="sN">0</b><span>düğüm</span></div>
     <div class="stat"><b id="sE">0</b><span>bağ</span></div>
@@ -92,11 +99,14 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <div id="tip"></div>
   <aside id="report" hidden></aside>
   <div id="job" hidden></div>
+  <div id="toast" aria-live="polite"></div>
+  <aside id="trp" hidden></aside>
 </div>
 <div class="caption"><div id="cap"></div></div>
 <div class="controls">
   <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
   <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
+  <select id="trLevel" hidden aria-label="Kapsam"><option value="all">Batı + eski Arapça/Farsça</option><option value="bati">Yalnız Batı kökenli</option></select>
   <button class="btn" id="paste">＋ Dosya / metin</button>
   <span class="spacer"></span>
   <button class="btn" id="clBtn" aria-pressed="false">Kümeler</button>
@@ -200,8 +210,8 @@ for(const p of MULTI)GAZ.add(p);
 const NOTNAME=new Set("merhaba selam selamlar günaydın teşekkürler teşekkür evet hayır tamam peki hocam hocalarım arkadaşlar efendim değerli sevgili türkçe ingilizce almanca fransızca ispanyolca italyanca rusça arapça farsça çince japonca korece yunanca latince osmanlıca kürtçe azerice türk türkler alman fransız ingiliz italyan rus arap yunan amerikalı avrupalı müslüman hristiyan pazartesi salı çarşamba perşembe cuma cumartesi pazar ocak şubat mart nisan mayıs haziran temmuz ağustos eylül ekim kasım aralık".split(" "));
 const TITLES=new Set("prof dr doç öğr gör arş sn av müh yrd mr mrs ms st öğretim görevlisi üyesi sayın".split(" "));
 const AMBIG=new Set(["ordu","van","batman","tokat","ağrı","uşak","ege","boğaz","kars","muş","bar","amerika"]);
-const TYPE_L={kelime:"Kelime",yer:"Yer",ozel:"Kişi / kurum / marka",kalip:"Kalıp ifade"};
-const TYPE_C={kelime:"#3987e5",yer:"#199e70",ozel:"#c98500",kalip:"#9085e9"};
+const TYPE_L={yabanci:"Yabancı kökenli",kelime:"Kelime",yer:"Yer",ozel:"Kişi / kurum / marka",kalip:"Kalıp ifade"};
+const TYPE_C={yabanci:"#e66767",kelime:"#3987e5",yer:"#199e70",ozel:"#c98500",kalip:"#9085e9"};
 let titleNext=false,atStart=true,pendP=[],hold=null,bigram=new Map(),tokCount=new Map(),phrases=new Set(),knownProper=new Set(),idleT=null;
 function gazHit(low,hasApos){
   if(GAZ.has(low))return low;
@@ -300,6 +310,7 @@ function ingest(raw,src){
   const tl=(LANG.startsWith("tr")?trLower(raw):raw.toLowerCase()).replace(/[^\p{L}]/gu,"");
   if(TITLES.has(tl)&&/^\p{Lu}/u.test(raw)){titleNext=true;return}
   const start=atStart&&!titleNext,end=/[.!?…]["')»]*$/.test(raw),brk=end||/[,;:]["')»]*$/.test(raw);atStart=end;const wasTitle=titleNext;void wasTitle;titleNext=false;
+  if(MODE==="turkce"){const f=foreignOf(raw,start);if(f){commitHold();flushP();onForeign(f);if(brk)flushAll();clearTimeout(idleT);idleT=setTimeout(flushAll,1500);return}}
   const c=classify(raw,start);
   if(c.kind==="proper"){
     if(hold&&hold.cap&&!pendP.length&&c.type==="ozel"&&!/(da|de|ta|te|dan|den|tan|ten|nın|nin|nun|nün|ın|un|ün|ya|ye|yla|yle|lar|ler|ları|leri|ki|daki|deki)$/.test(hold.cap.low)){pendP.push({kind:"proper",low:hold.cap.low,form:hold.cap.form,type:"ozel"});knownProper.add(hold.cap.low);tokCount.set(hold.k,(tokCount.get(hold.k)||1)-1);hold=null}
@@ -314,6 +325,326 @@ function ingest(raw,src){
   if(brk)flushAll();
   clearTimeout(idleT);idleT=setTimeout(flushAll,1500);
 }
+// ---------- Türkçe Konuş modu ----------
+const MODE=document.documentElement.dataset.mode||"genel";
+const FD=`meeting|toplantı|b
+call|görüşme, çağrı|b
+deadline,dedlayn|son tarih, teslim tarihi|b
+feedback,fidbek,fidback|geri bildirim|b
+brief,brif|kısa bilgi, bilgilendirme|b
+briefing,brifing|bilgilendirme toplantısı|b
+update,apdeyt,updatele|güncelleme|b
+check,çekle|kontrol, denetim|b
+mail,email,imeyl,meyl,meil|e-posta|b
+cv|özgeçmiş|b
+offer|teklif|b
+deal|anlaşma|b
+target|hedef|b
+timing|zamanlama|b
+team|ekip|b
+teamwork|ekip çalışması|b
+task|görev|b
+startup,startap|girişim|b
+workshop,vörkşop|çalıştay|b
+brainstorming|beyin fırtınası|b
+background,bekgraund|geçmiş, arka plan|b
+knowhow,know-how|uzmanlık, bilgi birikimi|b
+networking|ilişki ağı kurma|b
+skill|beceri|b
+performans|başarım, verim|b
+motivasyon|güdülenme, isteklendirme|b
+konsept|kavram, tasarım|b
+spesifik|belirli, özgül|b
+enteresan|ilginç|b
+prosedür|yöntem, işlem süreci|b
+organizasyon|düzenleme, örgütlenme|b
+organize|düzenlemek|b
+opsiyon|seçenek|b
+alternatif|seçenek, başka yol|b
+problem|sorun|b
+prensip|ilke|b
+departman|bölüm, birim|b
+avantaj|üstünlük, yarar|b
+dezavantaj|sakınca|b
+potansiyel|gizil güç, olası|b
+efektif|etkili|b
+ekstra|ek, fazladan|b
+ekstrem|aşırı|b
+minimum|en az|b
+maksimum|en çok|b
+optimum|en uygun|b
+optimize|iyileştirmek, en uygun hâle getirmek|b
+spontane|kendiliğinden|b
+total|toplam|b
+global|küresel|b
+globalleşme,globalizm|küreselleşme|b
+lokal|yerel|b
+online,onlayn|çevrim içi|b
+offline,oflayn|çevrim dışı|b
+download,davnlod|indirme|b
+upload,aplod|yükleme|b
+link|bağlantı|b
+password|parola|b
+software|yazılım|b
+hardware|donanım|b
+server|sunucu|b
+laptop,leptop|dizüstü bilgisayar|b
+smartphone|akıllı telefon|b
+selfie,selfi|özçekim|b
+hashtag|etiket|b
+influencer,infulencer|sosyal medya fenomeni|b
+follower|takipçi|b
+like,layk|beğeni|b
+story|hikâye, an|b
+post|gönderi, paylaşım|b
+trend|eğilim, akım|b
+viral|hızla yayılan|b
+podcast|sesli yayın|b
+streaming,stream|canlı yayın|b
+content,kontent|içerik|b
+creator|içerik üreticisi|b
+marketing|pazarlama|b
+branding|markalaşma|b
+sales|satış|b
+business,biznis|iş|b
+fulltime,full-time|tam zamanlı|b
+parttime,part-time|yarı zamanlı|b
+remote|uzaktan|b
+freelance,freelancer,frilans|serbest çalışan|b
+okay,okey,okei|tamam|b
+sorry,sori|özür dilerim|b
+thanks,thank|teşekkürler, sağ ol|b
+nice|güzel|b
+cool|havalı, güzel|b
+weekend|hafta sonu|b
+shopping|alışveriş|b
+event,ivent|etkinlik|b
+şov,show|gösteri|b
+break|ara|b
+lunch|öğle yemeği|b
+dinner|akşam yemeği|b
+outfit|kıyafet|b
+dizayn,design|tasarım|b
+designer,dizayner|tasarımcı|b
+level|düzey|b
+sponsor|destekçi|b
+partner|ortak|b
+partnership|ortaklık|b
+investor|yatırımcı|b
+budget|bütçe|b
+data|veri|b
+dataset|veri kümesi|b
+learning|öğrenme|b
+chatbot|sohbet robotu|b
+prompt|istem, komut|b
+output|çıktı|b
+input|girdi|b
+feature|özellik|b
+bug|hata|b
+debug|hata ayıklama|b
+deploy|yayına alma|b
+release|sürüm|b
+version,versiyon|sürüm|b
+backup|yedek|b
+user|kullanıcı|b
+interface|arayüz|b
+cloud|bulut|b
+framework|çerçeve, çatı|b
+benchmark|karşılaştırma ölçütü|b
+paper|makale, bildiri|b
+review|değerlendirme, inceleme|b
+reviewer|hakem|b
+submission|gönderim|b
+abstract|özet|b
+case|durum, örnek olay|b
+challenge|zorluk|b
+issue|sorun, konu|b
+insight|içgörü|b
+impact|etki|b
+mindset|bakış açısı|b
+vizyon|ileri görüş|b
+misyon|görev, amaç|b
+enformasyon|bilgi|b
+komünikasyon,kominikasyon|iletişim|b
+prezentasyon|sunum|b
+diskalifiye|yarışma dışı|b
+konjonktür|koşullar, genel durum|b
+akredite|onaylı, yetkili|b
+manipülasyon|yönlendirme|b
+manipüle|yönlendirmek|b
+sinerji|ortak güç|b
+spekülasyon|söylenti, tahmin|b
+rasyonel|akılcı|b
+irrasyonel|akıl dışı|b
+objektif|nesnel|b
+sübjektif|öznel|b
+pozitif|olumlu|b
+negatif|olumsuz|b
+realist|gerçekçi|b
+kreatif|yaratıcı|b
+inovasyon|yenilik|b
+inovatif|yenilikçi|b
+fonksiyon|işlev|b
+fonksiyonel|işlevsel|b
+kompleks|karmaşık|b
+konsantrasyon|odaklanma|b
+konsantre|odaklanmış|b
+koordinasyon|eş güdüm|b
+koordinatör|eş güdümcü|b
+dominant|baskın|b
+agresif|saldırgan|b
+detay|ayrıntı|b
+detaylı|ayrıntılı|b
+faktör|etken|b
+perspektif|bakış açısı|b
+prestij|saygınlık|b
+empati|duygudaşlık|b
+tolerans|hoşgörü|b
+aktif|etkin|b
+pasif|edilgen|b
+aktivite|etkinlik|b
+interaktif|etkileşimli|b
+reaksiyon|tepki|b
+transfer|aktarım|b
+transparan|saydam|b
+fiks|sabit|b
+start|başlangıç|b
+finish|bitiş|b
+oryantasyon|uyum|b
+adapte|uyum sağlamak|b
+adaptasyon|uyum|b
+entegre|bütünleşik|b
+entegrasyon|bütünleşme|b
+dijital,digital|sayısal|b
+virtüel,virtual|sanal|b
+mentalite|zihniyet|b
+rutin|olağan, alışılmış|b
+konfor|rahatlık|b
+share,şeyr|paylaşmak|b
+confirm|onaylamak|b
+approve|onaylamak|b
+cancel|iptal etmek|b
+postpone|ertelemek|b
+schedule|takvim|b
+invite|davet|b
+attach|eklemek|b
+forward,forvard|iletmek|b
+reply|yanıtlamak|b
+focus,fokus,fokuslan|odak, odaklanmak|b
+plaza|iş merkezi|b
+istikbal|gelecek|e
+tahsil|öğrenim|e
+imtihan|sınav|e
+talebe|öğrenci|e
+muallim|öğretmen|e
+mesele|sorun, konu|e
+sual|soru|e
+cevap,cevab|yanıt|e
+misal|örnek|e
+mukayese|karşılaştırma|e
+tesir|etki|e
+netice|sonuç|e
+ihtiyaç|gereksinim|e
+vazife|görev|e
+hadise|olay|e
+hürriyet|özgürlük|e
+imkan,imkân|olanak|e
+ihtimal|olasılık|e
+muhtemelen|olasılıkla|e
+kabiliyet|yetenek|e
+şahıs,şahs|kişi|e
+mevzu|konu|e
+münakaşa|tartışma|e
+müsaade|izin|e
+kelime|sözcük|e
+cümle|tümce|e
+lisan|dil|e
+tercüme|çeviri|e
+ilim,ilm|bilim,ilm|e
+fikir,fikr|düşünce|e
+hikaye,hikâye|öykü|e
+muvaffakiyet|başarı|e
+ehemmiyet|önem|e
+mühim|önemli|e
+ekseriya|çoğunlukla|e
+ekseriyet|çoğunluk|e
+asır,asr|yüzyıl|e
+sene|yıl|e
+merhale|aşama|e
+zaviye|açı|e
+mütemadiyen|sürekli|e
+daima|her zaman|e
+evvela|önce, ilk olarak|e
+malumat|bilgi|e
+tecrübe|deneyim|e
+izah|açıklama|e
+mütalaa|görüş|e
+mütehassıs|uzman|e
+müracaat|başvuru|e
+mümkün|olası|e
+maalesef|ne yazık ki|e
+şayet|eğer|e
+lakin|ama, ancak|e
+ilaveten|ek olarak|e
+binaenaleyh|bu nedenle|e
+hususi|özel|e
+umumi|genel|e
+istifade|yararlanma|e
+teşebbüs|girişim|e
+iştirak|katılım|e
+tatbik|uygulama|e
+tetkik|inceleme|e
+tahlil|çözümleme|e
+hülasa|özet|e
+takriben|yaklaşık|e
+kafi,kâfi|yeterli|e
+lüzum|gerek|e
+lüzumlu|gerekli|e
+mecburiyet|zorunluluk|e
+mecbur|zorunlu|e
+muhakkak|kesinlikle|e
+katiyen|asla, kesinlikle|e
+bilhassa|özellikle|e
+bilakis|tersine|e
+mukavemet|direnç|e
+tazyik|baskı|e
+muvakkat|geçici|e
+daimi|kalıcı|e
+muhit|çevre|e
+sathi|yüzeysel|e`;
+const FMAP=new Map();
+for(const l of FD.trim().split("\n")){const [ks,sug,k]=l.split("|");const vars=ks.split(",").map(s=>s.trim()).filter(Boolean);const main=vars[0];for(const v of vars)FMAP.set(v,{key:main,sug,k})}
+const FKEYS=[...FMAP.keys()].sort((a,b)=>b.length-a.length);
+const VERBAL=/^l[ae](n|ş|t|y)?/;
+let trLevel="all",fStats=new Map(),fHits=0,lastToast=new Map();
+function foreignOf(raw,start){
+  const clean=raw.replace(/[’`´]/g,"'").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}'\-]+$/gu,"");if(!clean)return null;
+  const base=clean.split("'")[0];if(base.length<2)return null;
+  const low=trLower(base).replace(/-/g,""),lowH=trLower(base);
+  const isCapMid=/^\p{Lu}/u.test(base)&&!start;
+  const ok=e=>e&&(trLevel==="all"||e.k!=="e");
+  let e=FMAP.get(lowH)||FMAP.get(low);if(ok(e)&&!isCapMid)return {...e,form:base};
+  if(!isCapMid)for(const fk of FKEYS){if(fk.length<3||!low.startsWith(fk)||low===fk)continue;const rest=low.slice(fk.length);
+    const good=fk.length>=5?(rest.length<=9&&/^[a-zçğıöşüâîû]+$/.test(rest)&&(ANYSUF.has(rest)||VERBAL.test(rest)||/^(l[ae]r|l[ıiuü]|s[ıiuü]z|c[ıiuü]|ç[ıiuü]|ş|[ıiuüae]n)/.test(rest))):(ANYSUF.has(rest)||VERBAL.test(rest));
+    if(good){const en=FMAP.get(fk);if(ok(en))return {...en,form:base}}}
+  // sözlükte yok ama İngilizce yazımlı görünüyor
+  if(low.length>=4&&!isCapMid&&!/^\p{Lu}/u.test(base)&&!GAZ.has(low)&&(/[wxq]/.test(low)||/(th|sh|ck|oo|ee|ea|ou|tion|ing)$/.test(low)||/^(th|sh|wh)/.test(low)))
+    return {key:low,sug:"",k:"o",form:base};
+  return null}
+function onForeign(f){
+  fHits++;const s=fStats.get(f.key)||{key:f.key,sug:f.sug,k:f.k,c:0,forms:new Map()};s.c++;s.forms.set(f.form,(s.forms.get(f.form)||0)+1);fStats.set(f.key,s);
+  addNode("F:"+f.key,f.form,"yabanci");const n=words.get("F:"+f.key);if(n){n.sug=f.sug;n.fk=f.k}
+  const now=performance.now();if(f.k!=="e"&&(!lastToast.has(f.key)||now-lastToast.get(f.key)>20000)){lastToast.set(f.key,now);toast(f)}}
+let toastT=null;
+function toast(f){const el=document.getElementById("toast");if(!el)return;
+  el.innerHTML=f.sug?`“${esc(f.form)}” yerine <b>${esc(f.sug.split(",")[0])}</b> diyebilirsin`+(f.sug.includes(",")?`<span>ya da: ${esc(f.sug.split(",").slice(1).join(",").trim())}</span>`:""):`“${esc(f.form)}” yabancı bir kelime olabilir, Türkçesini kullanabilir misin?`;
+  el.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("on"),3800)}
+function trRatio(){return rawWords?Math.max(0,100*(1-fHits/rawWords)):100}
+function renderTrPanel(){const el=document.getElementById("trp");if(!el||MODE!=="turkce")return;
+  const list=[...fStats.values()].sort((a,b)=>b.c-a.c);
+  el.innerHTML=`<div class="trh"><div><b>%${trRatio().toFixed(1)}</b><span>Türkçe oranı</span></div><div><b>${fHits}</b><span>yabancı kelime</span></div></div>`+
+   (list.length?`<div class="trl">${list.slice(0,14).map(s=>`<div class="tri k-${s.k}"><span class="tw">${esc([...s.forms.keys()][0])}<i>×${s.c}</i></span><span class="ts">${s.sug?"→ "+esc(s.sug):"Türkçesi?"}</span></div>`).join("")}</div>`:`<p class="tre">Konuştukça yabancı kelimeler ve Türkçe karşılıkları burada listelenir.</p>`)}
+
 let shown=[],dirty=false;
 const ek=(a,b)=>a<b?a+"|"+b:b+"|"+a;
 let lastRank=0;
@@ -342,8 +673,8 @@ let W=0,H=0;
 function resize(){const d=Math.min(2,devicePixelRatio||1);W=stage.clientWidth;H=stage.clientHeight;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
 resize();addEventListener("resize",()=>{resize();syncSim();sim.alpha(.5)});
 const scale=()=>Math.max(.45,Math.min(1.3,Math.min(W,H)/650));
-function radius(n){const mx=shown.length?shown[0].c:1;return (4+16*Math.sqrt(n.c/Math.max(mx,1))+Math.min(6,Math.sqrt(n.c)))*scale()}
-const sim=d3.forceSimulation([]).stop().force("charge",d3.forceManyBody().distanceMax(450)).force("link",d3.forceLink([])).force("collide",d3.forceCollide().iterations(2)).force("x",d3.forceX(()=>W/2)).force("y",d3.forceY(()=>H/2+12)).alphaDecay(0.012).velocityDecay(0.38);
+function radius(n){const mx=shown.length?shown[0].c:1;const b=(4+16*Math.sqrt(n.c/Math.max(mx,1))+Math.min(6,Math.sqrt(n.c)))*scale();return n.type==="yabanci"?Math.max(b*(n.fk==="e"?1.25:1.7),(n.fk==="e"?9:14)*scale()):b}
+const sim=d3.forceSimulation([]).stop().force("charge",d3.forceManyBody().distanceMax(450)).force("link",d3.forceLink([])).force("collide",d3.forceCollide().iterations(2)).force("x",d3.forceX(()=>MODE==="turkce"&&W>760?(W-Math.min(300,W*0.42))/2:W/2)).force("y",d3.forceY(()=>H/2+12)).alphaDecay(0.012).velocityDecay(0.38);
 function syncSim(){
   const sc=scale();sim.nodes(shown);
   sim.force("charge").strength(n=>-(34+radius(n)*7)*sc);
@@ -373,15 +704,16 @@ function draw(){
     if(n.pulse>0.05){ctx.fillStyle=rgba(C.hot,0.22*n.pulse);ctx.beginPath();ctx.arc(n.x,n.y,r+12*n.pulse+4,0,7);ctx.fill()}
     const mix=n.pulse;const cn=parseInt(nodeColor(n).slice(1),16),ch=parseInt(C.hot.slice(1),16);
     const R=((cn>>16&255)*(1-mix)+(ch>>16&255)*mix)|0,G=((cn>>8&255)*(1-mix)+(ch>>8&255)*mix)|0,B=((cn&255)*(1-mix)+(ch&255)*mix)|0;
-    ctx.fillStyle=`rgba(${R},${G},${B},${dim?0.25:0.95})`;shape(n,r);ctx.fill();ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke()}
+    ctx.fillStyle=`rgba(${R},${G},${B},${dim?0.25:0.95})`;shape(n,r);ctx.fill();ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke();if(n.type==="yabanci"){ctx.strokeStyle=rgba(nodeColor(n),dim?0.15:0.55);ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(n.x,n.y,r+5,0,7);ctx.stroke()}}
   ctx.textAlign="center";ctx.textBaseline="middle";const boxes=[];
-  const order=act.slice().sort((a,b)=>((b===hv)*1e6+radius(b)+b.pulse*6)-((a===hv)*1e6+radius(a)+a.pulse*6));
+  const order=act.slice().sort((a,b)=>((b===hv)*1e6+(b.type==="yabanci")*1e5+radius(b)+b.pulse*6)-((a===hv)*1e6+(a.type==="yabanci")*1e5+radius(a)+a.pulse*6));
   for(const n of order){const r=radius(n),fs=Math.max(11,Math.min(24,8+r*0.55)),txt=label(n);
     ctx.font=`${r>14?700:500} ${fs}px "Source Serif 4", Georgia, serif`;const tw=ctx.measureText(txt).width,ly=n.y-r-fs*0.6;
     const bx={x:n.x-tw/2-2,y:ly-fs/2,w:tw+4,h:fs};
-    if(boxes.some(o=>bx.x<o.x+o.w&&bx.x+bx.w>o.x&&bx.y<o.y+o.h&&bx.y+bx.h>o.y))continue;boxes.push(bx);
+    const hitB=b=>boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
+    if(n.type!=="yabanci"&&hitB(bx))continue;boxes.push(bx);
     const a=hv&&hv!==n&&!nbr(n.k)?0.3:Math.min(1,0.75+n.pulse);
-    ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(txt,n.x,ly);ctx.fillStyle=`rgba(240,239,236,${a})`;ctx.fillText(txt,n.x,ly)}
+    ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(txt,n.x,ly);ctx.fillStyle=`rgba(240,239,236,${a})`;ctx.fillText(txt,n.x,ly);if(n.type==="yabanci"&&n.sug){const s2="→ "+n.sug.split(",")[0],f2=Math.max(11,fs*0.72);ctx.font=`600 ${f2}px Inter, sans-serif`;const y2=n.y+r+f2*0.95;const w2=ctx.measureText(s2).width;const b2={x:n.x-w2/2-2,y:y2-f2/2,w:w2+4,h:f2};if(!hitB(b2)){boxes.push(b2);ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(s2,n.x,y2);ctx.fillStyle=`rgba(92,201,143,${a})`;ctx.fillText(s2,n.x,y2)}}}
 }
 let frame=0;
 function loop(){
@@ -393,7 +725,7 @@ function loop(){
   draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
 }
 const fmt=n=>n.toLocaleString("tr-TR");
-function stats(){
+function stats(){renderTrPanel();if(MODE==="turkce"){const e=document.getElementById("sTR");if(e)e.textContent="%"+trRatio().toFixed(0)}
   document.getElementById("sW").textContent=fmt(nWords);document.getElementById("sN").textContent=shown.length;document.getElementById("sE").textContent=fmt(E.size);
   if(startT){const s=Math.floor((Date.now()-startT)/1000);document.getElementById("sT").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 }
@@ -648,17 +980,18 @@ function buildReport(){
 const drawer=document.getElementById("report");
 function openReport(){
   if(nWords<5){drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div><p class="empty-r">Rapor için biraz daha konuşman gerekiyor.</p>`;drawer.hidden=false;document.getElementById("rpClose").onclick=closeReport;return}
-  const R=buildReport();clusterOn=true;
+  const R=buildReport();if(MODE!=="turkce")clusterOn=true;
   const PR=pagerank();const prTop=[...PR].sort((a,b)=>b[1]-a[1]);const topSet=new Set(prTop.slice(0,12).map(x=>x[0]));
   const SUM=summarize(sumLen,PR);
-  const CSUM=R.clusters.map(c=>({c,s:summarize(1,PR,new Set(c.nodes.map(n=>n.k)))[0]})).filter(x=>x.s);document.getElementById("clBtn").setAttribute("aria-pressed","true");
+  const CSUM=R.clusters.map(c=>({c,s:summarize(1,PR,new Set(c.nodes.map(n=>n.k)))[0]})).filter(x=>x.s);document.getElementById("clBtn").setAttribute("aria-pressed",String(clusterOn));
   const mx=R.top10[0].c;
   const card=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
   drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div>
-  <div class="kpis">${card(fmt(rawWords),"toplam kelime")}${card(fmt(nWords),"anlamlı kelime")}${card(fmt(words.size),"farklı kök")}${card(R.wpm?R.wpm:"–","kelime/dk")}${card(seqKeys.length>=100?R.div.toFixed(2):"–","çeşitlilik")}${card(R.listenMs>0?fmtDur(R.listenMs):"–","dinleme süresi")}</div>
+  <div class="kpis">${MODE==="turkce"?card("%"+trRatio().toFixed(1),"Türkçe oranı")+card(fHits,"yabancı kelime"):""}${card(fmt(rawWords),"toplam kelime")}${card(fmt(nWords),"anlamlı kelime")}${card(fmt(words.size),"farklı kök")}${card(R.wpm?R.wpm:"–","kelime/dk")}${card(seqKeys.length>=100?R.div.toFixed(2):"–","çeşitlilik")}${card(R.listenMs>0?fmtDur(R.listenMs):"–","dinleme süresi")}</div>
   ${SUM.length?`<h3>Özet <span class="seg sm" id="sumLen">${[3,5,8].map(n=>`<button data-n="${n}" aria-pressed="${n===sumLen}">${n}</button>`).join("")}</span></h3>
   <ol class="sum">${SUM.map(x=>`<li>${hiSent(x.s,topSet)}</li>`).join("")}</ol>
   ${CSUM.length>=2?`<h3>Konu bazında</h3>${CSUM.map(({c,s})=>`<div class="csum" style="--c:${c.color}"><span>${esc(c.name)}</span>${hiSent(s.s,topSet)}</div>`).join("")}`:""}`:""}
+  ${MODE==="turkce"?trReport():""}
   <h3>Çıkarımlar</h3><ul class="ins">${R.ins.map(s=>`<li>${s}</li>`).join("")}</ul>
   <h3>En sık 10 kelime</h3><div class="bars">${R.top10.map(n=>`<div class="br"><span class="bl">${esc(label(n))}</span><span class="bt"><i style="width:${(n.c/mx*100).toFixed(1)}%"></i></span><span class="bv">${n.c}</span></div>`).join("")}</div>
   ${R.clusters.length?`<h3>Konu kümeleri</h3>${R.clusters.map(c=>`<div class="clu"><span class="sw" style="background:${c.color}"></span><div><b>${esc(c.name)}</b><div class="cw">${c.nodes.slice(0,10).map(label).map(esc).join(", ")}</div></div></div>`).join("")}`:""}
@@ -675,6 +1008,7 @@ function openReport(){
   const md=()=>{const t=document.createElement("div");return "# Speaking Map · Konuşma raporu\n\n"+
     `- Toplam kelime: ${rawWords}\n- Anlamlı kelime: ${nWords}\n- Farklı kök: ${words.size}\n`+(R.wpm?`- Hız: ${R.wpm} kelime/dk\n`:"")+(seqKeys.length>=100?`- Çeşitlilik (MATTR): ${R.div.toFixed(2)}\n`:"")+
     (SUM.length?"\n## Özet\n\n"+SUM.map(x=>"- "+x.s).join("\n")+"\n":"")+
+    (MODE==="turkce"&&fStats.size?"\n## Türkçesi varken\n\nTürkçe oranı: %"+trRatio().toFixed(1)+"\n\n"+[...fStats.values()].sort((a,b)=>b.c-a.c).map(s=>`- ${[...s.forms.keys()].join(", ")} (${s.c}) → ${s.sug||"?"}`).join("\n")+"\n":"")+
     "\n## Çıkarımlar\n\n"+R.ins.map(s=>{t.innerHTML=s;return "- "+t.textContent}).join("\n")+
     "\n\n## En sık kelimeler\n\n"+R.top10.map((n,i)=>`${i+1}. ${label(n)} (${n.c})`).join("\n")+
     (R.clusters.length?"\n\n## Konu kümeleri\n\n"+R.clusters.map(c=>`- **${c.name}**: ${c.nodes.slice(0,10).map(label).join(", ")}`).join("\n"):"")+
@@ -686,19 +1020,22 @@ function openReport(){
 function entList(type){return [...words.values()].filter(n=>n.type===type).sort((a,b)=>b.c-a.c)}
 function ent(type,title){const L=entList(type);if(!L.length)return "";
   return `<h3>${title}</h3><div class="ents">${L.slice(0,16).map(n=>`<span class="ent" style="--c:${TYPE_C[type]}">${esc(label(n))}<b>${n.c}</b></span>`).join("")}</div>`}
+function trReport(){const L=[...fStats.values()].sort((a,b)=>b.c-a.c);
+  if(!L.length)return `<h3>Türkçesi varken</h3><p class="note-r">Bu konuşmada sözlükteki yabancı kelimelerden hiçbiri geçmedi. Türkçe oranı %${trRatio().toFixed(1)}.</p>`;
+  return `<h3>Türkçesi varken</h3><p class="note-r">Konuşmanın <b>%${trRatio().toFixed(1)}</b>'i Türkçe. ${L.length} farklı yabancı kelime toplam ${fHits} kez kullanıldı.</p><div class="trl rp">${L.map(s=>`<div class="tri k-${s.k}"><span class="tw">${esc([...s.forms.keys()].join(", "))}<i>×${s.c}</i></span><span class="ts">${s.sug?"→ "+esc(s.sug):"yabancı olabilir"}</span></div>`).join("")}</div>`}
 function closeReport(){drawer.hidden=true}
 document.getElementById("rpBtn").onclick=()=>drawer.hidden?openReport():closeReport();
 document.getElementById("clBtn").onclick=e=>{clusterOn=!clusterOn;e.currentTarget.setAttribute("aria-pressed",clusterOn);if(clusterOn)clusterize();renderLegend()};
 function renderLegend(){const lg=document.getElementById("legend");
   if(clusterOn&&clusterList.length)lg.innerHTML=clusterList.map(c=>`<span><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join("")+`<span><i style="background:${OTHER}"></i>Diğer</span>`;
-  else lg.innerHTML=LEG_DEFAULT}
-const LEG_DEFAULT=`<span><i style="background:${TYPE_C.kelime}"></i>Kelime</span><span><i style="background:${TYPE_C.yer};border-radius:2px"></i>Yer</span><span><i style="background:${TYPE_C.ozel};border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Kişi / kurum / marka</span><span><i style="background:${TYPE_C.kalip};clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%);border-radius:0"></i>Kalıp ifade</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span><span style="color:var(--muted)">Boyut = tekrar sayısı</span>`;
-function nodeColor(n){if(!clusterOn)return TYPE_C[n.type||"kelime"];const i=clusterOf.get(n.k);return i===undefined?OTHER:PAL[i]}
+  else lg.innerHTML=legDefault()}
+const legDefault=()=>(MODE==="turkce"?`<span><i style="background:#e66767;box-shadow:0 0 0 2px rgba(230,103,103,.4)"></i>Yabancı kökenli <b style="color:#5cc98f;font-weight:600">→ Türkçesi</b></span>`+(trLevel==="all"?`<span><i style="background:#d55181"></i>Eski (Arapça/Farsça) kullanım</span>`:""):"")+`<span><i style="background:${TYPE_C.kelime}"></i>Kelime</span><span><i style="background:${TYPE_C.yer};border-radius:2px"></i>Yer</span><span><i style="background:${TYPE_C.ozel};border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Kişi / kurum / marka</span><span><i style="background:${TYPE_C.kalip};clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%);border-radius:0"></i>Kalıp ifade</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span><span style="color:var(--muted)">Boyut = tekrar sayısı</span>`;
+function nodeColor(n){if(n.type==="yabanci")return n.fk==="e"?"#d55181":"#e66767";if(!clusterOn)return TYPE_C[n.type||"kelime"];const i=clusterOf.get(n.k);return i===undefined?OTHER:PAL[i]}
 
 // ---------- araçlar ----------
 document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
 document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
-document.getElementById("reset").onclick=()=>{clearInterval(playTimer);playTimer=null;Q=[];line="";cancelJob=true;words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];clusterOn=false;document.getElementById("clBtn").setAttribute("aria-pressed","false");renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+document.getElementById("reset").onclick=()=>{fStats=new Map();fHits=0;lastToast=new Map();clearInterval(playTimer);playTimer=null;Q=[];line="";cancelJob=true;words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];clusterOn=false;document.getElementById("clBtn").setAttribute("aria-pressed","false");renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
 // hover
 const tip=document.getElementById("tip");
 cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;
@@ -707,7 +1044,9 @@ cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clien
   tip.innerHTML=`<b>${esc(label(best))}</b> · ${best.c} kez · ${TYPE_L[best.type||"kelime"]}<br>Biçimler: ${esc([...best.forms.keys()].slice(0,5).join(", "))}<br>En güçlü bağlar: ${esc(nb.slice(0,4).map(([k,c])=>label(words.get(k))+" ("+c+")").join(", ")||"henüz yok")}`;
   let tx=x+14,ty=y+14;tip.style.opacity=1;if(tx+tip.offsetWidth>W-8)tx=x-tip.offsetWidth-14;if(ty+tip.offsetHeight>H-8)ty=y-tip.offsetHeight-14;tip.style.left=tx+"px";tip.style.top=ty+"px"});
 cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
-window.__ingest=ingest;renderLegend();
+window.__ingest=ingest;
+if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("trp").hidden=false;const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
+renderLegend();renderTrPanel();
 requestAnimationFrame(loop);
 </script>
 </body>

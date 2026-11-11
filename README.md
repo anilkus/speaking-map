@@ -8,6 +8,7 @@ Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli g�
 |---|---|
 | [`nutuk.html`](nutuk.html) | Nutuk'u cümle cümle "konuşturur". Kelimeler ilk söylendiklerinde düğüm olarak doğar, aynı cümlede geçen kelimeler bağlanır. 1× hız gerçek konuşma temposudur (Nutuk ~36 saatte okunmuştu). |
 | [`canli.html`](canli.html) | Mikrofondan konuşmayı dinler, konuştukça kelime ağını anlık kurar. Türkçe ve İngilizce. Ayrıca metin, belge (.pdf, .docx, .txt), altyazı (.srt, .vtt) ya da ses/video dosyası eklenebilir. |
+| [`turkce.html`](turkce.html) | **Türkçe konuş:** konuşmadaki (ya da eklenen dosyadaki) yabancı kökenli kelimeleri haritada büyük kırmızı düğüm olarak gösterir, altına Türkçe karşılığını yazar, anlık uyarı verir ve Türkçe oranını hesaplar. |
 | [`kelime-bulutu.html`](kelime-bulutu.html) | En sık geçen 180 kelimenin bulutu ve tablosu; kelimeye tıklayınca örnek cümleler. |
 
 ## Yöntem
@@ -36,6 +37,16 @@ Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıkl
 - **Metin ve belgeler:** .txt, .md, .pdf ([pdf.js](https://mozilla.github.io/pdf.js/)), .docx ([mammoth](https://github.com/mwilliamson/mammoth.js)). Taranmış (görüntü) PDF'lerde metin olmadığı için çalışmaz.
 - **Altyazılar:** .srt, .vtt (zaman damgaları ve etiketler temizlenir). YouTube videolarının altyazısını indirip buradan yükleyebilirsin.
 - **Ses ve video:** .mp3, .wav, .m4a, .mp4, .webm, .mov... Ses, [Transformers.js](https://github.com/huggingface/transformers.js) ile tarayıcıda çalışan **Whisper** modeliyle yazıya dökülür; dosya hiçbir sunucuya gönderilmez. Model ilk kullanımda Hugging Face'ten indirilir (tiny ~40 MB, base ~80 MB, small ~250 MB) ve tarayıcıda saklanır. Ses 60 saniyelik bloklar halinde işlenir, ağ her blok yazıya döküldükçe büyür. Hız bilgisayara bağlıdır; uzun kayıtlarda bekleme süresi gösterilir ve işlem iptal edilebilir. En fazla 700 MB.
+
+## Türkçe konuş
+
+`turkce.html`, canlı sayfayla aynı motoru kullanır; ek olarak:
+
+- **Sözlük:** yaklaşık 280 kelimelik elle derlenmiş bir karşılıklar listesi. TDK'nin *Yabancı Sözlere Karşılıklar Kılavuzu* çalışması ve yaygın kullanım esas alınmıştır. TDK'nin ilkesine uygun olarak Türkçeye çoktan yerleşmiş kelimelere (televizyon, kitap, ofis...) karşılık önerilmez.
+- **İki düzey:** Batı kökenli, yerleşmemiş kelimeler (meeting → toplantı, feedback → geri bildirim, spesifik → belirli) kırmızı; eski Arapça/Farsça kullanımlar (istikbal → gelecek, mütemadiyen → sürekli) pembe ve isteğe bağlı. Kapsam menüden "Yalnız Batı kökenli" yapılabilir.
+- **Ekli halleri tanır:** "meeting'de", "feedback'lerinizi", "konsepti", "update'leri", "focuslanmak".
+- Sözlükte olmayan ama İngilizce yazımlı görünen kelimeler (w, x, q, th, -ing...) "yabancı olabilir" diye işaretlenir.
+- Anlık uyarı ("'meeting' yerine **toplantı** diyebilirsin"), canlı "Türkçesi varken" paneli, Türkçe oranı ve raporda öneri listesi.
 
 ## Konuşma raporu
 

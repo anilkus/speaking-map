@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="tr" data-mode="turkce">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speaking Map · Türkçe konuş</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#0f0f0e;--surface:#1a1a19;--border:#2e2d2b;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8d86;--node:#3987e5;--hot:#d95926;--live:#e66767}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;height:100%}
+.app{display:flex;flex-direction:column;height:100vh;min-height:600px}
+header{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:16px 20px 8px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:24px;margin:0;font-weight:700}
+.sub{font-size:12px;color:var(--muted);margin-top:3px;max-width:640px;line-height:1.5}
+.stats{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+.stat b{display:block;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+.stage{position:relative;flex:1;min-height:300px}
+canvas{display:block;width:100%;height:100%}
+#tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:6px;opacity:0;transition:opacity .1s;max-width:260px;line-height:1.45;z-index:3}
+.legend{position:absolute;left:16px;top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.6;padding:20px;pointer-events:none}
+.caption{padding:10px 20px 4px;min-height:70px;display:flex;justify-content:center}
+#cap{font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.5;text-align:center;max-width:1000px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#cap .interim{color:var(--muted)}
+.controls{display:flex;align-items:center;gap:10px;padding:8px 20px 14px;flex-wrap:wrap}
+.btn{font:600 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);min-width:150px}
+.btn.rec{background:var(--live);border-color:var(--live);color:#fff}
+.btn.rec::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:8px;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+select{font:500 13px Inter,sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
+.spacer{flex:1}
+#msg{font-size:12px;color:var(--muted);padding:0 20px 10px;line-height:1.5}
+dialog{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:18px;width:min(640px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{font-family:"Source Serif 4",Georgia,serif;margin:0 0 8px;font-size:20px}
+dialog p{color:var(--text2);font-size:13px;margin:0 0 10px}
+#drop{border:1.5px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:10px}
+#drop span{font-size:12px;color:var(--muted)}#drop.over,#drop:hover{border-color:var(--text2);background:var(--bg)}
+.asr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--text2);margin-bottom:6px}
+.hint{font-size:12px!important;color:var(--muted)!important}
+#job{position:absolute;left:50%;transform:translateX(-50%);top:10px;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;width:min(340px,80%);font-size:12px;color:var(--text2);display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#job[hidden]{display:none}
+#toast{position:absolute;left:50%;bottom:14px;transform:translate(-50%,12px);background:#163a2a;color:#e8f6ee;border:1px solid #2c6b4c;border-radius:999px;padding:9px 18px;font-size:15px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:6;text-align:center;max-width:90%}
+#toast.on{opacity:1;transform:translate(-50%,0)}#toast b{color:#7ee2ad}#toast span{display:block;font-size:12px;color:#a9d8bf}
+#trp{position:absolute;right:16px;top:44px;width:min(280px,42%);max-height:calc(100% - 60px);overflow:auto;background:rgba(26,26,25,.92);border:1px solid var(--border);border-radius:12px;padding:12px;z-index:3;font-size:13px}
+#trp[hidden]{display:none}.trh{display:flex;gap:16px;margin-bottom:10px}.trh b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.trh span{font-size:11px;color:var(--muted)}
+.tri{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--border)}.tw{color:#f2a3a3;font-weight:600}.k-e .tw{color:#e89ac0}.k-o .tw{color:#f2a3a3;font-style:italic}
+.tw i{font-style:normal;color:var(--muted);font-weight:400;margin-left:5px;font-size:11px}.ts{color:#7ee2ad;text-align:right}.tre{color:var(--muted);font-size:12px;margin:0}.trl.rp{font-size:13px}
+.jb{height:6px;background:var(--bg);border-radius:4px;overflow:hidden}.jb i{display:block;height:100%;background:var(--node);border-radius:0 4px 4px 0;transition:width .3s}
+#job .btn{align-self:flex-end;padding:5px 10px;font-size:12px}
+textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:15px/1.5 "Source Serif 4",Georgia,serif;resize:vertical}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+#report{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--surface);border-left:1px solid var(--border);overflow:auto;padding:18px 18px 24px;z-index:4;box-shadow:-12px 0 30px rgba(0,0,0,.35)}
+.rp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+#report h2{font-family:"Source Serif 4",Georgia,serif;font-size:22px;margin:0}
+#report h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 0 8px;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.kpi b{display:block;font-size:17px;font-variant-numeric:tabular-nums}.kpi span{font-size:11px;color:var(--muted)}
+.ins{margin:0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--text2)}.ins li{margin-bottom:7px}.ins b{color:var(--text)}
+.cl{border-bottom:2px solid var(--c);color:var(--text)}
+.bars .br{display:grid;grid-template-columns:110px 1fr 34px;gap:8px;align-items:center;font-size:13px;margin-bottom:5px}
+.bl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bt{height:10px}.bt i{display:block;height:100%;background:var(--node);border-radius:0 4px 4px 0}
+.bv{text-align:right;color:var(--text2);font-variant-numeric:tabular-nums}
+.clu{display:flex;gap:10px;margin-bottom:10px;font-size:13px}.sw{width:12px;height:12px;border-radius:50%;flex:none;margin-top:3px}.cw{color:var(--text2);margin-top:2px}
+.pairs div,.flow div{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
+.pairs b{font-variant-numeric:tabular-nums}.flow span{color:var(--muted);min-width:56px}.flow b{text-align:right;font-weight:500}
+.note-r{font-size:12px;color:var(--muted);line-height:1.55}.note-r b{color:var(--text2);font-weight:600}
+.empty-r{color:var(--muted)}
+.sum{margin:0;padding-left:20px;font-family:"Source Serif 4",Georgia,serif;font-size:15px;line-height:1.55;color:var(--text2)}.sum li{margin-bottom:8px}.sum b,.csum b{color:var(--text);font-weight:600}
+.csum{border-left:3px solid var(--c);padding:2px 0 2px 10px;margin-bottom:10px;font-family:"Source Serif 4",Georgia,serif;font-size:14px;line-height:1.5;color:var(--text2)}
+.csum span{display:block;font-family:Inter,sans-serif;font-size:11px;color:var(--muted);margin-bottom:2px}
+#report h3 .seg.sm{float:right;text-transform:none;letter-spacing:0;display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}.seg.sm button{padding:3px 9px;font-size:11px;border:0;background:var(--bg);color:var(--text2);cursor:pointer;font-family:Inter,sans-serif}.seg.sm button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.ents{display:flex;flex-wrap:wrap;gap:6px}.ent{font-size:13px;border:1px solid var(--border);border-left:3px solid var(--c);border-radius:6px;padding:3px 8px;background:var(--bg)}.ent b{margin-left:6px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+@media (max-width:640px){#cap{font-size:15px}.stats{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}#report{position:fixed;inset:0;width:100%;z-index:20}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><a href="./" style="font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;letter-spacing:.04em">SPEAKING MAP</a><h1>Türkçe konuş</h1><div class="sub">Konuş ya da bir dosya ekle. Türkçe karşılığı olan yabancı kelimeler haritada büyük kırmızı düğüm olarak öne çıkar, altında Türkçesi yazar. Öneriler TDK'nin Yabancı Sözlere Karşılıklar çalışması ve yaygın kullanım esas alınarak derlendi.</div></div>
+  <div class="stats">
+    <div class="stat" id="stTR" hidden><b id="sTR">%100</b><span>Türkçe</span></div>
+    <div class="stat"><b id="sW">0</b><span>kelime</span></div>
+    <div class="stat"><b id="sN">0</b><span>düğüm</span></div>
+    <div class="stat"><b id="sE">0</b><span>bağ</span></div>
+    <div class="stat"><b id="sT">0:00</b><span>süre</span></div>
+  </div>
+</header>
+<div class="stage" id="stage">
+  <canvas id="cv"></canvas>
+  <div class="legend" id="legend"></div>
+  <div id="empty">Başlamak için aşağıdan <b>&nbsp;Dinlemeye başla&nbsp;</b> düğmesine bas ve konuşmaya başla.</div>
+  <div id="tip"></div>
+  <aside id="report" hidden></aside>
+  <div id="job" hidden></div>
+  <div id="toast" aria-live="polite"></div>
+  <aside id="trp" hidden></aside>
+</div>
+<div class="caption"><div id="cap"></div></div>
+<div class="controls">
+  <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
+  <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
+  <select id="trLevel" hidden aria-label="Kapsam"><option value="all">Batı + eski Arapça/Farsça</option><option value="bati">Yalnız Batı kökenli</option></select>
+  <button class="btn" id="paste">＋ Dosya / metin</button>
+  <span class="spacer"></span>
+  <button class="btn" id="clBtn" aria-pressed="false">Kümeler</button>
+  <button class="btn" id="rpBtn">📊 Rapor</button>
+  <button class="btn" id="copy">Metni kopyala</button>
+  <button class="btn" id="png">PNG indir</button>
+  <button class="btn" id="reset">Temizle</button>
+</div>
+<div id="msg"></div>
+</div>
+<dialog id="dlg">
+  <h2>Dosya ya da metin ekle</h2>
+  <div id="drop" tabindex="0" role="button" aria-label="Dosya seç"><b>Dosyayı buraya sürükle</b> ya da tıklayıp seç<br><span>Metin: .txt .md .pdf .docx · Altyazı: .srt .vtt · Ses/video: .mp3 .wav .m4a .mp4 .webm .mov</span></div>
+  <input type="file" id="file" hidden accept=".txt,.md,.markdown,.csv,.html,.htm,.pdf,.docx,.srt,.vtt,.sbv,audio/*,video/*">
+  <div class="asr"><label for="asrModel">Ses/video için tanıma modeli</label><select id="asrModel"><option value="Xenova/whisper-tiny">Hızlı (Whisper tiny, ~40 MB)</option><option value="Xenova/whisper-base" selected>Dengeli (Whisper base, ~80 MB)</option><option value="Xenova/whisper-small">Daha doğru (Whisper small, ~250 MB, yavaş)</option></select></div>
+  <p class="hint">Ses ve video tamamen tarayıcında yazıya dökülür, hiçbir sunucuya gönderilmez. Dil, ana ekrandaki dil seçimine göre ayarlanır.</p>
+  <textarea id="txt" placeholder="…ya da metni buraya yapıştır"></textarea>
+  <div class="row"><select id="wps" aria-label="Hız"><option value="2.5">Konuşma hızı</option><option value="10">4×</option><option value="40" selected>16×</option><option value="200">Anında</option></select><button class="btn" id="cancel">Vazgeç</button><button class="btn primary" id="playTxt">Oynat</button></div>
+</dialog>
+<script>// https://d3js.org/d3-dispatch/ v3.0.2 Copyright 2010-2026 Mike Bostock
+!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((n="undefined"!=typeof globalThis?globalThis:n||self).d3=n.d3||{})}(this,function(n){"use strict";var e={value:()=>{}};function t(){for(var n,e=0,t=arguments.length,o={};e<t;++e){if(!(n=arguments[e]+"")||n in o||/[\s.]/.test(n))throw new Error("illegal type: "+n);o[n]=[]}return new r(o)}function r(n){this._=n}function o(n,e){for(var t,r=0,o=n.length;r<o;++r)if((t=n[r]).name===e)return t.value}function i(n,t,r){for(var o=0,i=n.length;o<i;++o)if(n[o].name===t){n[o]=e,n=n.slice(0,o).concat(n.slice(o+1));break}return null!=r&&n.push({name:t,value:r}),n}r.prototype=t.prototype={constructor:r,on:function(n,e){var t,r,f=this._,l=(r=f,(n+"").trim().split(/^|\s+/).map(function(n){var e="",t=n.indexOf(".");if(t>=0&&(e=n.slice(t+1),n=n.slice(0,t)),n&&!r.hasOwnProperty(n))throw new Error("unknown type: "+n);return{type:n,name:e}})),a=-1,u=l.length;if(!(arguments.length<2)){if(null!=e&&"function"!=typeof e)throw new Error("invalid callback: "+e);for(;++a<u;)if(t=(n=l[a]).type)f[t]=i(f[t],n.name,e);else if(null==e)for(t in f)f[t]=i(f[t],n.name,null);return this}for(;++a<u;)if((t=(n=l[a]).type)&&(t=o(f[t],n.name)))return t},copy:function(){var n={},e=this._;for(var t in e)n[t]=e[t].slice();return new r(n)},call:function(n,e){if((t=arguments.length-2)>0)for(var t,r,o=new Array(t),i=0;i<t;++i)o[i]=arguments[i+2];if(!this._.hasOwnProperty(n))throw new Error("unknown type: "+n);for(i=0,t=(r=this._[n]).length;i<t;++i)r[i].value.apply(e,o)},apply:function(n,e,t){if(!this._.hasOwnProperty(n))throw new Error("unknown type: "+n);for(var r=this._[n],o=0,i=r.length;o<i;++o)r[o].value.apply(e,t)}},n.dispatch=t});
+// https://d3js.org/d3-quadtree/ v3.0.2 Copyright 2010-2026 Mike Bostock
+!function(t,i){"object"==typeof exports&&"undefined"!=typeof module?i(exports):"function"==typeof define&&define.amd?define(["exports"],i):i((t="undefined"!=typeof globalThis?globalThis:t||self).d3=t.d3||{})}(this,function(t){"use strict";function i(t,i,r,n){if(isNaN(i)||isNaN(r))return t;var e,s,h,o,a,l,u,_,f,y=t._root,c={data:n},x=t._x0,d=t._y0,p=t._x1,v=t._y1;if(!y)return t._root=c,t;for(;y.length;)if((l=i>=(s=(x+p)/2))?x=s:p=s,(u=r>=(h=(d+v)/2))?d=h:v=h,e=y,!(y=y[_=u<<1|l]))return e[_]=c,t;if(o=+t._x.call(null,y.data),a=+t._y.call(null,y.data),i===o&&r===a)return c.next=y,e?e[_]=c:t._root=c,t;do{e=e?e[_]=new Array(4):t._root=new Array(4),(l=i>=(s=(x+p)/2))?x=s:p=s,(u=r>=(h=(d+v)/2))?d=h:v=h}while((_=u<<1|l)==(f=(a>=h)<<1|o>=s));return e[f]=y,e[_]=c,t}function r(t,i,r,n,e){this.node=t,this.x0=i,this.y0=r,this.x1=n,this.y1=e}function n(t){return t[0]}function e(t){return t[1]}function s(t,i,r){var s=new h(null==i?n:i,null==r?e:r,NaN,NaN,NaN,NaN);return null==t?s:s.addAll(t)}function h(t,i,r,n,e,s){this._x=t,this._y=i,this._x0=r,this._y0=n,this._x1=e,this._y1=s,this._root=void 0}function o(t){for(var i={data:t.data},r=i;t=t.next;)r=r.next={data:t.data};return i}var a=s.prototype=h.prototype;a.copy=function(){var t,i,r=new h(this._x,this._y,this._x0,this._y0,this._x1,this._y1),n=this._root;if(!n)return r;if(!n.length)return r._root=o(n),r;for(t=[{source:n,target:r._root=new Array(4)}];n=t.pop();)for(var e=0;e<4;++e)(i=n.source[e])&&(i.length?t.push({source:i,target:n.target[e]=new Array(4)}):n.target[e]=o(i));return r},a.add=function(t){const r=+this._x.call(null,t),n=+this._y.call(null,t);return i(this.cover(r,n),r,n,t)},a.addAll=function(t){Array.isArray(t)||(t=Array.from(t));const r=t.length,n=new Float64Array(r),e=new Float64Array(r);let s=1/0,h=s,o=-s,a=o;for(let i,l,u,_=0;_<r;++_)isNaN(l=+this._x.call(null,i=t[_]))||isNaN(u=+this._y.call(null,i))?n[_]=NaN:(n[_]=l,e[_]=u,l<s&&(s=l),l>o&&(o=l),u<h&&(h=u),u>a&&(a=u));if(s>o||h>a)return this;this.cover(s,h).cover(o,a);for(let s=0;s<r;++s)i(this,n[s],e[s],t[s]);return this},a.cover=function(t,i){if(isNaN(t=+t)||isNaN(i=+i))return this;var r=this._x0,n=this._y0,e=this._x1,s=this._y1;if(isNaN(r))e=(r=Math.floor(t))+1,s=(n=Math.floor(i))+1;else{for(var h,o,a=e-r||1,l=this._root;r>t||t>=e||n>i||i>=s;)switch(o=(i<n)<<1|t<r,(h=new Array(4))[o]=l,l=h,a*=2,o){case 0:e=r+a,s=n+a;break;case 1:r=e-a,s=n+a;break;case 2:e=r+a,n=s-a;break;case 3:r=e-a,n=s-a}this._root&&this._root.length&&(this._root=l)}return this._x0=r,this._y0=n,this._x1=e,this._y1=s,this},a.data=function(){var t=[];return this.visit(function(i){if(!i.length)do{t.push(i.data)}while(i=i.next)}),t},a.extent=function(t){return arguments.length?this.cover(+t[0][0],+t[0][1]).cover(+t[1][0],+t[1][1]):isNaN(this._x0)?void 0:[[this._x0,this._y0],[this._x1,this._y1]]},a.find=function(t,i,n){var e,s,h,o,a,l,u,_=this._x0,f=this._y0,y=this._x1,c=this._y1,x=[],d=this._root;for(d&&x.push(new r(d,_,f,y,c)),null==n?n=1/0:(_=t-n,f=i-n,y=t+n,c=i+n,n*=n);l=x.pop();)if(!(!(d=l.node)||(s=l.x0)>y||(h=l.y0)>c||(o=l.x1)<_||(a=l.y1)<f))if(d.length){var p=(s+o)/2,v=(h+a)/2;x.push(new r(d[3],p,v,o,a),new r(d[2],s,v,p,a),new r(d[1],p,h,o,v),new r(d[0],s,h,p,v)),(u=(i>=v)<<1|t>=p)&&(l=x[x.length-1],x[x.length-1]=x[x.length-1-u],x[x.length-1-u]=l)}else{var N=t-+this._x.call(null,d.data),w=i-+this._y.call(null,d.data),g=N*N+w*w;if(g<n){var A=Math.sqrt(n=g);_=t-A,f=i-A,y=t+A,c=i+A,e=d.data}}return e},a.remove=function(t){if(isNaN(s=+this._x.call(null,t))||isNaN(h=+this._y.call(null,t)))return this;var i,r,n,e,s,h,o,a,l,u,_,f,y=this._root,c=this._x0,x=this._y0,d=this._x1,p=this._y1;if(!y)return this;if(y.length)for(;;){if((l=s>=(o=(c+d)/2))?c=o:d=o,(u=h>=(a=(x+p)/2))?x=a:p=a,i=y,!(y=y[_=u<<1|l]))return this;if(!y.length)break;(i[_+1&3]||i[_+2&3]||i[_+3&3])&&(r=i,f=_)}for(;y.data!==t;)if(n=y,!(y=y.next))return this;return(e=y.next)&&delete y.next,n?(e?n.next=e:delete n.next,this):i?(e?i[_]=e:delete i[_],(y=i[0]||i[1]||i[2]||i[3])&&y===(i[3]||i[2]||i[1]||i[0])&&!y.length&&(r?r[f]=y:this._root=y),this):(this._root=e,this)},a.removeAll=function(t){for(var i=0,r=t.length;i<r;++i)this.remove(t[i]);return this},a.root=function(){return this._root},a.size=function(){var t=0;return this.visit(function(i){if(!i.length)do{++t}while(i=i.next)}),t},a.visit=function(t){var i,n,e,s,h,o,a=[],l=this._root;for(l&&a.push(new r(l,this._x0,this._y0,this._x1,this._y1));i=a.pop();)if(!t(l=i.node,e=i.x0,s=i.y0,h=i.x1,o=i.y1)&&l.length){var u=(e+h)/2,_=(s+o)/2;(n=l[3])&&a.push(new r(n,u,_,h,o)),(n=l[2])&&a.push(new r(n,e,_,u,o)),(n=l[1])&&a.push(new r(n,u,s,h,_)),(n=l[0])&&a.push(new r(n,e,s,u,_))}return this},a.visitAfter=function(t){var i,n=[],e=[];for(this._root&&n.push(new r(this._root,this._x0,this._y0,this._x1,this._y1));i=n.pop();){var s=i.node;if(s.length){var h,o=i.x0,a=i.y0,l=i.x1,u=i.y1,_=(o+l)/2,f=(a+u)/2;(h=s[0])&&n.push(new r(h,o,a,_,f)),(h=s[1])&&n.push(new r(h,_,a,l,f)),(h=s[2])&&n.push(new r(h,o,f,_,u)),(h=s[3])&&n.push(new r(h,_,f,l,u))}e.push(i)}for(;i=e.pop();)t(i.node,i.x0,i.y0,i.x1,i.y1);return this},a.x=function(t){return arguments.length?(this._x=t,this):this._x},a.y=function(t){return arguments.length?(this._y=t,this):this._y},t.quadtree=s});
+// https://d3js.org/d3-timer/ v3.0.2 Copyright 2010-2026 Mike Bostock
+!function(t,n){"object"==typeof exports&&"undefined"!=typeof module?n(exports):"function"==typeof define&&define.amd?define(["exports"],n):n((t="undefined"!=typeof globalThis?globalThis:t||self).d3=t.d3||{})}(this,function(t){"use strict";var n,e,o=0,i=0,r=0,l=0,a=0,u=0,c="object"==typeof performance&&performance.now?performance:Date,s="object"==typeof window&&window.requestAnimationFrame?window.requestAnimationFrame.bind(window):function(t){setTimeout(t,17)};function f(){return a||(s(_),a=c.now()+u)}function _(){a=0}function m(){this._call=this._time=this._next=null}function p(t,n,e){var o=new m;return o.restart(t,n,e),o}function w(){f(),++o;for(var t,e=n;e;)(t=a-e._time)>=0&&e._call.call(void 0,t),e=e._next;--o}function h(){a=(l=c.now())+u,o=i=0;try{w()}finally{o=0,function(){var t,o,i=n,r=1/0;for(;i;)i._call?(r>i._time&&(r=i._time),t=i,i=i._next):(o=i._next,i._next=null,i=t?t._next=o:n=o);e=t,y(r)}(),a=0}}function d(){var t=c.now(),n=t-l;n>1e3&&(u-=n,l=t)}function y(t){o||(i&&(i=clearTimeout(i)),t-a>24?(t<1/0&&(i=setTimeout(h,Math.ceil(t-c.now()-u)+1)),r&&(r=clearInterval(r))):(r||(l=c.now(),r=setInterval(d,1e3)),o=1,s(h)))}m.prototype=p.prototype={constructor:m,restart:function(t,o,i){if("function"!=typeof t)throw new TypeError("callback is not a function");i=(null==i?f():+i)+(null==o?0:+o),this._next||e===this||(e?e._next=this:n=this,e=this),this._call=t,this._time=i,y()},stop:function(){this._call&&(this._call=null,this._time=1/0,y())}},t.interval=function(t,n,e){var o=new m,i=n;return null==n?(o.restart(t,n,e),o):(o._restart=o.restart,o.restart=function(t,n,e){n=+n,e=null==e?f():+e,o._restart(function r(l){l+=i,o._restart(r,i+=n,e),t(l)},n,e)},o.restart(t,n,e),o)},t.now=f,t.timeout=function(t,n,e){var o=new m;return n=null==n?0:+n,o.restart(e=>{o.stop(),t(e+n)},n,e),o},t.timer=p,t.timerFlush=w});
+// https://d3js.org/d3-force/ v3.0.1 Copyright 2010-2026 Mike Bostock
+!function(n,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports,require("d3-quadtree"),require("d3-dispatch"),require("d3-timer")):"function"==typeof define&&define.amd?define(["exports","d3-quadtree","d3-dispatch","d3-timer"],t):t((n="undefined"!=typeof globalThis?globalThis:n||self).d3=n.d3||{},n.d3,n.d3,n.d3)}(this,function(n,t,r,e){"use strict";function i(n){return function(){return n}}function u(n){return 1e-6*(n()-.5)}function o(n){return n.x+n.vx}function f(n){return n.y+n.vy}function a(n){return n.index}function c(n,t){var r=n.get(t);if(!r)throw new Error("node not found: "+t);return r}const l=4294967296;function h(n){return n.x}function v(n){return n.y}var y=Math.PI*(3-Math.sqrt(5));n.forceCenter=function(n,t){var r,e=1;function i(){var i,u,o=r.length,f=0,a=0;for(i=0;i<o;++i)f+=(u=r[i]).x,a+=u.y;for(f=(f/o-n)*e,a=(a/o-t)*e,i=0;i<o;++i)(u=r[i]).x-=f,u.y-=a}return null==n&&(n=0),null==t&&(t=0),i.initialize=function(n){r=n},i.x=function(t){return arguments.length?(n=+t,i):n},i.y=function(n){return arguments.length?(t=+n,i):t},i.strength=function(n){return arguments.length?(e=+n,i):e},i},n.forceCollide=function(n){var r,e,a,c=1,l=1;function h(){for(var n,i,h,y,d,g,x,s=r.length,p=0;p<l;++p)for(i=t.quadtree(r,o,f).visitAfter(v),n=0;n<s;++n)h=r[n],g=e[h.index],x=g*g,y=h.x+h.vx,d=h.y+h.vy,i.visit(M);function M(n,t,r,e,i){var o=n.data,f=n.r,l=g+f;if(!o)return t>y+l||e<y-l||r>d+l||i<d-l;if(o.index>h.index){var v=y-o.x-o.vx,s=d-o.y-o.vy,p=v*v+s*s;p<l*l&&(0===v&&(p+=(v=u(a))*v),0===s&&(p+=(s=u(a))*s),p=(l-(p=Math.sqrt(p)))/p*c,h.vx+=(v*=p)*(l=(f*=f)/(x+f)),h.vy+=(s*=p)*l,o.vx-=v*(l=1-l),o.vy-=s*l)}}}function v(n){if(n.data)return n.r=e[n.data.index];for(var t=n.r=0;t<4;++t)n[t]&&n[t].r>n.r&&(n.r=n[t].r)}function y(){if(r){var t,i,u=r.length;for(e=new Array(u),t=0;t<u;++t)i=r[t],e[i.index]=+n(i,t,r)}}return"function"!=typeof n&&(n=i(null==n?1:+n)),h.initialize=function(n,t){r=n,a=t,y()},h.iterations=function(n){return arguments.length?(l=+n,h):l},h.strength=function(n){return arguments.length?(c=+n,h):c},h.radius=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),y(),h):n},h},n.forceLink=function(n){var t,r,e,o,f,l,h=a,v=function(n){return 1/Math.min(o[n.source.index],o[n.target.index])},y=i(30),d=1;function g(e){for(var i=0,o=n.length;i<d;++i)for(var a,c,h,v,y,g,x,s=0;s<o;++s)c=(a=n[s]).source,v=(h=a.target).x+h.vx-c.x-c.vx||u(l),y=h.y+h.vy-c.y-c.vy||u(l),v*=g=((g=Math.sqrt(v*v+y*y))-r[s])/g*e*t[s],y*=g,h.vx-=v*(x=f[s]),h.vy-=y*x,c.vx+=v*(x=1-x),c.vy+=y*x}function x(){if(e){var i,u,a=e.length,l=n.length,v=new Map(e.map((n,t)=>[h(n,t,e),n]));for(i=0,o=new Array(a);i<l;++i)(u=n[i]).index=i,"object"!=typeof u.source&&(u.source=c(v,u.source)),"object"!=typeof u.target&&(u.target=c(v,u.target)),o[u.source.index]=(o[u.source.index]||0)+1,o[u.target.index]=(o[u.target.index]||0)+1;for(i=0,f=new Array(l);i<l;++i)u=n[i],f[i]=o[u.source.index]/(o[u.source.index]+o[u.target.index]);t=new Array(l),s(),r=new Array(l),p()}}function s(){if(e)for(var r=0,i=n.length;r<i;++r)t[r]=+v(n[r],r,n)}function p(){if(e)for(var t=0,i=n.length;t<i;++t)r[t]=+y(n[t],t,n)}return null==n&&(n=[]),g.initialize=function(n,t){e=n,l=t,x()},g.links=function(t){return arguments.length?(n=t,x(),g):n},g.id=function(n){return arguments.length?(h=n,g):h},g.iterations=function(n){return arguments.length?(d=+n,g):d},g.strength=function(n){return arguments.length?(v="function"==typeof n?n:i(+n),s(),g):v},g.distance=function(n){return arguments.length?(y="function"==typeof n?n:i(+n),p(),g):y},g},n.forceManyBody=function(){var n,r,e,o,f,a=i(-30),c=1,l=1/0,y=.81;function d(e){var i,u=n.length,f=t.quadtree(n,h,v).visitAfter(x);for(o=e,i=0;i<u;++i)r=n[i],f.visit(s)}function g(){if(n){var t,r,e=n.length;for(f=new Array(e),t=0;t<e;++t)r=n[t],f[r.index]=+a(r,t,n)}}function x(n){var t,r,e,i,u,o=0,a=0;if(n.length){for(e=i=u=0;u<4;++u)(t=n[u])&&(r=Math.abs(t.value))&&(o+=t.value,a+=r,e+=r*t.x,i+=r*t.y);n.x=e/a,n.y=i/a}else{(t=n).x=t.data.x,t.y=t.data.y;do{o+=f[t.data.index]}while(t=t.next)}n.value=o}function s(n,t,i,a){if(!n.value)return!0;var h=n.x-r.x,v=n.y-r.y,d=a-t,g=h*h+v*v;if(d*d/y<g)return g<l&&(0===h&&(g+=(h=u(e))*h),0===v&&(g+=(v=u(e))*v),g<c&&(g=Math.sqrt(c*g)),r.vx+=h*n.value*o/g,r.vy+=v*n.value*o/g),!0;if(!(n.length||g>=l)){(n.data!==r||n.next)&&(0===h&&(g+=(h=u(e))*h),0===v&&(g+=(v=u(e))*v),g<c&&(g=Math.sqrt(c*g)));do{n.data!==r&&(d=f[n.data.index]*o/g,r.vx+=h*d,r.vy+=v*d)}while(n=n.next)}}return d.initialize=function(t,r){n=t,e=r,g()},d.strength=function(n){return arguments.length?(a="function"==typeof n?n:i(+n),g(),d):a},d.distanceMin=function(n){return arguments.length?(c=n*n,d):Math.sqrt(c)},d.distanceMax=function(n){return arguments.length?(l=n*n,d):Math.sqrt(l)},d.theta=function(n){return arguments.length?(y=n*n,d):Math.sqrt(y)},d},n.forceRadial=function(n,t,r){var e,u,o,f=i(.1);function a(n){for(var i=0,f=e.length;i<f;++i){var a=e[i],c=a.x-t||1e-6,l=a.y-r||1e-6,h=Math.sqrt(c*c+l*l),v=(o[i]-h)*u[i]*n/h;a.vx+=c*v,a.vy+=l*v}}function c(){if(e){var t,r=e.length;for(u=new Array(r),o=new Array(r),t=0;t<r;++t)o[t]=+n(e[t],t,e),u[t]=isNaN(o[t])?0:+f(e[t],t,e)}}return"function"!=typeof n&&(n=i(+n)),null==t&&(t=0),null==r&&(r=0),a.initialize=function(n){e=n,c()},a.strength=function(n){return arguments.length?(f="function"==typeof n?n:i(+n),c(),a):f},a.radius=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),c(),a):n},a.x=function(n){return arguments.length?(t=+n,a):t},a.y=function(n){return arguments.length?(r=+n,a):r},a},n.forceSimulation=function(n){var t,i=1,u=.001,o=1-Math.pow(u,1/300),f=0,a=.6,c=new Map,h=e.timer(g),v=r.dispatch("tick","end"),d=function(){let n=1;return()=>(n=(1664525*n+1013904223)%l)/l}();function g(){x(),v.call("tick",t),i<u&&(h.stop(),v.call("end",t))}function x(r){var e,u,l=n.length;void 0===r&&(r=1);for(var h=0;h<r;++h)for(i+=(f-i)*o,c.forEach(function(n){n(i)}),e=0;e<l;++e)null==(u=n[e]).fx?u.x+=u.vx*=a:(u.x=u.fx,u.vx=0),null==u.fy?u.y+=u.vy*=a:(u.y=u.fy,u.vy=0);return t}function s(){for(var t,r=0,e=n.length;r<e;++r){if((t=n[r]).index=r,null!=t.fx&&(t.x=t.fx),null!=t.fy&&(t.y=t.fy),isNaN(t.x)||isNaN(t.y)){var i=10*Math.sqrt(.5+r),u=r*y;t.x=i*Math.cos(u),t.y=i*Math.sin(u)}(isNaN(t.vx)||isNaN(t.vy))&&(t.vx=t.vy=0)}}function p(t){return t.initialize&&t.initialize(n,d),t}return null==n&&(n=[]),s(),t={tick:x,restart:function(){return h.restart(g),t},stop:function(){return h.stop(),t},nodes:function(r){return arguments.length?(n=r,s(),c.forEach(p),t):n},alpha:function(n){return arguments.length?(i=+n,t):i},alphaMin:function(n){return arguments.length?(u=+n,t):u},alphaDecay:function(n){return arguments.length?(o=+n,t):+o},alphaTarget:function(n){return arguments.length?(f=+n,t):f},velocityDecay:function(n){return arguments.length?(a=1-n,t):1-a},randomSource:function(n){return arguments.length?(d=n,c.forEach(p),t):d},force:function(n,r){return arguments.length>1?(null==r?c.delete(n):c.set(n,p(r)),t):c.get(n)},find:function(t,r,e){var i,u,o,f,a,c=0,l=n.length;for(null==e?e=1/0:e*=e,c=0;c<l;++c)(o=(i=t-(f=n[c]).x)*i+(u=r-f.y)*u)<e&&(a=f,e=o);return a},on:function(n,r){return arguments.length>1?(v.on(n,r),t):v.on(n)}}},n.forceX=function(n){var t,r,e,u=i(.1);function o(n){for(var i,u=0,o=t.length;u<o;++u)(i=t[u]).vx+=(e[u]-i.x)*r[u]*n}function f(){if(t){var i,o=t.length;for(r=new Array(o),e=new Array(o),i=0;i<o;++i)r[i]=isNaN(e[i]=+n(t[i],i,t))?0:+u(t[i],i,t)}}return"function"!=typeof n&&(n=i(null==n?0:+n)),o.initialize=function(n){t=n,f()},o.strength=function(n){return arguments.length?(u="function"==typeof n?n:i(+n),f(),o):u},o.x=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),f(),o):n},o},n.forceY=function(n){var t,r,e,u=i(.1);function o(n){for(var i,u=0,o=t.length;u<o;++u)(i=t[u]).vy+=(e[u]-i.y)*r[u]*n}function f(){if(t){var i,o=t.length;for(r=new Array(o),e=new Array(o),i=0;i<o;++i)r[i]=isNaN(e[i]=+n(t[i],i,t))?0:+u(t[i],i,t)}}return"function"!=typeof n&&(n=i(null==n?0:+n)),o.initialize=function(n){t=n,f()},o.strength=function(n){return arguments.length?(u="function"==typeof n?n:i(+n),f(),o):u},o.y=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),f(),o):n},o}});
+</script>
+<script>
+// ---------- dil işleme ----------
+const trLower=s=>s.replace(/I/g,"ı").replace(/İ/g,"i").toLowerCase();
+const STOP_TR=new Set(`üzerinde üzerine üzerinden merhaba selam günaydın ve veya ile ki de da bu şu o bir iki her hiç çok daha en pek gibi kadar için diye ama fakat lakin ancak yalnız ise ya mi mı mu mü ne niçin nasıl neden niye hem dahi bile zaten artık şimdi sonra önce yine tekrar ben sen biz siz onlar kendi böyle şöyle öyle bunlar şunlar orada burada şey şeyler bazı birçok diğer başka var yok değil olarak olan olduğu üzere dair rağmen göre karşı doğru beri ait aynı yani mesela belki elbette hatta işte hani falan filan tamam evet hayır ee eee ıı hmm aa yok bunu buna bunun bundan onu ona onun ondan şunu bizim bize bizi sizin size sizi benim bana beni onların onlara onları kim kimi hangi bütün tüm hep hiçbir biraz bazen sadece bence galiba acaba lütfen teşekkür ederim tabii tabi oldu olur olsun olmuş olacak oluyor olmak etmek yapmak ediyor ediyorum ettik ettim yaptık yaptım yapıyor yapıyoruz diyor dedim dedi demek gibi şimdi bugün yarın dün iyi kötü büyük küçük çünkü eğer veyahut şeyi şeyin şeye mı mi mu mü misin mısın musun müsün miyiz mıyız var mı yok mu sanki aslında açıkçası olabilir lazım gerek gerekiyor idi idir imiş olduğunu olduğu ettiği eden edilen edildi tarafından beraber istiyorum istiyoruz istiyor gelelim geçelim olduktan son üzerine bakın bak bakalım arkadaşlar efendim`.split(/\s+/));
+const STOP_EN=new Set(`the a an and or but if then so to of in on at by for with from as is are was were be been being am do does did have has had i you he she it we they me him her us them my your his its our their this that these those there here what which who whom whose when where why how all any both each few more most other some such no nor not only own same than too very can will just should now also about into over after before again once up down out off ok okay yeah yes um uh like really actually basically gonna wanna get got go going know think mean thing things lot well right`.split(/\s+/));
+const SUF=["lerinden","larından","lerinde","larında","lerini","larını","lerine","larına","lerin","ların","leri","ları","ler","lar","ımızın","imizin","ımızı","imizi","ımız","imiz","umuz","ümüz","ınız","iniz","unuz","ünüz","ndan","nden","nın","nin","nun","nün","dan","den","tan","ten","nda","nde","yla","yle","da","de","ta","te","ın","in","un","ün","ım","im","um","üm","sı","si","su","sü","yı","yi","yu","yü","ya","ye","na","ne","ı","i","u","ü","a","e"];
+let LANG="tr-TR";
+const VSUF=["ıyorsunuz","iyorsunuz","uyorsunuz","üyorsunuz","ıyoruz","iyoruz","uyoruz","üyoruz","ıyorum","iyorum","uyorum","üyorum","ıyorsun","iyorsun","ıyor","iyor","uyor","üyor","yor","acaksınız","eceksiniz","acağız","eceğiz","acağım","eceğim","acak","ecek","abilir","ebilir","abil","ebil","mıştır","miştir","muştur","müştür","mışız","mişiz","mış","miş","muş","müş","dığı","diği","duğu","düğü","tığı","tiği","tuğu","tüğü","dığ","diğ","duğ","düğ","tığ","tiğ","tuğ","tüğ","dınız","diniz","dunuz","dünüz","dık","dik","duk","dük","tık","tik","tuk","tük","dım","dim","dum","düm","dı","di","du","dü","tı","ti","tu","tü","ması","mesi","malı","meli","mak","mek","arak","erek","ınca","ince","unca","ünce","dır","dir","dur","dür","tır","tir","tur","tür","ıl","il","ul","ül"];
+const ALLSUF=[...SUF.map(x=>[x,x.length===1?3:4]),...VSUF.map(x=>[x,3])].sort((a,b)=>b[0].length-a[0].length);
+const KEEP=new Set("yardım kadın veri yapay gelecek bilgi bilim bilinç model devlet yazılım yaşam anlam alan durum ülke dünya kültür ödül mühendis".split(" "));
+const LIGHT=/^(var|yok|ol|et|ed|de|di|diy|dey|ded|bil|bul|bulun|gözük|görün|iste|söyle|yap)(ı|i|u|ü)?(yor|acak|ecek|acağ|eceğ|mış|miş|muş|müş|dı|di|du|dü|tı|ti|tu|tü|dığ|diğ|duğ|düğ|tığ|tiğ|abil|ebil|mak|mek|ma|me|ır|ir|ur|ür|ar|er|sa|se|ınca|ince|ken|an|en|ecek|ip|ıp|up|üp|sun|sın|lım|lim|yın|yin|ğım|ğim|nce)/;
+const L1=["ndaki","ndeki","ndan","nden","daki","deki","taki","teki","dan","den","tan","ten","nda","nde","nın","nin","nun","nün","yla","yle","da","de","ta","te","ın","in","un","ün","la","le","ya","ye","na","ne","yı","yi","yu","yü","ı","i","u","ü","a","e"];
+const L2=["ımız","imiz","umuz","ümüz","ınız","iniz","unuz","ünüz","ları","leri","sı","si","su","sü","ı","i","u","ü"];
+const L3=["lar","ler"];
+const ANYSUF=new Set(["ma","me","mak","mek","ması","mesi","maya","meye","mada","mede",...L1,...L2,...L3,...L1.flatMap(a=>L2.map(b=>b+a)),...L1.flatMap(a=>L3.map(b=>b+a)),...L2.flatMap(a=>L3.map(b=>b+a))]);
+const VS=[...VSUF,"ma","me"].filter(x=>!["ıl","il","ul","ül"].includes(x)).sort((a,b)=>b.length-a.length);
+let seenStems=new Set(),byP3=new Map();
+function addSeen(s){if(seenStems.has(s))return;seenStems.add(s);const p=s.slice(0,3);if(!byP3.has(p))byP3.set(p,[]);byP3.get(p).push(s)}
+function strip1(s,list){for(const x of list){if(s.endsWith(x)&&s.length-x.length>=3){if(list===L1&&x.length===1&&"ıiuü".includes(x)&&/[sy]$/.test(s.slice(0,-1)))continue;return s.slice(0,-x.length)}}return null}
+const SOFT={b:"p",c:"ç",d:"t",ğ:"k",g:"k",p:"b",ç:"c",t:"d",k:"ğ"};
+function variants(s){const v=[s];const l=s.slice(-1);if(SOFT[l])v.push(s.slice(0,-1)+SOFT[l]);if(l==="k")v.push(s.slice(0,-1)+"g");
+  if(s.length>=3&&!/[aeıioöuü]/.test(s.slice(-2,-1))&&!/[aeıioöuü]/.test(l))for(const x of "ıiuü")v.push(s.slice(0,-1)+x+l);
+  if(s.length>=4&&/[ıiuü]/.test(s.slice(-2,-1))&&!/[aeıioöuü]/.test(l)&&!/[aeıioöuü]/.test(s.slice(-3,-2)))v.push(s.slice(0,-2)+l);
+  return v}
+function seen(s){for(const v of variants(s))if(seenStems.has(v))return v;return null}
+function reconcile(steps){
+  for(let i=steps.length-1;i>=0;i--){const h=seen(steps[i]);if(h)return h}
+  for(const st of steps.slice().reverse()){for(let n=st.length-1;n>=3&&st.length-n<=5;n--){const p=st.slice(0,n);if(ANYSUF.has(st.slice(n))){const h=seen(p);if(h)return h}}}
+  for(const st of steps.slice().reverse()){const arr=byP3.get(st.slice(0,3));if(!arr)continue;for(const s2 of arr){if(s2.length>st.length&&s2.length-st.length<=4&&s2.startsWith(st)&&ANYSUF.has(s2.slice(st.length)))return s2}}
+  return steps[steps.length-1]}
+function stemTR(w){
+  if(KEEP.has(w))return w;
+  for(const x of VS){if(w.endsWith(x)&&w.length-x.length>=(/^m[ae]/.test(x)?4:3)){let s=w.slice(0,-x.length);const p=strip1(s,["ıl","il","ul","ül"]);if(p&&p.length>=3)s=p;return reconcile([s])}}
+  const steps=[w];let s=w;
+  for(const L of [L1,L2,L3]){const r=strip1(s,L);if(r){s=r;steps.push(s)}if(KEEP.has(s))break}
+  return reconcile(steps)}
+function key(raw){
+  let w=raw.replace(/[’']/g,"'");const ap=w.indexOf("'");if(ap>0)w=w.slice(0,ap);
+  w=(LANG.startsWith("tr")?trLower(w):w.toLowerCase()).replace(/[^\p{L}]/gu,"");
+  if(w.length<3)return null;
+  if(LANG.startsWith("tr")){
+    if(STOP_TR.has(w))return null;
+    if(LIGHT.test(w)&&!KEEP.has(w))return null;
+    const s=stemTR(w);
+    if(STOP_TR.has(s))return null;addSeen(s);return {k:s,w};
+  }else{
+    if(STOP_EN.has(w))return null;let s=w;
+    if(s.length>4&&s.endsWith("ies"))s=s.slice(0,-3)+"y";else if(s.length>4&&s.endsWith("s")&&!s.endsWith("ss"))s=s.slice(0,-1);
+    return {k:s,w};
+  }
+}
+// ---------- durum ----------
+const MAXN=130, WIN=6;
+let words=new Map(); // k -> node
+let rawWords=0,rawMicWords=0,fillers=new Map(),seqKeys=[],micMs=0,micStart=null;
+const FILL_TR=new Set("yani işte şey hani falan filan ee eee ııı ıı hmm aslında açıkçası tabii".split(" ")),FILL_EN=new Set("um uh umm erm like basically actually literally".split(" "));
+let E=new Map(), TOPE=[], maxW=1, buf=[], nWords=0, transcript="", startT=null, lastWordT=0;
+function label(n){let mx=0;for(const c of n.forms.values())mx=Math.max(mx,c);
+  let cand=[...n.forms].filter(([f,c])=>c>=mx*0.3);
+  if(n.k.startsWith("P:")&&n.k.includes(" ")){const full=n.k.slice(2);let best=null;for(const [f] of n.forms)if(trLower(f)===full)best=f;if(best)return best;return [...n.forms.keys()].sort((a,b)=>b.length-a.length)[0]}
+  if(n.type==="ozel"||n.type==="yer"){const cap=cand.filter(([f])=>/^[\p{Lu}\p{N}]/u.test(f));if(cap.length)cand=cap;else return capTR(cand.sort((a,b)=>b[1]-a[1])[0][0])}
+  cand.sort((a,b)=>a[0].length-b[0].length||b[1]-a[1]);return cand[0][0]}
+// ---------- özel isimler, yerler, kalıp ifadeler ----------
+const IL="adana adıyaman afyonkarahisar afyon ağrı amasya ankara antalya artvin aydın balıkesir bilecik bingöl bitlis bolu burdur bursa çanakkale çankırı çorum denizli diyarbakır edirne elazığ erzincan erzurum eskişehir gaziantep antep giresun gümüşhane hakkari hatay ısparta isparta mersin istanbul izmir kars kastamonu kayseri kırklareli kırşehir kocaeli izmit konya kütahya malatya manisa kahramanmaraş maraş mardin muğla muş nevşehir niğde ordu rize sakarya adapazarı samsun siirt sinop sivas tekirdağ tokat trabzon tunceli şanlıurfa urfa uşak van yozgat zonguldak aksaray bayburt karaman kırıkkale batman şırnak bartın ardahan ığdır yalova karabük kilis osmaniye düzce";
+const ILCE="kadıköy beşiktaş üsküdar şişli beyoğlu fatih bakırköy kartal pendik maltepe ataşehir sarıyer çankaya keçiören yenimahalle kızılay ulus taksim karşıyaka bornova konak bodrum alanya marmaris fethiye kuşadası çeşme kapadokya göreme ürgüp boğazlıyan sorgun akdağmadeni tarsus silifke erdemli anamur iskenderun nilüfer osmangazi";
+const ULKE="türkiye almanya fransa ingiltere birleşik krallık italya ispanya yunanistan rusya amerika abd çin japonya hindistan iran irak suriye mısır polonya hollanda belçika avusturya isviçre isveç norveç finlandiya danimarka portekiz macaristan romanya bulgaristan ukrayna azerbaycan gürcistan ermenistan kazakistan özbekistan türkmenistan kırgızistan kıbrıs israil filistin lübnan ürdün suudi arabistan katar kuveyt birleşik arap emirlikleri kanada meksika brezilya arjantin şili kolombiya avustralya yeni zelanda kore güney kore kuzey kore pakistan afganistan endonezya malezya singapur tayland vietnam filipinler çekya slovakya slovenya hırvatistan sırbistan bosna hersek karadağ arnavutluk makedonya kosova estonya letonya litvanya irlanda izlanda lüksemburg malta libya tunus cezayir fas nijerya kenya etiyopya güney afrika somali sudan";
+const BOLGE="avrupa asya afrika amerika okyanusya antarktika ortadoğu orta doğu balkanlar kafkasya anadolu trakya karadeniz ege akdeniz marmara iç anadolu doğu anadolu güneydoğu anadolu boğaz boğaziçi haliç kapadokya";
+const SEHIR="londra paris berlin roma madrid viyana brüksel amsterdam prag budapeşte varşova atina moskova kiev bakü tiflis erivan tahran bağdat şam beyrut kahire kudüs riyad mekke medine dubai abu dabi doha new york washington los angeles chicago boston san francisco toronto montreal vancouver meksiko tokyo pekin şanghay hong kong seul singapur bangkok delhi yeni delhi mumbai karaçi islamabad kabil sidney melbourne münih hamburg frankfurt köln stuttgart düsseldorf dortmund karlsruhe heidelberg dresden leipzig bonn hannover helsinki turku tampere stockholm göteborg oslo kopenhag lizbon porto barselona valensiya sevilla milano venedik floransa napoli torino trento zürih cenevre bern basel brno ljubljana leuven gent anvers rotterdam lahey selanik üsküp saraybosna belgrad zagreb sofya bükreş kişinev lefkoşa girne gazimağusa taşkent semerkant buhara almatı astana bişkek aşkabat";
+const MULTI=["birleşik krallık","suudi arabistan","birleşik arap emirlikleri","yeni zelanda","güney kore","kuzey kore","bosna hersek","güney afrika","orta doğu","iç anadolu","doğu anadolu","güneydoğu anadolu","new york","los angeles","san francisco","hong kong","yeni delhi","abu dabi"];
+const PARTS=new Set(MULTI.flatMap(p=>p.split(" ")));
+const GAZ=new Set([IL,ILCE,ULKE,BOLGE,SEHIR].join(" ").split(" ").filter(w=>w&&(!PARTS.has(w)||["amerika","kore","afrika","anadolu","arabistan","delhi","hersek","bosna","zelanda","york"].includes(w))));
+for(const p of MULTI)GAZ.add(p);
+const NOTNAME=new Set("merhaba selam selamlar günaydın teşekkürler teşekkür evet hayır tamam peki hocam hocalarım arkadaşlar efendim değerli sevgili türkçe ingilizce almanca fransızca ispanyolca italyanca rusça arapça farsça çince japonca korece yunanca latince osmanlıca kürtçe azerice türk türkler alman fransız ingiliz italyan rus arap yunan amerikalı avrupalı müslüman hristiyan pazartesi salı çarşamba perşembe cuma cumartesi pazar ocak şubat mart nisan mayıs haziran temmuz ağustos eylül ekim kasım aralık".split(" "));
+const TITLES=new Set("prof dr doç öğr gör arş sn av müh yrd mr mrs ms st öğretim görevlisi üyesi sayın".split(" "));
+const AMBIG=new Set(["ordu","van","batman","tokat","ağrı","uşak","ege","boğaz","kars","muş","bar","amerika"]);
+const TYPE_L={yabanci:"Yabancı kökenli",kelime:"Kelime",yer:"Yer",ozel:"Kişi / kurum / marka",kalip:"Kalıp ifade"};
+const TYPE_C={yabanci:"#e66767",kelime:"#3987e5",yer:"#199e70",ozel:"#c98500",kalip:"#9085e9"};
+let titleNext=false,atStart=true,pendP=[],hold=null,bigram=new Map(),tokCount=new Map(),phrases=new Set(),knownProper=new Set(),idleT=null;
+function gazHit(low,hasApos){
+  if(GAZ.has(low))return low;
+  if(hasApos||!LANG.startsWith("tr"))return null;
+  let s=low;for(let p=0;p<2;p++){let hit=false;for(const x of SUF){if(s.endsWith(x)&&s.length-x.length>=3){s=s.slice(0,-x.length);hit=true;break}}if(GAZ.has(s))return s;if(!hit)break}
+  return null}
+const DERIV=/^(l[ıiuü](lar|ler)?|lar|ler|ca|ce|ça|çe|ya|ye|yı|yi|yu|yü|nın|nin|nun|nün|ın|in|un|ün|da|de|ta|te|dan|den|tan|ten|la|le|yla|yle|[ıiuüae])+$/;
+let multiP=new Set();
+function aliasP(low){if(knownProper.has(low)&&words.has("P:"+low))return low;
+  for(const pk of knownProper){if(pk.length>=4&&low.length>pk.length&&low.startsWith(pk)&&words.has("P:"+pk)&&DERIV.test(low.slice(pk.length)))return pk}
+  return null}
+function mergeNode(fk,tk,type){const f=words.get(fk);if(!f||fk===tk)return;let t=words.get(tk);
+  if(!t){t={k:tk,forms:new Map(f.forms),c:f.c,x:f.x,y:f.y,vx:0,vy:0,pulse:1,age:0,born:false,last:f.last,type:type||f.type};words.set(tk,t)}
+  else{t.c+=f.c;for(const [x,c] of f.forms)t.forms.set(x,(t.forms.get(x)||0)+c);t.pulse=1}
+  for(const [kk,e] of [...E]){if(e.a!==fk&&e.b!==fk)continue;E.delete(kk);const o=e.a===fk?e.b:e.a;if(o===tk)continue;const nk=ek(o,tk);let ne=E.get(nk);if(!ne){ne={a:o<tk?o:tk,b:o<tk?tk:o,w:0,pulse:0};E.set(nk,ne)}ne.w+=e.w}
+  for(let i=0;i<seqKeys.length;i++)if(seqKeys[i]===fk)seqKeys[i]=tk;
+  buf=buf.map(x=>x===fk?tk:x).filter((x,i,a)=>a.indexOf(x)===i);
+  dropNode(fk);dirty=true}
+function afterNewProper(low,type){
+  // küçük harfle daha önce kelime olarak sayılmış halleri isme taşı
+  if(!low.includes(" "))for(const n of [...words.values()]){if(n.type!=="kelime")continue;let m=0,tot=0;for(const [f,c] of n.forms){tot+=c;if(f===low||(f.startsWith(low)&&DERIV.test(f.slice(low.length))))m+=c}if(m&&m>=tot*0.5)mergeNode(n.k,"P:"+low,type)}
+  // türev halleri (Galatasaraylı) ana isme taşı
+  if(!low.includes(" "))for(const n of [...words.values()]){if(n.type!=="ozel"||!n.k.startsWith("P:"))continue;const o=n.k.slice(2);if(o!==low&&!o.includes(" ")&&o.startsWith(low)&&DERIV.test(o.slice(low.length)))mergeNode(n.k,"P:"+low,type)}
+  // çok kelimeli isim: kısmi geçişleri bu isme taşı
+  if(type==="ozel"&&low.includes(" ")){multiP.add(low);const toks=low.split(" ");
+    const subs=new Set();for(let i=1;i<toks.length;i++)subs.add(toks.slice(i).join(" "));for(let i=1;i<toks.length;i++)subs.add(toks.slice(0,i).join(" "));
+    for(const s of subs){if(GAZ.has(s))continue;const owners=[...multiP].filter(m=>m===low||(" "+m+" ").includes(" "+s+" "));if(owners.length===1&&words.has("P:"+s))mergeNode("P:"+s,"P:"+low,"ozel")}}}
+function multiAlias(low){const toks=low.split(" ");
+  const c=[...multiP].filter(m=>m!==low&&((" "+m+" ").includes(" "+low+" "))&&(toks.length>1||m.startsWith(low+" ")||m.endsWith(" "+low)));
+  return c.length===1?c[0]:null}
+function capTR(s){return s.charAt(0).toLocaleUpperCase("tr")+s.slice(1)}
+function classify(raw,start){
+  const clean=raw.replace(/[’`´]/g,"'").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}']+$/gu,"");
+  if(!clean)return {kind:"skip"};
+  const ap=clean.indexOf("'"),hasApos=ap>0,base=(hasApos?clean.slice(0,ap):clean).replace(/[^\p{L}\p{N}\-]/gu,"");
+  if(base.length<2||!/\p{L}/u.test(base))return {kind:"skip"};
+  const isCap=/^\p{Lu}/u.test(base),isAcr=base.length>=2&&/^[\p{Lu}\p{N}]+$/u.test(base)&&/\p{Lu}.*\p{Lu}/u.test(base);
+  const low=LANG.startsWith("tr")?trLower(base):base.toLowerCase();
+  const stop=(LANG.startsWith("tr")?STOP_TR:STOP_EN).has(low);
+  const g=gazHit(low,hasApos);
+  const al=aliasP(low);
+  if(al&&!NOTNAME.has(low)){const n=words.get("P:"+al);return {kind:"proper",low:al,form:n?label(n):capTR(al),type:n?n.type:"ozel",apos:hasApos||al!==low}}
+  if(NOTNAME.has(low)){const r=key(raw);return r?{kind:"word",k:r.k,w:r.w}:{kind:"skip"}}
+  if(isAcr)return {kind:"proper",low,form:base,type:g?"yer":"ozel",apos:hasApos};
+  if(stop)return {kind:"skip"};
+  if(g&&!AMBIG.has(g)){return {kind:"proper",low:g,form:capTR(g),type:"yer",apos:hasApos}}
+  if(isCap&&(!start||hasApos||knownProper.has(low)||(g&&!start))){
+    knownProper.add(low);
+    return {kind:"proper",low:g||low,form:g?capTR(g):base,type:g?"yer":"ozel",apos:hasApos}}
+  const r=key(raw);if(!r)return {kind:"skip"};
+  return {kind:"word",k:r.k,w:r.w,cap:isCap&&start?{low,form:base}:null};
+}
+function addNode(k,form,type){
+  seqKeys.push(k);
+  const now=performance.now();if(now-lastWordT>6000)buf=[];lastWordT=now;
+  if(!startT)startT=Date.now();
+  let n=words.get(k);
+  if(!n){n={k,forms:new Map(),c:0,x:0,y:0,vx:0,vy:0,pulse:0,age:0,born:false,last:0,type};words.set(k,n)}
+  if(type==="yer"&&n.type==="ozel")n.type="yer";
+  n.c++;n.forms.set(form,(n.forms.get(form)||0)+1);n.pulse=1;n.last=now;nWords++;
+  for(const o of buf){if(o===k)continue;const a=o<k?o:k,b=o<k?k:o,kk=a+"|"+b;let e=E.get(kk);if(!e){e={a,b,w:0,pulse:0};E.set(kk,e)}e.w++;e.pulse=1}
+  buf=buf.filter(x=>x!==k);buf.push(k);if(buf.length>WIN)buf.shift();
+  dirty=true;document.getElementById("empty").style.display="none";
+}
+function dropNode(k){const n=words.get(k);if(n)n.born=false;shown=shown.filter(x=>x.k!==k);TOPE=TOPE.filter(e=>e.a!==k&&e.b!==k);words.delete(k);for(const [kk,e] of E)if(e.a===k||e.b===k)E.delete(kk);buf=buf.filter(x=>x!==k)}
+function flushP(){
+  if(!pendP.length)return;
+  const low=pendP.map(p=>p.low).join(" "),form=pendP.map(p=>p.form).join(" ");
+  let type=pendP.length===1?pendP[0].type:(GAZ.has(low)?"yer":"ozel");let k=low;
+  if(type==="ozel"){const m=multiAlias(low);if(m)k=m}
+  const isNew=!words.has("P:"+k);
+  addNode("P:"+k,form,type);pendP=[];
+  if(isNew)afterNewProper(k,type);
+}
+function commitHold(){if(hold){addNode(hold.k,hold.w,"kelime");hold=null}}
+function flushAll(){flushP();commitHold()}
+function onWordPair(a,b){
+  const bk=a.k+" "+b.k,c=(bigram.get(bk)||0)+1;bigram.set(bk,c);
+  if(phrases.has(bk))return true;
+  const m=Math.max(tokCount.get(a.k)||1,tokCount.get(b.k)||1);
+  if(c>=3&&c/m>=0.6){
+    phrases.add(bk);
+    // geçmiş tekrarları kalıba taşı
+    const prev=c-1,pk="C:"+bk;
+    if(prev>0){
+      for(const kk of [a.k,b.k]){const n=words.get(kk);if(n){n.c-=prev;if(n.c<=0)dropNode(kk)}}
+      const e=E.get(ek(a.k,b.k));if(e){e.w-=prev;if(e.w<=0)E.delete(ek(a.k,b.k))}
+      let n=words.get(pk);if(!n){n={k:pk,forms:new Map(),c:0,x:W/2,y:H/2,vx:0,vy:0,pulse:1,age:0,born:false,last:performance.now(),type:"kalip"};words.set(pk,n)}
+      n.c+=prev;n.forms.set(a.w+" "+b.w,(n.forms.get(a.w+" "+b.w)||0)+prev);nWords-=prev;
+    }
+    return true}
+  return false}
+function ingest(raw,src){
+  const lw=(LANG.startsWith("tr")?trLower(raw):raw.toLowerCase()).replace(/[^\p{L}]/gu,"");
+  if(lw){rawWords++;if(src==="mic")rawMicWords++;if((LANG.startsWith("tr")?FILL_TR:FILL_EN).has(lw))fillers.set(lw,(fillers.get(lw)||0)+1)}
+  const tl=(LANG.startsWith("tr")?trLower(raw):raw.toLowerCase()).replace(/[^\p{L}]/gu,"");
+  if(TITLES.has(tl)&&/^\p{Lu}/u.test(raw)){titleNext=true;return}
+  const start=atStart&&!titleNext,end=/[.!?…]["')»]*$/.test(raw),brk=end||/[,;:]["')»]*$/.test(raw);atStart=end;const wasTitle=titleNext;void wasTitle;titleNext=false;
+  if(MODE==="turkce"){const f=foreignOf(raw,start);if(f){commitHold();flushP();onForeign(f);if(brk)flushAll();clearTimeout(idleT);idleT=setTimeout(flushAll,1500);return}}
+  const c=classify(raw,start);
+  if(c.kind==="proper"){
+    if(hold&&hold.cap&&!pendP.length&&c.type==="ozel"&&!/(da|de|ta|te|dan|den|tan|ten|nın|nin|nun|nün|ın|un|ün|ya|ye|yla|yle|lar|ler|ları|leri|ki|daki|deki)$/.test(hold.cap.low)){pendP.push({kind:"proper",low:hold.cap.low,form:hold.cap.form,type:"ozel"});knownProper.add(hold.cap.low);tokCount.set(hold.k,(tokCount.get(hold.k)||1)-1);hold=null}
+    else commitHold();
+    if(pendP.length&&c.type==="yer"&&!GAZ.has(pendP.map(p=>p.low).concat(c.low).join(" "))&&pendP.every(p=>p.type!=="yer"))flushP();
+    if(pendP.length>=3)flushP();pendP.push(c);if(c.apos)flushP()}
+  else{flushP();
+    if(c.kind==="word"){tokCount.set(c.k,(tokCount.get(c.k)||0)+1);
+      if(hold&&onWordPair(hold,c)){addNode("C:"+hold.k+" "+c.k,hold.w+" "+c.w,"kalip");hold=null}
+      else{commitHold();hold=c}}
+    else commitHold()}
+  if(brk)flushAll();
+  clearTimeout(idleT);idleT=setTimeout(flushAll,1500);
+}
+// ---------- Türkçe Konuş modu ----------
+const MODE=document.documentElement.dataset.mode||"genel";
+const FD=`meeting|toplantı|b
+call|görüşme, çağrı|b
+deadline,dedlayn|son tarih, teslim tarihi|b
+feedback,fidbek,fidback|geri bildirim|b
+brief,brif|kısa bilgi, bilgilendirme|b
+briefing,brifing|bilgilendirme toplantısı|b
+update,apdeyt,updatele|güncelleme|b
+check,çekle|kontrol, denetim|b
+mail,email,imeyl,meyl,meil|e-posta|b
+cv|özgeçmiş|b
+offer|teklif|b
+deal|anlaşma|b
+target|hedef|b
+timing|zamanlama|b
+team|ekip|b
+teamwork|ekip çalışması|b
+task|görev|b
+startup,startap|girişim|b
+workshop,vörkşop|çalıştay|b
+brainstorming|beyin fırtınası|b
+background,bekgraund|geçmiş, arka plan|b
+knowhow,know-how|uzmanlık, bilgi birikimi|b
+networking|ilişki ağı kurma|b
+skill|beceri|b
+performans|başarım, verim|b
+motivasyon|güdülenme, isteklendirme|b
+konsept|kavram, tasarım|b
+spesifik|belirli, özgül|b
+enteresan|ilginç|b
+prosedür|yöntem, işlem süreci|b
+organizasyon|düzenleme, örgütlenme|b
+organize|düzenlemek|b
+opsiyon|seçenek|b
+alternatif|seçenek, başka yol|b
+problem|sorun|b
+prensip|ilke|b
+departman|bölüm, birim|b
+avantaj|üstünlük, yarar|b
+dezavantaj|sakınca|b
+potansiyel|gizil güç, olası|b
+efektif|etkili|b
+ekstra|ek, fazladan|b
+ekstrem|aşırı|b
+minimum|en az|b
+maksimum|en çok|b
+optimum|en uygun|b
+optimize|iyileştirmek, en uygun hâle getirmek|b
+spontane|kendiliğinden|b
+total|toplam|b
+global|küresel|b
+globalleşme,globalizm|küreselleşme|b
+lokal|yerel|b
+online,onlayn|çevrim içi|b
+offline,oflayn|çevrim dışı|b
+download,davnlod|indirme|b
+upload,aplod|yükleme|b
+link|bağlantı|b
+password|parola|b
+software|yazılım|b
+hardware|donanım|b
+server|sunucu|b
+laptop,leptop|dizüstü bilgisayar|b
+smartphone|akıllı telefon|b
+selfie,selfi|özçekim|b
+hashtag|etiket|b
+influencer,infulencer|sosyal medya fenomeni|b
+follower|takipçi|b
+like,layk|beğeni|b
+story|hikâye, an|b
+post|gönderi, paylaşım|b
+trend|eğilim, akım|b
+viral|hızla yayılan|b
+podcast|sesli yayın|b
+streaming,stream|canlı yayın|b
+content,kontent|içerik|b
+creator|içerik üreticisi|b
+marketing|pazarlama|b
+branding|markalaşma|b
+sales|satış|b
+business,biznis|iş|b
+fulltime,full-time|tam zamanlı|b
+parttime,part-time|yarı zamanlı|b
+remote|uzaktan|b
+freelance,freelancer,frilans|serbest çalışan|b
+okay,okey,okei|tamam|b
+sorry,sori|özür dilerim|b
+thanks,thank|teşekkürler, sağ ol|b
+nice|güzel|b
+cool|havalı, güzel|b
+weekend|hafta sonu|b
+shopping|alışveriş|b
+event,ivent|etkinlik|b
+şov,show|gösteri|b
+break|ara|b
+lunch|öğle yemeği|b
+dinner|akşam yemeği|b
+outfit|kıyafet|b
+dizayn,design|tasarım|b
+designer,dizayner|tasarımcı|b
+level|düzey|b
+sponsor|destekçi|b
+partner|ortak|b
+partnership|ortaklık|b
+investor|yatırımcı|b
+budget|bütçe|b
+data|veri|b
+dataset|veri kümesi|b
+learning|öğrenme|b
+chatbot|sohbet robotu|b
+prompt|istem, komut|b
+output|çıktı|b
+input|girdi|b
+feature|özellik|b
+bug|hata|b
+debug|hata ayıklama|b
+deploy|yayına alma|b
+release|sürüm|b
+version,versiyon|sürüm|b
+backup|yedek|b
+user|kullanıcı|b
+interface|arayüz|b
+cloud|bulut|b
+framework|çerçeve, çatı|b
+benchmark|karşılaştırma ölçütü|b
+paper|makale, bildiri|b
+review|değerlendirme, inceleme|b
+reviewer|hakem|b
+submission|gönderim|b
+abstract|özet|b
+case|durum, örnek olay|b
+challenge|zorluk|b
+issue|sorun, konu|b
+insight|içgörü|b
+impact|etki|b
+mindset|bakış açısı|b
+vizyon|ileri görüş|b
+misyon|görev, amaç|b
+enformasyon|bilgi|b
+komünikasyon,kominikasyon|iletişim|b
+prezentasyon|sunum|b
+diskalifiye|yarışma dışı|b
+konjonktür|koşullar, genel durum|b
+akredite|onaylı, yetkili|b
+manipülasyon|yönlendirme|b
+manipüle|yönlendirmek|b
+sinerji|ortak güç|b
+spekülasyon|söylenti, tahmin|b
+rasyonel|akılcı|b
+irrasyonel|akıl dışı|b
+objektif|nesnel|b
+sübjektif|öznel|b
+pozitif|olumlu|b
+negatif|olumsuz|b
+realist|gerçekçi|b
+kreatif|yaratıcı|b
+inovasyon|yenilik|b
+inovatif|yenilikçi|b
+fonksiyon|işlev|b
+fonksiyonel|işlevsel|b
+kompleks|karmaşık|b
+konsantrasyon|odaklanma|b
+konsantre|odaklanmış|b
+koordinasyon|eş güdüm|b
+koordinatör|eş güdümcü|b
+dominant|baskın|b
+agresif|saldırgan|b
+detay|ayrıntı|b
+detaylı|ayrıntılı|b
+faktör|etken|b
+perspektif|bakış açısı|b
+prestij|saygınlık|b
+empati|duygudaşlık|b
+tolerans|hoşgörü|b
+aktif|etkin|b
+pasif|edilgen|b
+aktivite|etkinlik|b
+interaktif|etkileşimli|b
+reaksiyon|tepki|b
+transfer|aktarım|b
+transparan|saydam|b
+fiks|sabit|b
+start|başlangıç|b
+finish|bitiş|b
+oryantasyon|uyum|b
+adapte|uyum sağlamak|b
+adaptasyon|uyum|b
+entegre|bütünleşik|b
+entegrasyon|bütünleşme|b
+dijital,digital|sayısal|b
+virtüel,virtual|sanal|b
+mentalite|zihniyet|b
+rutin|olağan, alışılmış|b
+konfor|rahatlık|b
+share,şeyr|paylaşmak|b
+confirm|onaylamak|b
+approve|onaylamak|b
+cancel|iptal etmek|b
+postpone|ertelemek|b
+schedule|takvim|b
+invite|davet|b
+attach|eklemek|b
+forward,forvard|iletmek|b
+reply|yanıtlamak|b
+focus,fokus,fokuslan|odak, odaklanmak|b
+plaza|iş merkezi|b
+istikbal|gelecek|e
+tahsil|öğrenim|e
+imtihan|sınav|e
+talebe|öğrenci|e
+muallim|öğretmen|e
+mesele|sorun, konu|e
+sual|soru|e
+cevap,cevab|yanıt|e
+misal|örnek|e
+mukayese|karşılaştırma|e
+tesir|etki|e
+netice|sonuç|e
+ihtiyaç|gereksinim|e
+vazife|görev|e
+hadise|olay|e
+hürriyet|özgürlük|e
+imkan,imkân|olanak|e
+ihtimal|olasılık|e
+muhtemelen|olasılıkla|e
+kabiliyet|yetenek|e
+şahıs,şahs|kişi|e
+mevzu|konu|e
+münakaşa|tartışma|e
+müsaade|izin|e
+kelime|sözcük|e
+cümle|tümce|e
+lisan|dil|e
+tercüme|çeviri|e
+ilim,ilm|bilim,ilm|e
+fikir,fikr|düşünce|e
+hikaye,hikâye|öykü|e
+muvaffakiyet|başarı|e
+ehemmiyet|önem|e
+mühim|önemli|e
+ekseriya|çoğunlukla|e
+ekseriyet|çoğunluk|e
+asır,asr|yüzyıl|e
+sene|yıl|e
+merhale|aşama|e
+zaviye|açı|e
+mütemadiyen|sürekli|e
+daima|her zaman|e
+evvela|önce, ilk olarak|e
+malumat|bilgi|e
+tecrübe|deneyim|e
+izah|açıklama|e
+mütalaa|görüş|e
+mütehassıs|uzman|e
+müracaat|başvuru|e
+mümkün|olası|e
+maalesef|ne yazık ki|e
+şayet|eğer|e
+lakin|ama, ancak|e
+ilaveten|ek olarak|e
+binaenaleyh|bu nedenle|e
+hususi|özel|e
+umumi|genel|e
+istifade|yararlanma|e
+teşebbüs|girişim|e
+iştirak|katılım|e
+tatbik|uygulama|e
+tetkik|inceleme|e
+tahlil|çözümleme|e
+hülasa|özet|e
+takriben|yaklaşık|e
+kafi,kâfi|yeterli|e
+lüzum|gerek|e
+lüzumlu|gerekli|e
+mecburiyet|zorunluluk|e
+mecbur|zorunlu|e
+muhakkak|kesinlikle|e
+katiyen|asla, kesinlikle|e
+bilhassa|özellikle|e
+bilakis|tersine|e
+mukavemet|direnç|e
+tazyik|baskı|e
+muvakkat|geçici|e
+daimi|kalıcı|e
+muhit|çevre|e
+sathi|yüzeysel|e`;
+const FMAP=new Map();
+for(const l of FD.trim().split("\n")){const [ks,sug,k]=l.split("|");const vars=ks.split(",").map(s=>s.trim()).filter(Boolean);const main=vars[0];for(const v of vars)FMAP.set(v,{key:main,sug,k})}
+const FKEYS=[...FMAP.keys()].sort((a,b)=>b.length-a.length);
+const VERBAL=/^l[ae](n|ş|t|y)?/;
+let trLevel="all",fStats=new Map(),fHits=0,lastToast=new Map();
+function foreignOf(raw,start){
+  const clean=raw.replace(/[’`´]/g,"'").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}'\-]+$/gu,"");if(!clean)return null;
+  const base=clean.split("'")[0];if(base.length<2)return null;
+  const low=trLower(base).replace(/-/g,""),lowH=trLower(base);
+  const isCapMid=/^\p{Lu}/u.test(base)&&!start;
+  const ok=e=>e&&(trLevel==="all"||e.k!=="e");
+  let e=FMAP.get(lowH)||FMAP.get(low);if(ok(e)&&!isCapMid)return {...e,form:base};
+  if(!isCapMid)for(const fk of FKEYS){if(fk.length<3||!low.startsWith(fk)||low===fk)continue;const rest=low.slice(fk.length);
+    const good=fk.length>=5?(rest.length<=9&&/^[a-zçğıöşüâîû]+$/.test(rest)&&(ANYSUF.has(rest)||VERBAL.test(rest)||/^(l[ae]r|l[ıiuü]|s[ıiuü]z|c[ıiuü]|ç[ıiuü]|ş|[ıiuüae]n)/.test(rest))):(ANYSUF.has(rest)||VERBAL.test(rest));
+    if(good){const en=FMAP.get(fk);if(ok(en))return {...en,form:base}}}
+  // sözlükte yok ama İngilizce yazımlı görünüyor
+  if(low.length>=4&&!isCapMid&&!/^\p{Lu}/u.test(base)&&!GAZ.has(low)&&(/[wxq]/.test(low)||/(th|sh|ck|oo|ee|ea|ou|tion|ing)$/.test(low)||/^(th|sh|wh)/.test(low)))
+    return {key:low,sug:"",k:"o",form:base};
+  return null}
+function onForeign(f){
+  fHits++;const s=fStats.get(f.key)||{key:f.key,sug:f.sug,k:f.k,c:0,forms:new Map()};s.c++;s.forms.set(f.form,(s.forms.get(f.form)||0)+1);fStats.set(f.key,s);
+  addNode("F:"+f.key,f.form,"yabanci");const n=words.get("F:"+f.key);if(n){n.sug=f.sug;n.fk=f.k}
+  const now=performance.now();if(f.k!=="e"&&(!lastToast.has(f.key)||now-lastToast.get(f.key)>20000)){lastToast.set(f.key,now);toast(f)}}
+let toastT=null;
+function toast(f){const el=document.getElementById("toast");if(!el)return;
+  el.innerHTML=f.sug?`“${esc(f.form)}” yerine <b>${esc(f.sug.split(",")[0])}</b> diyebilirsin`+(f.sug.includes(",")?`<span>ya da: ${esc(f.sug.split(",").slice(1).join(",").trim())}</span>`:""):`“${esc(f.form)}” yabancı bir kelime olabilir, Türkçesini kullanabilir misin?`;
+  el.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("on"),3800)}
+function trRatio(){return rawWords?Math.max(0,100*(1-fHits/rawWords)):100}
+function renderTrPanel(){const el=document.getElementById("trp");if(!el||MODE!=="turkce")return;
+  const list=[...fStats.values()].sort((a,b)=>b.c-a.c);
+  el.innerHTML=`<div class="trh"><div><b>%${trRatio().toFixed(1)}</b><span>Türkçe oranı</span></div><div><b>${fHits}</b><span>yabancı kelime</span></div></div>`+
+   (list.length?`<div class="trl">${list.slice(0,14).map(s=>`<div class="tri k-${s.k}"><span class="tw">${esc([...s.forms.keys()][0])}<i>×${s.c}</i></span><span class="ts">${s.sug?"→ "+esc(s.sug):"Türkçesi?"}</span></div>`).join("")}</div>`:`<p class="tre">Konuştukça yabancı kelimeler ve Türkçe karşılıkları burada listelenir.</p>`)}
+
+let shown=[],dirty=false;
+const ek=(a,b)=>a<b?a+"|"+b:b+"|"+a;
+let lastRank=0;
+function rank(){
+  lastRank=performance.now();
+  const all=[...words.values()].sort((a,b)=>b.c-a.c||b.last-a.last);
+  const top=all.slice(0,MAXN),set=new Set(top.map(n=>n.k));
+  for(const n of words.values())if(n.born&&!set.has(n.k))n.born=false;
+  const born=top.filter(n=>n.born);
+  for(const n of top){if(n.born)continue;
+    const nb=born.filter(o=>E.has(ek(o.k,n.k)));
+    if(nb.length){const cx=nb.reduce((s,o)=>s+o.x,0)/nb.length,cy=nb.reduce((s,o)=>s+o.y,0)/nb.length;n.x=cx+(Math.random()-.5)*50;n.y=cy+(Math.random()-.5)*50}
+    else{const a=Math.random()*6.28,rr=Math.min(W,H)*0.2*Math.random();n.x=W/2+Math.cos(a)*rr;n.y=H/2+Math.sin(a)*rr}
+    n.vx=n.vy=0;n.born=true;n.age=0;born.push(n)}
+  shown=top;
+  const arr=[];for(let i=0;i<top.length;i++)for(let j=i+1;j<top.length;j++){const e=E.get(ek(top[i].k,top[j].k));if(e)arr.push(e)}
+  arr.sort((p,q)=>q.w-p.w);
+  const pick=new Set(arr.slice(0,220));const per=new Map();
+  for(const e of arr){const pa=per.get(e.a)||0,pb=per.get(e.b)||0;if(pa<3||pb<3){pick.add(e);per.set(e.a,pa+1);per.set(e.b,pb+1)}}
+  TOPE=[...pick].sort((p,q)=>q.w-p.w);maxW=TOPE.length?TOPE[0].w:1;
+  syncSim();
+}
+// ---------- çizim & fizik ----------
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d"),stage=document.getElementById("stage");
+let W=0,H=0;
+function resize(){const d=Math.min(2,devicePixelRatio||1);W=stage.clientWidth;H=stage.clientHeight;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
+resize();addEventListener("resize",()=>{resize();syncSim();sim.alpha(.5)});
+const scale=()=>Math.max(.45,Math.min(1.3,Math.min(W,H)/650));
+function radius(n){const mx=shown.length?shown[0].c:1;const b=(4+16*Math.sqrt(n.c/Math.max(mx,1))+Math.min(6,Math.sqrt(n.c)))*scale();return n.type==="yabanci"?Math.max(b*(n.fk==="e"?1.25:1.7),(n.fk==="e"?9:14)*scale()):b}
+const sim=d3.forceSimulation([]).stop().force("charge",d3.forceManyBody().distanceMax(450)).force("link",d3.forceLink([])).force("collide",d3.forceCollide().iterations(2)).force("x",d3.forceX(()=>MODE==="turkce"&&W>760?(W-Math.min(300,W*0.42))/2:W/2)).force("y",d3.forceY(()=>H/2+12)).alphaDecay(0.012).velocityDecay(0.38);
+function syncSim(){
+  const sc=scale();sim.nodes(shown);
+  sim.force("charge").strength(n=>-(34+radius(n)*7)*sc);
+  sim.force("link").links(TOPE.map(e=>({source:words.get(e.a),target:words.get(e.b),w:e.w}))).distance(l=>(50+radius(l.source)+radius(l.target))*sc).strength(l=>0.05+0.45*Math.log1p(l.w)/Math.log1p(maxW));
+  sim.force("collide").radius(n=>radius(n)+5);
+  sim.force("x").strength(W>H?0.035:0.07);sim.force("y").strength(W>H?0.08:0.035);
+  if(sim.alpha()<0.2)sim.alpha(0.2);
+}
+function shape(n,r){ctx.beginPath();const t=n.type;
+  if(t==="yer"){const s=r*0.9;ctx.roundRect?ctx.roundRect(n.x-s,n.y-s,2*s,2*s,Math.max(2,s*0.25)):ctx.rect(n.x-s,n.y-s,2*s,2*s)}
+  else if(t==="ozel"){const s=r*1.2;ctx.moveTo(n.x,n.y-s);ctx.lineTo(n.x+s,n.y);ctx.lineTo(n.x,n.y+s);ctx.lineTo(n.x-s,n.y);ctx.closePath()}
+  else if(t==="kalip"){const s=r*1.05;for(let i=0;i<6;i++){const a=Math.PI/3*i+Math.PI/6;i?ctx.lineTo(n.x+s*Math.cos(a),n.y+s*Math.sin(a)):ctx.moveTo(n.x+s*Math.cos(a),n.y+s*Math.sin(a))}ctx.closePath()}
+  else ctx.arc(n.x,n.y,r,0,7)}
+function rgba(hex,a){const v=parseInt(hex.slice(1),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`}
+const C={node:"#3987e5",hot:"#d95926",edge:"#c3c2b7"};
+let hover=null;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const hv=hover,nbr=k=>hv&&E.has((hv.k<k?hv.k+"|"+k:k+"|"+hv.k));
+  for(let t=TOPE.length-1;t>=0;t--){const e=TOPE[t],p=words.get(e.a),q=words.get(e.b);if(!p||!q)continue;
+    const s=e.w/maxW;let a=0.07+0.35*Math.sqrt(s)+0.55*e.pulse,col=e.pulse>0.05?C.hot:C.edge;
+    if(hv){if(p===hv||q===hv){a=0.3+0.6*Math.sqrt(s);col=nodeColor(hv)}else a*=0.25}
+    ctx.strokeStyle=rgba(col,Math.min(.95,a));ctx.lineWidth=0.7+3*Math.sqrt(s)+1.5*e.pulse;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  const act=shown.slice().sort((a,b)=>a.c-b.c);
+  for(const n of act){const r=radius(n)*(1+0.3*n.pulse)*Math.min(1,n.age/15+.2);const dim=hv&&hv!==n&&!nbr(n.k);
+    if(n.pulse>0.05){ctx.fillStyle=rgba(C.hot,0.22*n.pulse);ctx.beginPath();ctx.arc(n.x,n.y,r+12*n.pulse+4,0,7);ctx.fill()}
+    const mix=n.pulse;const cn=parseInt(nodeColor(n).slice(1),16),ch=parseInt(C.hot.slice(1),16);
+    const R=((cn>>16&255)*(1-mix)+(ch>>16&255)*mix)|0,G=((cn>>8&255)*(1-mix)+(ch>>8&255)*mix)|0,B=((cn&255)*(1-mix)+(ch&255)*mix)|0;
+    ctx.fillStyle=`rgba(${R},${G},${B},${dim?0.25:0.95})`;shape(n,r);ctx.fill();ctx.strokeStyle="#0f0f0e";ctx.lineWidth=2;ctx.stroke();if(n.type==="yabanci"){ctx.strokeStyle=rgba(nodeColor(n),dim?0.15:0.55);ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(n.x,n.y,r+5,0,7);ctx.stroke()}}
+  ctx.textAlign="center";ctx.textBaseline="middle";const boxes=[];
+  const order=act.slice().sort((a,b)=>((b===hv)*1e6+(b.type==="yabanci")*1e5+radius(b)+b.pulse*6)-((a===hv)*1e6+(a.type==="yabanci")*1e5+radius(a)+a.pulse*6));
+  for(const n of order){const r=radius(n),fs=Math.max(11,Math.min(24,8+r*0.55)),txt=label(n);
+    ctx.font=`${r>14?700:500} ${fs}px "Source Serif 4", Georgia, serif`;const tw=ctx.measureText(txt).width,ly=n.y-r-fs*0.6;
+    const bx={x:n.x-tw/2-2,y:ly-fs/2,w:tw+4,h:fs};
+    const hitB=b=>boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
+    if(n.type!=="yabanci"&&hitB(bx))continue;boxes.push(bx);
+    const a=hv&&hv!==n&&!nbr(n.k)?0.3:Math.min(1,0.75+n.pulse);
+    ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(txt,n.x,ly);ctx.fillStyle=`rgba(240,239,236,${a})`;ctx.fillText(txt,n.x,ly);if(n.type==="yabanci"&&n.sug){const s2="→ "+n.sug.split(",")[0],f2=Math.max(11,fs*0.72);ctx.font=`600 ${f2}px Inter, sans-serif`;const y2=n.y+r+f2*0.95;const w2=ctx.measureText(s2).width;const b2={x:n.x-w2/2-2,y:y2-f2/2,w:w2+4,h:f2};if(!hitB(b2)){boxes.push(b2);ctx.lineWidth=4;ctx.strokeStyle="rgba(15,15,14,.85)";ctx.strokeText(s2,n.x,y2);ctx.fillStyle=`rgba(92,201,143,${a})`;ctx.fillText(s2,n.x,y2)}}}
+}
+let frame=0;
+function loop(){
+  if(dirty&&performance.now()-lastRank>200){rank();dirty=false;stats()}
+  sim.tick();
+  for(const n of shown){const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+34,Math.min(H-r,n.y));n.pulse*=0.96;n.age++}
+  for(const e of TOPE)e.pulse*=0.95;
+  if(clusterOn&&performance.now()-lastClusterT>2000){lastClusterT=performance.now();clusterize();renderLegend()}
+  draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
+}
+const fmt=n=>n.toLocaleString("tr-TR");
+function stats(){renderTrPanel();if(MODE==="turkce"){const e=document.getElementById("sTR");if(e)e.textContent="%"+trRatio().toFixed(0)}
+  document.getElementById("sW").textContent=fmt(nWords);document.getElementById("sN").textContent=shown.length;document.getElementById("sE").textContent=fmt(E.size);
+  if(startT){const s=Math.floor((Date.now()-startT)/1000);document.getElementById("sT").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+}
+// ---------- altyazı ----------
+const cap=document.getElementById("cap"),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=esc(f)+(interim?` <span class="interim">${esc(interim)}</span>`:"")}
+// ---------- mikrofon ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
+let rec=null,listening=false,done=[];
+if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <b>＋ Dosya / metin</b> ile metin, belge, ses ya da video ekleyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
+else msg.textContent="Konuşma tanıma tarayıcının kendi hizmetiyle yapılır (Chrome'da ses Google sunucularında metne çevrilir). Kelimeler ve ağ sadece bu sayfada tutulur.";
+function startRec(){
+  rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];
+  rec.onresult=e=>{let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i],t=res[0].transcript.trim(),ws=t.split(/\s+/).filter(Boolean);
+      const upto=res.isFinal?ws.length:Math.max(0,ws.length-1);const from=done[i]||0;
+      if(from===0&&upto>0)atStart=true;
+      for(let k=from;k<upto;k++)ingest(ws[k],"mic");done[i]=Math.max(from,upto);
+      if(res.isFinal){flushAll();atStart=true;transcript+=(transcript?" ":"")+t+(/[.!?…]$/.test(t)?"":".")}else interim+=t+" "}
+    showCap(transcript,interim.trim())};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
+  rec.onend=()=>{if(listening){try{startRec()}catch(_){}}};
+  try{rec.start()}catch(_){}
+}
+function stopRec(){if(micStart){micMs+=Date.now()-micStart;micStart=null}const was=listening;listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary");if(was&&nWords>=30)openReport()}
+micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
+document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
+// ---------- kaynaklar: metin, dosya, ses/video ----------
+const CDN={tf:"https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2/dist/transformers.web.min.js",
+  pdf:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.min.mjs",pdfw:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.worker.min.mjs",
+  mammoth:"https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js"};
+const dlg=document.getElementById("dlg"),jobEl=document.getElementById("job");
+let playTimer=null,Q=[],line="",srcOpen=false,srcLabel="",cancelJob=false;
+// ortak oynatma kuyruğu
+function enqueue(text){const toks=text.split(/\s+/).filter(Boolean);if(!toks.length)return;Q.push(...toks);startPlayer()}
+function startPlayer(){if(playTimer)return;
+  playTimer=setInterval(()=>{const wps=+document.getElementById("wps").value;const per=Math.max(1,Math.round(wps/30),Math.ceil(Q.length/(srcOpen?90:1e9)));
+    for(let j=0;j<per&&Q.length;j++){const w=Q.shift();ingest(w,"file");line+=(line?" ":"")+w;if(/[.!?…]["')»]*$/.test(w)){transcript+=(transcript?" ":"")+line;line=""}}
+    showCap(transcript,line);
+    if(!Q.length&&!srcOpen){clearInterval(playTimer);playTimer=null;flushAll();if(line){transcript+=(transcript?" ":"")+line;line=""}if(nWords>=30)setTimeout(openReport,800)}},33)}
+function job(msg,pct,cancellable){if(msg===null){jobEl.hidden=true;return}jobEl.hidden=false;
+  jobEl.innerHTML=`<div class="jt">${msg}</div>${pct!=null?`<div class="jb"><i style="width:${Math.max(2,pct).toFixed(1)}%"></i></div>`:""}${cancellable?`<button class="btn" id="jobX">İptal</button>`:""}`;
+  const x=document.getElementById("jobX");if(x)x.onclick=()=>{cancelJob=true;x.disabled=true;x.textContent="Durduruluyor…"}}
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(new Error("yüklenemedi: "+src));document.head.appendChild(s)})}
+// metin çıkarıcılar
+function cleanSubs(t){return t.replace(/^﻿/,"").split(/\r?\n/).filter(l=>!/^\s*\d+\s*$/.test(l)&&!/-->/.test(l)&&!/^WEBVTT|^NOTE|^STYLE/.test(l)).map(l=>l.replace(/<[^>]+>/g,"").replace(/\{[^}]+\}/g,"")).join(" ")}
+async function pdfText(file){const pdfjs=await import(CDN.pdf);pdfjs.GlobalWorkerOptions.workerSrc=CDN.pdfw;
+  const doc=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise;let out="";
+  for(let p=1;p<=doc.numPages;p++){job(`PDF okunuyor: ${p}/${doc.numPages} sayfa`,p/doc.numPages*100);const tc=await (await doc.getPage(p)).getTextContent();
+    out+=tc.items.map(i=>i.str+(i.hasEOL?"\n":"")).join(" ").replace(/-\s*\n\s*/g,"")+"\n"}
+  return out}
+async function docxText(file){if(!window.mammoth)await loadScript(CDN.mammoth);const r=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});return r.value}
+// ses / video
+let asr=null,asrModel="";
+async function decodeAudio(file){
+  job("Ses çözülüyor…",null);
+  const buf=await file.arrayBuffer();const ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+  let ab;try{ab=await ctx.decodeAudioData(buf)}finally{ctx.close&&ctx.close()}
+  if(ab.numberOfChannels===1)return ab.getChannelData(0);
+  const L=ab.length,out=new Float32Array(L);for(let c=0;c<ab.numberOfChannels;c++){const d=ab.getChannelData(c);for(let i=0;i<L;i++)out[i]+=d[i]/ab.numberOfChannels}return out}
+async function getASR(model){
+  if(asr&&asrModel===model)return asr;
+  job("Konuşma tanıma modeli indiriliyor (ilk seferde bir kaç dakika sürebilir, sonra tarayıcıda saklanır)…",0);
+  const T=await import(CDN.tf);
+  const prog={};const cb=p=>{if(p.status==="progress"&&p.file){prog[p.file]=[p.loaded||0,p.total||0];let a=0,b=0;for(const [l,t] of Object.values(prog)){a+=l;b+=t}if(b)job(`Model indiriliyor: ${(a/1e6).toFixed(0)} / ${(b/1e6).toFixed(0)} MB`,a/b*100)}};
+  asr=await T.pipeline("automatic-speech-recognition",model,{progress_callback:cb});asrModel=model;return asr}
+async function transcribe(file){
+  const model=document.getElementById("asrModel").value;
+  const audio=await decodeAudio(file);const total=audio.length/16000;
+  const pipe=await getASR(model);
+  const lang=LANG.startsWith("tr")?"turkish":"english";
+  const BLOCK=60*16000;srcOpen=true;cancelJob=false;const t0=performance.now();
+  try{
+    for(let s=0,b=0;s<audio.length;s+=BLOCK,b++){
+      if(cancelJob)break;
+      const done=s/16000,el=(performance.now()-t0)/1000,eta=done>0?el/done*(total-done):null;
+      job(`Yazıya dökülüyor: ${fmtMin(done)} / ${fmtMin(total)}${eta!=null?` · kalan ~${fmtMin(eta)}`:""}`,done/total*100,true);
+      const chunk=audio.subarray(s,Math.min(audio.length,s+BLOCK));
+      if(chunk.length<16000*0.5)continue;
+      const out=await pipe(chunk,{language:lang,task:"transcribe",chunk_length_s:30,stride_length_s:5});
+      const txt=(out&&out.text||"").trim();if(txt)enqueue(txt+(/[.!?…]$/.test(txt)?"":"."));
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }finally{srcOpen=false;startPlayer();job(cancelJob?"Yazıya dökme durduruldu.":"Yazıya dökme tamamlandı.",100);setTimeout(()=>job(null),2500)}
+}
+function fmtMin(s){s=Math.round(s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+const TEXT_EXT=/\.(txt|md|markdown|csv|json|html?)$/i,SUB_EXT=/\.(srt|vtt|sbv|ass)$/i;
+async function handleFile(file){
+  dlg.close();document.getElementById("empty").style.display="none";
+  try{
+    const name=file.name||"dosya",type=file.type||"";
+    if(/^audio\/|^video\//.test(type)||/\.(mp3|wav|m4a|aac|ogg|oga|opus|flac|webm|mp4|m4v|mov|mkv)$/i.test(name)){
+      if(file.size>700e6){job("Dosya çok büyük (700 MB üstü). Daha kısa bir parça dene.",null);setTimeout(()=>job(null),5000);return}
+      await transcribe(file);return}
+    let text="";
+    if(/\.pdf$/i.test(name)||type==="application/pdf")text=await pdfText(file);
+    else if(/\.docx$/i.test(name))text=await docxText(file);
+    else if(SUB_EXT.test(name))text=cleanSubs(await file.text());
+    else if(TEXT_EXT.test(name)||/^text\//.test(type))text=await file.text();
+    else{job("Bu dosya türü desteklenmiyor: "+esc(name),null);setTimeout(()=>job(null),4000);return}
+    if(/\.html?$/i.test(name)){const d=new DOMParser().parseFromString(text,"text/html");text=d.body?d.body.innerText||d.body.textContent:text}
+    text=text.replace(/\s+/g," ").trim();
+    if(!text){job("Dosyada okunabilir metin bulunamadı (taranmış bir PDF olabilir).",null);setTimeout(()=>job(null),5000);return}
+    job(`${esc(name)}: ${fmt(text.split(" ").length)} kelime oynatılıyor`,null);setTimeout(()=>job(null),3000);
+    atStart=true;enqueue(text);
+  }catch(e){console.error(e);job("Dosya işlenemedi: "+esc(String(e.message||e)),null);setTimeout(()=>job(null),6000);srcOpen=false}
+}
+document.getElementById("paste").onclick=()=>dlg.showModal();
+document.getElementById("cancel").onclick=()=>dlg.close();
+document.getElementById("playTxt").onclick=()=>{const text=document.getElementById("txt").value.trim();if(!text)return;dlg.close();atStart=true;enqueue(text)};
+document.getElementById("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)handleFile(f)};
+const dz=document.getElementById("drop");
+dz.onclick=()=>document.getElementById("file").click();
+dz.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();document.getElementById("file").click()}};
+for(const el of [document.body]){
+  el.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("over")});
+  el.addEventListener("dragleave",()=>dz.classList.remove("over"));
+  el.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("over");const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f)})}
+// ---------- özet (TextRank/Luhn + MMR) ----------
+let sumLen=5;
+function pagerank(){
+  const keys=[...words.keys()],ix=new Map(keys.map((k,i)=>[k,i])),N=keys.length;if(!N)return new Map();
+  const out=new Float64Array(N),adj=Array.from({length:N},()=>[]);
+  for(const e of E.values()){const a=ix.get(e.a),b=ix.get(e.b);if(a===undefined||b===undefined)continue;adj[a].push([b,e.w]);adj[b].push([a,e.w]);out[a]+=e.w;out[b]+=e.w}
+  let pr=new Float64Array(N).fill(1/N);const d=0.85;
+  for(let it=0;it<30;it++){const nx=new Float64Array(N).fill((1-d)/N);let dang=0;
+    for(let i=0;i<N;i++){if(!out[i]){dang+=pr[i];continue}const s=d*pr[i]/out[i];for(const [j,w] of adj[i])nx[j]+=s*w}
+    const add=d*dang/N;for(let i=0;i<N;i++)nx[i]+=add;pr=nx}
+  const m=new Map();keys.forEach((k,i)=>m.set(k,pr[i]*N));return m}
+function sentencesOf(text){
+  const raw=text.replace(/\s+/g," ").trim().split(/(?<=[.!?…]["')»]?)\s+/);const out=[];
+  for(const s of raw){const w=s.split(" ");if(w.length<=45){out.push(s);continue}for(let i=0;i<w.length;i+=30)out.push(w.slice(i,i+30).join(" ")+(i+30<w.length?"…":""))}
+  return out.filter(s=>s.split(" ").length>=4)}
+function sentSpans(s){
+  const toks=s.split(/\s+/),sp=[];let prev=null,prevI=-1;
+  const lowOf=x=>{const c=x.replace(/[’`´]/g,"'").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}']+$/gu,"").split("'")[0];return LANG.startsWith("tr")?trLower(c):c.toLowerCase()};
+  for(let i=0;i<toks.length;i++){
+    const clean=toks[i].replace(/[’`´]/g,"'").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}']+$/gu,"");if(!clean){prev=null;continue}
+    const low=lowOf(toks[i]);
+    let hit=false;for(const n of [3,2]){if(i+n>toks.length)continue;const ph=toks.slice(i,i+n).map(lowOf).join(" ");
+      if(words.has("P:"+ph)){sp.push({k:"P:"+ph,a:i,b:i+n-1});i+=n-1;hit=true;break}}
+    if(hit){prev=null;continue}
+    if(words.has("P:"+low)){sp.push({k:"P:"+low,a:i,b:i});prev=null;continue}
+    const al=knownProper.size?aliasP(low):null;if(al){sp.push({k:"P:"+al,a:i,b:i});prev=null;continue}
+    const r=key(clean);if(!r){prev=null;continue}
+    if(prev&&prevI===i-1&&words.has("C:"+prev+" "+r.k)){const last=sp[sp.length-1];if(last&&last.k===prev)sp.pop();sp.push({k:"C:"+prev+" "+r.k,a:i-1,b:i});prev=null;continue}
+    if(words.has(r.k))sp.push({k:r.k,a:i,b:i});prev=r.k;prevI=i}
+  return {toks,sp}}
+function sentKeys(s){return new Set(sentSpans(s).sp.map(x=>x.k))}
+function summarize(n,pr,restrict){
+  const sents=sentencesOf(transcript+(line?" "+line:""));if(!sents.length)return [];
+  const info=sents.map((s,i)=>{const ks=sentKeys(s);const len=s.split(" ").length;
+    let sc=0;for(const k of ks)if(!restrict||restrict.has(k))sc+=pr.get(k)||0;
+    const lenPen=len<7?0.6:len>40?0.8:1;return {i,s,ks,sc:sc/Math.sqrt(Math.max(4,ks.size))*lenPen*(restrict?Math.sqrt([...ks].filter(k=>restrict.has(k)).length/Math.max(1,ks.size)):1)}});
+  const pick=[];const cand=info.filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,200);
+  const sim=(a,b)=>{let o=0;for(const k of a.ks)if(b.ks.has(k))o++;return o/Math.max(1,Math.min(a.ks.size,b.ks.size))};
+  while(pick.length<n&&cand.length){let best=-1,bv=-1e9;
+    for(let j=0;j<cand.length;j++){const red=pick.length?Math.max(...pick.map(p=>sim(p,cand[j]))):0;const v=0.7*cand[j].sc-0.3*red*cand[0].sc;if(v>bv){bv=v;best=j}}
+    pick.push(cand.splice(best,1)[0])}
+  return pick.sort((a,b)=>a.i-b.i)}
+function hiSent(s,top){const {toks,sp}=sentSpans(s);const on=new Set();
+  for(const x of sp)if(top.has(x.k))for(let i=x.a;i<=x.b;i++)on.add(i);
+  let out="",open=false;
+  toks.forEach((w,i)=>{if(on.has(i)&&!open){out+=(i?" ":"")+"<b>";open=true}else if(!on.has(i)&&open){out+="</b> ";open=false}else if(i)out+=" ";out+=esc(w)});
+  if(open)out+="</b>";return out}
+
+// ---------- analiz ----------
+let RES=0.75;
+function louvain(n,edges,res){
+  let comm=[...Array(n).keys()];
+  let N=n,E2=edges.slice(),map=[...Array(n).keys()];
+  for(let level=0;level<6;level++){
+    const adj=Array.from({length:N},()=>new Map());let m2=0;
+    for(const [i,j,w] of E2){if(i===j){adj[i].set(i,(adj[i].get(i)||0)+2*w);m2+=2*w;continue}adj[i].set(j,(adj[i].get(j)||0)+w);adj[j].set(i,(adj[j].get(i)||0)+w);m2+=2*w}
+    if(m2===0)break;
+    const k=adj.map(m=>{let s=0;for(const v of m.values())s+=v;return s});
+    const c=[...Array(N).keys()],tot=k.slice();let moved=true,any=false,guard=0;
+    while(moved&&guard++<30){moved=false;
+      for(let i=0;i<N;i++){const ci=c[i];tot[ci]-=k[i];const wt=new Map();
+        for(const [j,w] of adj[i])if(j!==i)wt.set(c[j],(wt.get(c[j])||0)+w);
+        let best=ci,bg=(wt.get(ci)||0)-res*tot[ci]*k[i]/m2;
+        for(const [cc,w] of wt){const g=w-res*tot[cc]*k[i]/m2;if(g>bg+1e-12){bg=g;best=cc}}
+        c[i]=best;tot[best]+=k[i];if(best!==ci){moved=true;any=true}}}
+    if(!any)break;
+    const ren=new Map();c.forEach(x=>{if(!ren.has(x))ren.set(x,ren.size)});
+    map=map.map(x=>ren.get(c[x]));
+    const agg=new Map();for(const [i,j,w] of E2){const a=ren.get(c[i]),b=ren.get(c[j]);const key=a<b?a+","+b:b+","+a;agg.set(key,(agg.get(key)||0)+w)}
+    E2=[...agg].map(([kk,w])=>{const [a,b]=kk.split(",").map(Number);return [a,b,w]});N=ren.size}
+  return map}
+const PAL=["#3987e5","#d95926","#199e70","#c98500","#d55181","#9085e9"],OTHER="#6b6a65";
+let clusterOn=false,clusterOf=new Map(),clusterList=[],lastClusterT=0;
+function clusterize(){
+  const nodes=shown.slice(),idx=new Map(nodes.map((n,i)=>[n.k,i])),L=nodes.length;
+  const nbrs=nodes.map(()=>[]);
+  for(let i=0;i<L;i++){const cand=[];
+    for(let j=0;j<L;j++){if(i===j)continue;const e=E.get(ek(nodes[i].k,nodes[j].k));if(!e||e.w<2)continue;
+      cand.push([j,e.w/Math.sqrt(nodes[i].c*nodes[j].c)])}
+    cand.sort((a,b)=>b[1]-a[1]);for(const [j,s] of cand.slice(0,6)){nbrs[i].push([j,s]);nbrs[j].push([i,s])}}
+  const ed=[];for(let i=0;i<L;i++)for(const [j,s] of nbrs[i])if(i<j)ed.push([i,j,s]);
+  const lab=louvain(L,ed,RES);
+  const groups=new Map();nodes.forEach((n,i)=>{if(!groups.has(lab[i]))groups.set(lab[i],[]);groups.get(lab[i]).push(n)});
+  let cl=[...groups.values()].filter(g=>g.length>=3).map(g=>{g.sort((a,b)=>b.c-a.c);return {nodes:g,total:g.reduce((s,n)=>s+n.c,0)}}).sort((a,b)=>b.total-a.total).slice(0,PAL.length);
+  cl.forEach((c,i)=>{c.color=PAL[i];c.name=c.nodes.slice(0,3).map(label).join(" · ")});
+  clusterOf=new Map();cl.forEach((c,i)=>c.nodes.forEach(n=>clusterOf.set(n.k,i)));
+  clusterList=cl;
+  // köprü: komşuları en çok farklı kümeye dağılan kelime
+  let bridge=null,bs=0;
+  nodes.forEach((n,i)=>{const set=new Set(nbrs[i].map(([j])=>clusterOf.get(nodes[j].k)).filter(x=>x!==undefined));if(set.size>=2){const s=set.size*Math.sqrt(n.c);if(s>bs){bs=s;bridge=n}}});
+  return {clusters:cl,bridge};
+}
+function mattr(keys,win=100){if(keys.length<win){return keys.length?new Set(keys).size/keys.length:0}
+  const cnt=new Map();let uniq=0,sum=0,nW=0;
+  for(let i=0;i<keys.length;i++){const k=keys[i];const v=(cnt.get(k)||0)+1;cnt.set(k,v);if(v===1)uniq++;
+    if(i>=win){const o=keys[i-win];const ov=cnt.get(o)-1;cnt.set(o,ov);if(ov===0)uniq--}
+    if(i>=win-1){sum+=uniq/win;nW++}}
+  return sum/nW}
+function flow(){const n=seqKeys.length;if(n<60)return null;
+  const tot=new Map();for(const k of seqKeys)tot.set(k,(tot.get(k)||0)+1);
+  const parts=[0,1,2].map(p=>{const a=Math.floor(n*p/3),b=Math.floor(n*(p+1)/3),m=new Map();for(let i=a;i<b;i++)m.set(seqKeys[i],(m.get(seqKeys[i])||0)+1);
+    return [...m].filter(([k,c])=>c>=2).map(([k,c])=>({k,c,lift:c/((tot.get(k))/3)})).sort((x,y)=>(y.lift*Math.log1p(y.c))-(x.lift*Math.log1p(x.c))).slice(0,4).map(o=>words.get(o.k)).filter(Boolean)});
+  return parts}
+function fmtDur(ms){const s=Math.round(ms/1000);return Math.floor(s/60)+" dk "+String(s%60).padStart(2,"0")+" sn"}
+function buildReport(){
+  const {clusters,bridge}=clusterize();
+  const all=[...words.values()].sort((a,b)=>b.c-a.c);
+  const top10=all.slice(0,10);
+  const pairs=[...E.values()].filter(e=>e.w>=2).sort((a,b)=>b.w-a.w).slice(0,8).map(e=>[label(words.get(e.a)),label(words.get(e.b)),e.w]);
+  const deg=new Map();for(const e of E.values()){deg.set(e.a,(deg.get(e.a)||0)+1);deg.set(e.b,(deg.get(e.b)||0)+1)}
+  const hubs=[...deg].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,d])=>({w:label(words.get(k)),d}));
+  const div=mattr(seqKeys);
+  const listenMs=micMs+(micStart?Date.now()-micStart:0);
+  const wpm=listenMs>30000&&rawMicWords>20?Math.round(rawMicWords/(listenMs/60000)):null;
+  const fill=[...fillers].sort((a,b)=>b[1]-a[1]);const fillN=fill.reduce((s,x)=>s+x[1],0);
+  const fl=flow();
+  const once=all.filter(n=>n.c===1).length;
+  const ins=[];
+  if(top10.length)ins.push(`Konuşmanın ana ekseni <b>${esc(label(top10[0]))}</b> (${top10[0].c} kez)`+(top10[1]?`, onu <b>${esc(label(top10[1]))}</b> ve <b>${esc(label(top10[2]||top10[1]))}</b> izliyor.`:"."));
+  if(clusters.length>=2)ins.push(`Konuşma ${clusters.length} belirgin konu etrafında toplanıyor: ${clusters.map(c=>`<span class="cl" style="--c:${c.color}">${esc(c.name)}</span>`).join(", ")}.`);
+  else if(clusters.length===1)ins.push(`Konuşma tek bir konu etrafında yoğunlaşıyor: <span class="cl" style="--c:${clusters[0].color}">${esc(clusters[0].name)}</span>.`);
+  {const Y=entList("yer"),O=entList("ozel"),K=entList("kalip");
+   if(Y.length)ins.push(`${Y.length} farklı yerden bahsedildi${Y[0].c>1?`, en çok <b>${esc(label(Y[0]))}</b> (${Y[0].c} kez)`:""}.`);
+   if(O.length)ins.push(`${O.length} kişi, kurum ya da marka adı geçti${O[0].c>1?`, en çok <b>${esc(label(O[0]))}</b> (${O[0].c} kez)`:""}.`);
+   if(K.length)ins.push(`Sık tekrarlanan kalıplar: ${K.slice(0,4).map(n=>`<b>${esc(label(n))}</b>`).join(", ")}.`);}
+  if(bridge)ins.push(`<b>${esc(label(bridge))}</b> farklı konuları birbirine bağlayan köprü kelime.`);
+  if(fl){const a=fl[0].slice(0,2).map(label),c=fl[2].slice(0,2).map(label);if(a.length&&c.length)ins.push(`Başta <b>${esc(a.join(", "))}</b> öne çıkıyor, sonlara doğru konu <b>${esc(c.join(", "))}</b> tarafına kayıyor.`)}
+  if(seqKeys.length>=100)ins.push(`Kelime çeşitliliği ${div>=0.8?"yüksek":div>=0.65?"orta":"düşük"} (${div.toFixed(2)}): ${div>=0.8?"konuşma geniş bir sözcük dağarcığıyla ilerliyor.":div>=0.65?"bazı kavramlar bilinçli olarak tekrar ediliyor.":"aynı kelimelere sık dönülüyor, konuşma birkaç kavrama odaklı."}`);
+  if(wpm)ins.push(`Konuşma hızı dakikada yaklaşık <b>${wpm}</b> kelime: ${wpm<110?"sakin ve yavaş bir tempo.":wpm<=160?"rahat takip edilen, doğal bir tempo.":"hızlı bir tempo, dinleyici için yer yer zorlayıcı olabilir."}`);
+  if(rawWords>=50&&fillN>0){const r=fillN/rawWords*100;ins.push(`Dolgu kelimeler toplam kelimelerin %${r.toFixed(1)}'i${fill.length?` (en çok "${esc(fill[0][0])}", ${fill[0][1]} kez)`:""}: ${r<2?"oldukça akıcı.":r<5?"normal düzeyde.":"azaltılabilir."}`)}
+  return {clusters,bridge,top10,pairs,hubs,div,wpm,fill,fillN,fl,once,ins,listenMs};
+}
+const drawer=document.getElementById("report");
+function openReport(){
+  if(nWords<5){drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div><p class="empty-r">Rapor için biraz daha konuşman gerekiyor.</p>`;drawer.hidden=false;document.getElementById("rpClose").onclick=closeReport;return}
+  const R=buildReport();if(MODE!=="turkce")clusterOn=true;
+  const PR=pagerank();const prTop=[...PR].sort((a,b)=>b[1]-a[1]);const topSet=new Set(prTop.slice(0,12).map(x=>x[0]));
+  const SUM=summarize(sumLen,PR);
+  const CSUM=R.clusters.map(c=>({c,s:summarize(1,PR,new Set(c.nodes.map(n=>n.k)))[0]})).filter(x=>x.s);document.getElementById("clBtn").setAttribute("aria-pressed",String(clusterOn));
+  const mx=R.top10[0].c;
+  const card=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div>
+  <div class="kpis">${MODE==="turkce"?card("%"+trRatio().toFixed(1),"Türkçe oranı")+card(fHits,"yabancı kelime"):""}${card(fmt(rawWords),"toplam kelime")}${card(fmt(nWords),"anlamlı kelime")}${card(fmt(words.size),"farklı kök")}${card(R.wpm?R.wpm:"–","kelime/dk")}${card(seqKeys.length>=100?R.div.toFixed(2):"–","çeşitlilik")}${card(R.listenMs>0?fmtDur(R.listenMs):"–","dinleme süresi")}</div>
+  ${SUM.length?`<h3>Özet <span class="seg sm" id="sumLen">${[3,5,8].map(n=>`<button data-n="${n}" aria-pressed="${n===sumLen}">${n}</button>`).join("")}</span></h3>
+  <ol class="sum">${SUM.map(x=>`<li>${hiSent(x.s,topSet)}</li>`).join("")}</ol>
+  ${CSUM.length>=2?`<h3>Konu bazında</h3>${CSUM.map(({c,s})=>`<div class="csum" style="--c:${c.color}"><span>${esc(c.name)}</span>${hiSent(s.s,topSet)}</div>`).join("")}`:""}`:""}
+  ${MODE==="turkce"?trReport():""}
+  <h3>Çıkarımlar</h3><ul class="ins">${R.ins.map(s=>`<li>${s}</li>`).join("")}</ul>
+  <h3>En sık 10 kelime</h3><div class="bars">${R.top10.map(n=>`<div class="br"><span class="bl">${esc(label(n))}</span><span class="bt"><i style="width:${(n.c/mx*100).toFixed(1)}%"></i></span><span class="bv">${n.c}</span></div>`).join("")}</div>
+  ${R.clusters.length?`<h3>Konu kümeleri</h3>${R.clusters.map(c=>`<div class="clu"><span class="sw" style="background:${c.color}"></span><div><b>${esc(c.name)}</b><div class="cw">${c.nodes.slice(0,10).map(label).map(esc).join(", ")}</div></div></div>`).join("")}`:""}
+  ${ent("yer","Bahsedilen yerler")}${ent("ozel","Kişi, kurum ve markalar")}${ent("kalip","Kalıp ifadeler")}
+  ${R.pairs.length?`<h3>En güçlü bağlar</h3><div class="pairs">${R.pairs.map(([a,b,w])=>`<div><span>${esc(a)} — ${esc(b)}</span><b>${w}</b></div>`).join("")}</div>`:""}
+  ${R.fl?`<h3>Konuşmanın akışı</h3><div class="flow">${["Başta","Ortada","Sonda"].map((t,i)=>`<div><span>${t}</span><b>${R.fl[i].map(label).map(esc).join(", ")||"–"}</b></div>`).join("")}</div>`:""}
+  ${prTop.length?`<h3>En merkezi kelimeler</h3><p class="note-r">${prTop.slice(0,10).map(([k,v])=>`<b>${esc(label(words.get(k)))}</b> ${v.toFixed(1)}`).join(" · ")}</p>`:""}
+  ${R.fill.length?`<h3>Dolgu kelimeler</h3><p class="note-r">${R.fill.slice(0,6).map(([w,c])=>`${esc(w)} ×${c}`).join(", ")}</p>`:""}
+  <p class="note-r">Özet, kelime ağına PageRank uygulanarak (TextRank) en merkezi kelimeleri en çok içeren cümlelerden, tekrar eden cümleler elenerek (MMR) seçilir; cümleler özgün sırasıyla verilir. Kümeler birlikte geçme sıklığına göre otomatik bulunur, ağdaki renkler bu kümeleri gösterir. Çeşitlilik 100 kelimelik kayan pencereyle ölçülür (MATTR); hız yalnızca mikrofonla ölçülür. ${R.once} kök yalnızca bir kez geçti.</p>
+  <div class="row"><button class="btn" id="rpCopy">Raporu kopyala</button><button class="btn" id="rpMd">Markdown indir</button></div>`;
+  drawer.hidden=false;
+  document.getElementById("rpClose").onclick=closeReport;
+  const sl=document.getElementById("sumLen");if(sl)sl.onclick=e=>{const b=e.target.closest("button");if(!b)return;sumLen=+b.dataset.n;const st=drawer.scrollTop;openReport();drawer.scrollTop=st};
+  const md=()=>{const t=document.createElement("div");return "# Speaking Map · Konuşma raporu\n\n"+
+    `- Toplam kelime: ${rawWords}\n- Anlamlı kelime: ${nWords}\n- Farklı kök: ${words.size}\n`+(R.wpm?`- Hız: ${R.wpm} kelime/dk\n`:"")+(seqKeys.length>=100?`- Çeşitlilik (MATTR): ${R.div.toFixed(2)}\n`:"")+
+    (SUM.length?"\n## Özet\n\n"+SUM.map(x=>"- "+x.s).join("\n")+"\n":"")+
+    (MODE==="turkce"&&fStats.size?"\n## Türkçesi varken\n\nTürkçe oranı: %"+trRatio().toFixed(1)+"\n\n"+[...fStats.values()].sort((a,b)=>b.c-a.c).map(s=>`- ${[...s.forms.keys()].join(", ")} (${s.c}) → ${s.sug||"?"}`).join("\n")+"\n":"")+
+    "\n## Çıkarımlar\n\n"+R.ins.map(s=>{t.innerHTML=s;return "- "+t.textContent}).join("\n")+
+    "\n\n## En sık kelimeler\n\n"+R.top10.map((n,i)=>`${i+1}. ${label(n)} (${n.c})`).join("\n")+
+    (R.clusters.length?"\n\n## Konu kümeleri\n\n"+R.clusters.map(c=>`- **${c.name}**: ${c.nodes.slice(0,10).map(label).join(", ")}`).join("\n"):"")+
+    [["yer","Bahsedilen yerler"],["ozel","Kişi, kurum ve markalar"],["kalip","Kalıp ifadeler"]].map(([ty,ti])=>{const L=entList(ty);return L.length?`\n\n## ${ti}\n\n`+L.map(n=>`- ${label(n)} (${n.c})`).join("\n"):""}).join("")+
+    (R.pairs.length?"\n\n## En güçlü bağlar\n\n"+R.pairs.map(([a,b,w])=>`- ${a} – ${b} (${w})`).join("\n"):"")+"\n"};
+  document.getElementById("rpCopy").onclick=async e=>{try{await navigator.clipboard.writeText(md());e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Raporu kopyala",1500)};
+  document.getElementById("rpMd").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([md()],{type:"text/markdown"}));a.download="konusma-raporu.md";a.click()};
+}
+function entList(type){return [...words.values()].filter(n=>n.type===type).sort((a,b)=>b.c-a.c)}
+function ent(type,title){const L=entList(type);if(!L.length)return "";
+  return `<h3>${title}</h3><div class="ents">${L.slice(0,16).map(n=>`<span class="ent" style="--c:${TYPE_C[type]}">${esc(label(n))}<b>${n.c}</b></span>`).join("")}</div>`}
+function trReport(){const L=[...fStats.values()].sort((a,b)=>b.c-a.c);
+  if(!L.length)return `<h3>Türkçesi varken</h3><p class="note-r">Bu konuşmada sözlükteki yabancı kelimelerden hiçbiri geçmedi. Türkçe oranı %${trRatio().toFixed(1)}.</p>`;
+  return `<h3>Türkçesi varken</h3><p class="note-r">Konuşmanın <b>%${trRatio().toFixed(1)}</b>'i Türkçe. ${L.length} farklı yabancı kelime toplam ${fHits} kez kullanıldı.</p><div class="trl rp">${L.map(s=>`<div class="tri k-${s.k}"><span class="tw">${esc([...s.forms.keys()].join(", "))}<i>×${s.c}</i></span><span class="ts">${s.sug?"→ "+esc(s.sug):"yabancı olabilir"}</span></div>`).join("")}</div>`}
+function closeReport(){drawer.hidden=true}
+document.getElementById("rpBtn").onclick=()=>drawer.hidden?openReport():closeReport();
+document.getElementById("clBtn").onclick=e=>{clusterOn=!clusterOn;e.currentTarget.setAttribute("aria-pressed",clusterOn);if(clusterOn)clusterize();renderLegend()};
+function renderLegend(){const lg=document.getElementById("legend");
+  if(clusterOn&&clusterList.length)lg.innerHTML=clusterList.map(c=>`<span><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join("")+`<span><i style="background:${OTHER}"></i>Diğer</span>`;
+  else lg.innerHTML=legDefault()}
+const legDefault=()=>(MODE==="turkce"?`<span><i style="background:#e66767;box-shadow:0 0 0 2px rgba(230,103,103,.4)"></i>Yabancı kökenli <b style="color:#5cc98f;font-weight:600">→ Türkçesi</b></span>`+(trLevel==="all"?`<span><i style="background:#d55181"></i>Eski (Arapça/Farsça) kullanım</span>`:""):"")+`<span><i style="background:${TYPE_C.kelime}"></i>Kelime</span><span><i style="background:${TYPE_C.yer};border-radius:2px"></i>Yer</span><span><i style="background:${TYPE_C.ozel};border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Kişi / kurum / marka</span><span><i style="background:${TYPE_C.kalip};clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%);border-radius:0"></i>Kalıp ifade</span><span><i style="background:var(--hot)"></i>Az önce söylendi</span><span style="color:var(--muted)">Boyut = tekrar sayısı</span>`;
+function nodeColor(n){if(n.type==="yabanci")return n.fk==="e"?"#d55181":"#e66767";if(!clusterOn)return TYPE_C[n.type||"kelime"];const i=clusterOf.get(n.k);return i===undefined?OTHER:PAL[i]}
+
+// ---------- araçlar ----------
+document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
+document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
+document.getElementById("reset").onclick=()=>{fStats=new Map();fHits=0;lastToast=new Map();clearInterval(playTimer);playTimer=null;Q=[];line="";cancelJob=true;words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];clusterOn=false;document.getElementById("clBtn").setAttribute("aria-pressed","false");renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+// hover
+const tip=document.getElementById("tip");
+cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;
+  for(const n of shown){const d=Math.hypot(n.x-x,n.y-y);if(d<radius(n)+8&&d<bd){bd=d;best=n}}hover=best;if(!best){tip.style.opacity=0;return}
+  const nb=[];for(const e2 of E.values()){if(e2.a===best.k)nb.push([e2.b,e2.w]);else if(e2.b===best.k)nb.push([e2.a,e2.w])}nb.sort((a,b)=>b[1]-a[1]);
+  tip.innerHTML=`<b>${esc(label(best))}</b> · ${best.c} kez · ${TYPE_L[best.type||"kelime"]}<br>Biçimler: ${esc([...best.forms.keys()].slice(0,5).join(", "))}<br>En güçlü bağlar: ${esc(nb.slice(0,4).map(([k,c])=>label(words.get(k))+" ("+c+")").join(", ")||"henüz yok")}`;
+  let tx=x+14,ty=y+14;tip.style.opacity=1;if(tx+tip.offsetWidth>W-8)tx=x-tip.offsetWidth-14;if(ty+tip.offsetHeight>H-8)ty=y-tip.offsetHeight-14;tip.style.left=tx+"px";tip.style.top=ty+"px"});
+cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
+window.__ingest=ingest;
+if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("trp").hidden=false;const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
+renderLegend();renderTrPanel();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
