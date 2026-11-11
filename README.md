@@ -9,7 +9,7 @@ Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli g�
 | [`nutuk.html`](nutuk.html) | Nutuk'u cümle cümle "konuşturur". Kelimeler ilk söylendiklerinde düğüm olarak doğar, aynı cümlede geçen kelimeler bağlanır. 1× hız gerçek konuşma temposudur (Nutuk ~36 saatte okunmuştu). |
 | [`canli.html`](canli.html) | **Konuş:** mikrofondan konuşmayı dinler, konuştukça kelime ağını anlık kurar. Türkçe ve İngilizce. |
 | [`yukle.html`](yukle.html) | **Sen yükle:** belge (.pdf, .docx, .txt), altyazı (.srt, .vtt), ses/video dosyası ya da yapıştırılan metinden aynı ağı, özeti ve raporu çıkarır. |
-| [`turkce.html`](turkce.html) | **Türkçe konuş:** konuşmadaki (ya da eklenen dosyadaki) yabancı kökenli kelimeleri haritada büyük kırmızı düğüm olarak gösterir, altına Türkçe karşılığını yazar, anlık uyarı verir ve Türkçe oranını hesaplar. |
+| [`turkce.html`](turkce.html) | **Türkçe konuş:** kelime ağı yerine bir düzeltme panosu. Konuşurken kullanılan yabancı kelime kırmızı ✗ ile, Türkçe karşılığı yeşil 👍 ile belirir ("✗ cool → 👍 havalı"); Türkçe oranı çubuğu ve altyazıda işaretleme. |
 | [`kelime-bulutu.html`](kelime-bulutu.html) | En sık geçen 180 kelimenin bulutu ve tablosu; kelimeye tıklayınca örnek cümleler. |
 
 ## Yöntem
@@ -47,7 +47,7 @@ Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıkl
 - **İki düzey:** Batı kökenli, yerleşmemiş kelimeler (meeting → toplantı, feedback → geri bildirim, spesifik → belirli) kırmızı; eski Arapça/Farsça kullanımlar (istikbal → gelecek, mütemadiyen → sürekli) pembe ve isteğe bağlı. Kapsam menüden "Yalnız Batı kökenli" yapılabilir.
 - **Ekli halleri tanır:** "meeting'de", "feedback'lerinizi", "konsepti", "update'leri", "focuslanmak".
 - Sözlükte olmayan ama İngilizce yazımlı görünen kelimeler (w, x, q, th, -ing...) "yabancı olabilir" diye işaretlenir.
-- Anlık uyarı ("'meeting' yerine **toplantı** diyebilirsin"), canlı "Türkçesi varken" paneli, Türkçe oranı ve raporda öneri listesi.
+- **Düzeltme panosu:** son kullanılan yabancı kelime büyük kartta (✗ kırmızı, üstü çizili → 👍 yeşil Türkçesi), öncekiler altta kart kart birikir; tekrar sayısı gösterilir. Üstte Türkçe oranı çubuğu, altyazıda yabancı kelimeler kırmızıyla işaretlenir; raporda öneri listesi.
 
 ## Konuşma raporu
 

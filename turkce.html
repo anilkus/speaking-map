@@ -87,12 +87,30 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
  .eopts{flex-direction:column;align-items:center;gap:10px}.eopt{width:min(300px,88vw);padding:12px;flex-direction:row;text-align:left;gap:12px}.eopt span{font-size:22px}.eopt small{display:none}.ewrap p{margin:0 0 8px}
  #trp{top:auto;bottom:8px;right:8px;width:auto;max-width:60%;max-height:none;padding:6px 10px}#trp .trl,#trp .tre{display:none}#trp .trh{margin:0;gap:12px}#trp .trh b{font-size:16px}
  .legend{font-size:10px;gap:6px;left:10px;right:10px;top:6px}#ver{position:static;text-align:right;padding:0 20px 8px}}
+#board{position:absolute;inset:0;overflow:auto;padding:16px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:18px}
+#board[hidden]{display:none}
+.meter{width:min(760px,100%)}.mtop{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.mtop b{font-size:28px;font-variant-numeric:tabular-nums;color:#7ee2ad}.mtop span{color:var(--text2);font-size:13px}.mtop em{margin-left:auto;font-style:normal;color:var(--muted);font-size:12px}
+.mbar{height:10px;border-radius:6px;background:#3a1d1d;overflow:hidden}.mbar i{display:block;height:100%;background:#3fb27f;border-radius:6px 0 0 6px;transition:width .4s}
+.hero{width:min(760px,100%);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin-top:10px}
+.hero .bad,.hero .good{border-radius:16px;padding:22px 18px;text-align:center;font-family:"Source Serif 4",Georgia,serif;font-size:clamp(24px,5vw,42px);font-weight:700;line-height:1.2;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bad{background:rgba(230,103,103,.12);border:1.5px solid #e66767;color:#ffb3b3}.good{background:rgba(63,178,127,.12);border:1.5px solid #3fb27f;color:#9ff0c6}
+.k-e .bad{background:rgba(213,81,129,.10);border-color:#d55181;color:#f3b0cc}
+.bad s{text-decoration-thickness:3px;text-decoration-color:rgba(230,103,103,.8)}.bad i{font-style:normal;font-family:Inter,sans-serif;font-size:14px;color:var(--muted);font-weight:500}
+.ic{font-size:.8em;line-height:1}.hero .bad .ic{color:#e66767}.good small{font-family:Inter,sans-serif;font-size:13px;font-weight:500;color:#a9d8bf}
+.arr{font-size:30px;color:var(--muted)}.hero .note{grid-column:1/-1;text-align:center;margin:0;font-size:12px;color:var(--muted)}
+.cards{width:min(760px,100%);display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.fc{display:grid;grid-template-columns:1fr 1fr;border-radius:12px;overflow:hidden;border:1px solid var(--border);font-size:15px}
+.fc .bad,.fc .good{border:0;border-radius:0;padding:10px 10px;display:flex;align-items:center;gap:6px;font-weight:600}
+.fc .ic{font-size:13px}.fc .bad i{font-size:11px;margin-left:auto}
+.pop{animation:pop .6s ease}@keyframes pop{0%{transform:scale(.92);opacity:.4}60%{transform:scale(1.03);opacity:1}100%{transform:scale(1)}}
+.fw{color:#ff8f8f;text-decoration:underline wavy rgba(230,103,103,.7);text-underline-offset:4px}.fw.k-e{color:#f3b0cc;text-decoration-color:rgba(213,81,129,.6)}
+@media (max-width:640px){.hero{grid-template-columns:1fr;gap:8px}.arr{transform:rotate(90deg);text-align:center}.cards{grid-template-columns:1fr 1fr}.fc{grid-template-columns:1fr;font-size:13px}}
 </style>
 </head>
 <body>
 <div class="app">
 <header>
-  <div><nav class="tabs"><a href="./" class="home">SPEAKING MAP</a><a href="nutuk.html">Nutuk</a><a href="canli.html" data-m="genel">Konuş</a><a href="yukle.html" data-m="yukle">Sen yükle</a><a href="turkce.html" data-m="turkce">Türkçe konuş</a></nav><h1>Türkçe konuş</h1><div class="sub">Mikrofonu aç ve konuş. Türkçe karşılığı olan yabancı kelimeler haritada büyük kırmızı düğüm olarak öne çıkar, altında Türkçesi yazar. Öneriler TDK'nin Yabancı Sözlere Karşılıklar çalışması ve yaygın kullanım esas alınarak derlendi.</div></div>
+  <div><nav class="tabs"><a href="./" class="home">SPEAKING MAP</a><a href="nutuk.html">Nutuk</a><a href="canli.html" data-m="genel">Konuş</a><a href="yukle.html" data-m="yukle">Sen yükle</a><a href="turkce.html" data-m="turkce">Türkçe konuş</a></nav><h1>Türkçe konuş</h1><div class="sub">Mikrofonu aç ve konuş. Kullandığın yabancı kelimeler kırmızı ✗ ile, yerine söyleyebileceğin Türkçesi yeşil 👍 ile belirir. Öneriler TDK'nin Yabancı Sözlere Karşılıklar çalışması ve yaygın kullanım esas alınarak derlendi.</div></div>
   <div class="stats">
     <div class="stat" id="stTR" hidden><b id="sTR">%100</b><span>Türkçe</span></div>
     <div class="stat"><b id="sW">0</b><span>kelime</span></div>
@@ -109,6 +127,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <aside id="report" hidden></aside>
   <div id="job" hidden></div>
   <div id="toast" aria-live="polite"></div>
+  <div id="board" hidden aria-live="polite"></div>
   <aside id="trp" hidden></aside>
 </div>
 <div class="caption"><div id="cap"></div></div>
@@ -126,7 +145,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <button class="btn" id="reset">Temizle</button>
 </div>
 <div id="msg"></div>
-<div id="ver">sürüm 2026-11-11 16:25</div>
+<div id="ver">sürüm 2026-11-11 16:35</div>
 </div>
 <dialog id="dlg">
   <h2>Dosya ya da metin ekle</h2>
@@ -336,6 +355,19 @@ function ingest(raw,src){
   if(brk)flushAll();
   clearTimeout(idleT);idleT=setTimeout(flushAll,1500);
 }
+// ---------- Türkçe konuş: düzeltme panosu ----------
+let lastF=null;
+function renderBoard(popKey){const el=document.getElementById("board");if(!el||MODE!=="turkce")return;
+  const ratio=trRatio(),list=[...fStats.values()].sort((a,b)=>b.t-a.t);
+  const sug1=s=>s.sug?s.sug.split(",")[0].trim():"",sugR=s=>s.sug&&s.sug.includes(",")?s.sug.split(",").slice(1).join(",").trim():"";
+  const form=s=>[...s.forms].sort((a,b)=>b[1]-a[1])[0][0];
+  const hero=lastF?fStats.get(lastF):null;
+  el.innerHTML=`<div class="meter"><div class="mtop"><b>%${ratio.toFixed(1)}</b><span>Türkçe</span><em>${fHits?`${fStats.size} farklı yabancı kelime, ${fHits} kez`:"Henüz yabancı kelime yok, böyle devam!"}</em></div><div class="mbar"><i style="width:${ratio}%"></i></div></div>`+
+   (hero?`<div class="hero k-${hero.k}${popKey===hero.key?" pop":""}"><div class="bad"><span class="ic">${hero.k==="e"?"⚠":"✗"}</span><s>${esc(form(hero))}</s>${hero.c>1?`<i>×${hero.c}</i>`:""}</div><div class="arr">→</div><div class="good"><span class="ic">👍</span>${hero.sug?esc(sug1(hero)):"Türkçesini bulabilir misin?"}${sugR(hero)?`<small>ya da: ${esc(sugR(hero))}</small>`:""}</div>${hero.k==="e"?`<p class="note">Eski kullanım, Türkçesi isteğe bağlı</p>`:""}</div>`:"")+
+   (list.length>1?`<div class="cards">${list.slice(1).map(s=>`<div class="fc k-${s.k}${popKey===s.key?" pop":""}"><div class="bad"><span class="ic">${s.k==="e"?"⚠":"✗"}</span><s>${esc(form(s))}</s>${s.c>1?`<i>×${s.c}</i>`:""}</div><div class="good"><span class="ic">👍</span>${s.sug?esc(sug1(s)):"?"}</div></div>`).join("")}</div>`:"")}
+function capMarkForeign(html){if(MODE!=="turkce")return html;
+  return html.replace(/(^|[\s(“"])([^\s<>]+)/g,(m,a,w)=>{const f=foreignOf(w.replace(/&amp;/g,"&"),false);return f&&f.k!=="o"?a+`<span class="fw k-${f.k}">${w}</span>`:a+w})}
+
 // ---------- Türkçe Konuş modu ----------
 const MODE=document.documentElement.dataset.mode||"genel";
 const FD=`meeting|toplantı|b
@@ -643,9 +675,9 @@ function foreignOf(raw,start){
     return {key:low,sug:"",k:"o",form:base};
   return null}
 function onForeign(f){
-  fHits++;const s=fStats.get(f.key)||{key:f.key,sug:f.sug,k:f.k,c:0,forms:new Map()};s.c++;s.forms.set(f.form,(s.forms.get(f.form)||0)+1);fStats.set(f.key,s);
+  fHits++;const s=fStats.get(f.key)||{key:f.key,sug:f.sug,k:f.k,c:0,forms:new Map()};s.c++;s.forms.set(f.form,(s.forms.get(f.form)||0)+1);s.t=performance.now();fStats.set(f.key,s);lastF=f.key;renderBoard(f.key);
   addNode("F:"+f.key,f.form,"yabanci");const n=words.get("F:"+f.key);if(n){n.sug=f.sug;n.fk=f.k}
-  const now=performance.now();if(f.k!=="e"&&(!lastToast.has(f.key)||now-lastToast.get(f.key)>20000)){lastToast.set(f.key,now);toast(f)}}
+  const now=performance.now();if(MODE!=="turkce"&&f.k!=="e"&&(!lastToast.has(f.key)||now-lastToast.get(f.key)>20000)){lastToast.set(f.key,now);toast(f)}}
 let toastT=null;
 function toast(f){const el=document.getElementById("toast");if(!el)return;
   el.innerHTML=f.sug?`“${esc(f.form)}” yerine <b>${esc(f.sug.split(",")[0])}</b> diyebilirsin`+(f.sug.includes(",")?`<span>ya da: ${esc(f.sug.split(",").slice(1).join(",").trim())}</span>`:""):`“${esc(f.form)}” yabancı bir kelime olabilir, Türkçesini kullanabilir misin?`;
@@ -728,6 +760,7 @@ function draw(){
 }
 let frame=0;
 function loop(){
+  if(MODE==="turkce"){if(frame%30===0)stats();frame++;requestAnimationFrame(loop);return}
   if(dirty&&performance.now()-lastRank>200){rank();dirty=false;stats()}
   sim.tick();
   for(const n of shown){const r=radius(n)+4;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r+34,Math.min(H-r,n.y));n.pulse*=0.96;n.age++}
@@ -736,13 +769,13 @@ function loop(){
   draw();if(frame%30===0)stats();frame++;requestAnimationFrame(loop);
 }
 const fmt=n=>n.toLocaleString("tr-TR");
-function stats(){renderTrPanel();if(MODE==="turkce"){const e=document.getElementById("sTR");if(e)e.textContent="%"+trRatio().toFixed(0)}
+function stats(){renderTrPanel();if(MODE==="turkce"&&document.getElementById("board").querySelector(".mtop b")){const r=trRatio();document.querySelector("#board .mtop b").textContent="%"+r.toFixed(1);document.querySelector("#board .mbar i").style.width=r+"%"}if(MODE==="turkce"){const e=document.getElementById("sTR");if(e)e.textContent="%"+trRatio().toFixed(0)}
   document.getElementById("sW").textContent=fmt(nWords);document.getElementById("sN").textContent=shown.length;document.getElementById("sE").textContent=fmt(E.size);
   if(startT){const s=Math.floor((Date.now()-startT)/1000);document.getElementById("sT").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 }
 // ---------- altyazı ----------
 const cap=document.getElementById("cap"),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=esc(f)+(interim?` <span class="interim">${esc(interim)}</span>`:"")}
+function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=capMarkForeign(esc(f))+(interim?` <span class="interim">${capMarkForeign(esc(interim))}</span>`:"")}
 // ---------- mikrofon ----------
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
@@ -997,7 +1030,7 @@ function openReport(){
   const R=buildReport();if(MODE!=="turkce")clusterOn=true;
   const PR=pagerank();const prTop=[...PR].sort((a,b)=>b[1]-a[1]);const topSet=new Set(prTop.slice(0,12).map(x=>x[0]));
   const SUM=summarize(sumLen,PR);
-  const CSUM=R.clusters.map(c=>({c,s:summarize(1,PR,new Set(c.nodes.map(n=>n.k)))[0]})).filter(x=>x.s);document.getElementById("clBtn").setAttribute("aria-pressed",String(clusterOn));
+  const CSUM=R.clusters.map(c=>({c,s:summarize(1,PR,new Set(c.nodes.map(n=>n.k)))[0]})).filter(x=>x.s);document.getElementById("clBtn")?.setAttribute("aria-pressed",String(clusterOn));
   const mx=R.top10[0].c;
   const card=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
   drawer.innerHTML=`<div class="rp-head"><h2>Konuşma raporu</h2><button class="btn" id="rpClose">Kapat</button></div>
@@ -1049,7 +1082,7 @@ function nodeColor(n){if(n.type==="yabanci")return n.fk==="e"?"#d55181":"#e66767
 // ---------- araçlar ----------
 document.getElementById("copy").onclick=async e=>{try{await navigator.clipboard.writeText(transcript);e.target.textContent="Kopyalandı"}catch(_){e.target.textContent="Kopyalanamadı"}setTimeout(()=>e.target.textContent="Metni kopyala",1500)};
 document.getElementById("png").onclick=()=>{const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const x=c.getContext("2d");x.fillStyle="#0f0f0e";x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);const a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="kelime-agi.png";a.click()};
-document.getElementById("reset").onclick=()=>{fStats=new Map();fHits=0;lastToast=new Map();clearInterval(playTimer);playTimer=null;Q=[];line="";cancelJob=true;words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];clusterOn=false;document.getElementById("clBtn").setAttribute("aria-pressed","false");renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
+document.getElementById("reset").onclick=()=>{fStats=new Map();fHits=0;lastToast=new Map();lastF=null;setTimeout(renderBoard,0);clearInterval(playTimer);playTimer=null;Q=[];line="";cancelJob=true;words=new Map();E=new Map();TOPE=[];shown=[];buf=[];nWords=0;transcript="";startT=null;done=[];rawWords=0;rawMicWords=0;fillers=new Map();seqKeys=[];seenStems=new Set();byP3=new Map();multiP=new Set();atStart=true;pendP=[];hold=null;bigram=new Map();tokCount=new Map();phrases=new Set();knownProper=new Set();micMs=0;micStart=listening?Date.now():null;clusterOf=new Map();clusterList=[];clusterOn=false;document.getElementById("clBtn")?.setAttribute("aria-pressed","false");renderLegend();closeReport();cap.textContent="";syncSim();stats();document.getElementById("empty").style.display=""};
 // hover
 const tip=document.getElementById("tip");
 cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;
@@ -1066,8 +1099,8 @@ if(MODE==="yukle"){for(const id of ["mic","eMic"])document.getElementById(id).re
   const e=document.getElementById("eUp");e.insertAdjacentHTML("afterend",`<button class="eopt" id="ePaste"><span>✎</span><b>Metin yapıştır</b><small>Bir konuşma metnini ya da yazıyı doğrudan yapıştır</small></button>`);
   document.getElementById("ePaste").onclick=()=>dlg.showModal();
 }else{for(const id of ["upBtn","paste","eUp"])document.getElementById(id).remove();
-  document.querySelector("#empty .ewrap p").textContent=MODE==="turkce"?"Mikrofonu aç ve konuş, yabancı kelimeleri Türkçesiyle birlikte göstereyim:":"Mikrofonu aç ve konuş:";}
-if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("trp").hidden=false;const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
+  document.querySelector("#empty .ewrap p").textContent=MODE==="turkce"?"Mikrofonu aç ve konuş. Yabancı bir kelime kullandığında burada kırmızı ✗ ile, Türkçesi yeşil 👍 ile belirecek:":"Mikrofonu aç ve konuş:";}
+if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("board").hidden=false;cv.style.display="none";document.getElementById("legend").style.display="none";for(const id of ["clBtn","png"]){const e=document.getElementById(id);if(e)e.remove()}for(const id of ["sN","sE"]){const e=document.getElementById(id);if(e)e.parentElement.style.display="none"}renderBoard();const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
 renderLegend();renderTrPanel();
 requestAnimationFrame(loop);
 </script>
