@@ -24,6 +24,8 @@ canvas{display:block;width:100%;height:100%}
 #empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.6;padding:20px}
 .eopts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}.eopt{width:230px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;color:var(--text);cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;font-family:Inter,sans-serif;transition:border-color .15s}
 .eopt:hover{border-color:var(--text2)}.eopt span{font-size:26px}.eopt b{font-size:16px}.eopt small{color:var(--muted);font-size:12px;line-height:1.5}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:6px}.tabs a{font-size:12px;color:var(--text2);text-decoration:none;padding:4px 10px;border-radius:999px;border:1px solid transparent}
+.tabs a:hover{border-color:var(--border)}.tabs a.on{background:var(--text);color:var(--bg);font-weight:600}.tabs a.home{font-weight:600;color:var(--muted);letter-spacing:.04em;padding-left:0;margin-right:6px}
 #ver{position:absolute;right:20px;bottom:4px;font-size:10px;color:var(--muted);opacity:.7}
 .caption{padding:10px 20px 4px;min-height:70px;display:flex;justify-content:center}
 #cap{font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.5;text-align:center;max-width:1000px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -90,7 +92,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
 <body>
 <div class="app">
 <header>
-  <div><a href="./" style="font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;letter-spacing:.04em">SPEAKING MAP</a><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
+  <div><nav class="tabs"><a href="./" class="home">SPEAKING MAP</a><a href="nutuk.html">Nutuk</a><a href="canli.html" data-m="genel">Konuş</a><a href="yukle.html" data-m="yukle">Sen yükle</a><a href="turkce.html" data-m="turkce">Türkçe konuş</a></nav><h1>Konuştukça oluşan kelime ağı</h1><div class="sub">Mikrofonu aç ve konuş. Söylediğin her anlamlı kelime bir düğüm olur, birbirine yakın söylenen kelimeler bağlanır. Tekrarladıkça düğümler büyür, bağlar kalınlaşır.</div></div>
   <div class="stats">
     <div class="stat" id="stTR" hidden><b id="sTR">%100</b><span>Türkçe</span></div>
     <div class="stat"><b id="sW">0</b><span>kelime</span></div>
@@ -737,7 +739,7 @@ function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=esc(f)+(inte
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
 let rec=null,listening=false,done=[];
-if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <b>📁 Dosya yükle</b> ile belge, altyazı, ses ya da video ekleyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
+if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <a href='yukle.html' style='color:var(--text)'>Sen yükle</a> sekmesinden belge, altyazı, ses ya da video ekleyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
 else msg.textContent="Konuşma tanıma tarayıcının kendi hizmetiyle yapılır (Chrome'da ses Google sunucularında metne çevrilir). Kelimeler ve ağ sadece bu sayfada tutulur.";
 function startRec(){
   rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];
@@ -846,9 +848,9 @@ const dz=document.getElementById("drop");
 dz.onclick=()=>document.getElementById("file").click();
 dz.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();document.getElementById("file").click()}};
 for(const el of [document.body]){
-  el.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("over")});
+  el.addEventListener("dragover",e=>{e.preventDefault();if(MODE!=="yukle")return;dz.classList.add("over")});
   el.addEventListener("dragleave",()=>dz.classList.remove("over"));
-  el.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("over");const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f)})}
+  el.addEventListener("drop",e=>{e.preventDefault();if(MODE!=="yukle")return;dz.classList.remove("over");const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f)})}
 // ---------- özet (TextRank/Luhn + MMR) ----------
 let sumLen=5;
 function pagerank(){
@@ -1049,6 +1051,14 @@ cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clien
   let tx=x+14,ty=y+14;tip.style.opacity=1;if(tx+tip.offsetWidth>W-8)tx=x-tip.offsetWidth-14;if(ty+tip.offsetHeight>H-8)ty=y-tip.offsetHeight-14;tip.style.left=tx+"px";tip.style.top=ty+"px"});
 cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
 window.__ingest=ingest;
+document.querySelectorAll(".tabs a[data-m]").forEach(a=>{if(a.dataset.m===MODE)a.classList.add("on")});
+if(MODE==="yukle"){for(const id of ["mic","eMic"])document.getElementById(id).remove();
+  document.querySelector("#empty .ewrap p").textContent="Bir dosya seç ya da ekrana sürükle:";
+  msg.innerHTML="Dosyalar tarayıcında işlenir, hiçbir sunucuya yüklenmez. Ses ve video, ilk kullanımda indirilen Whisper modeliyle yazıya dökülür. Dil seçimi tanıma dilini ve kök bulmayı belirler.";
+  const e=document.getElementById("eUp");e.insertAdjacentHTML("afterend",`<button class="eopt" id="ePaste"><span>✎</span><b>Metin yapıştır</b><small>Bir konuşma metnini ya da yazıyı doğrudan yapıştır</small></button>`);
+  document.getElementById("ePaste").onclick=()=>dlg.showModal();
+}else{for(const id of ["upBtn","paste","eUp"])document.getElementById(id).remove();
+  document.querySelector("#empty .ewrap p").textContent=MODE==="turkce"?"Mikrofonu aç ve konuş, yabancı kelimeleri Türkçesiyle birlikte göstereyim:":"Mikrofonu aç ve konuş:";}
 if(MODE==="turkce"){document.getElementById("stTR").hidden=false;document.getElementById("trp").hidden=false;const tl=document.getElementById("trLevel");tl.hidden=false;tl.onchange=e=>{trLevel=e.target.value;renderLegend()}}
 renderLegend();renderTrPanel();
 requestAnimationFrame(loop);
