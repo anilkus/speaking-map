@@ -134,6 +134,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
 <div class="controls">
   <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
   <button class="btn" id="upBtn">📁 Dosya yükle</button>
+  <select id="engine" aria-label="Tanıma motoru"><option value="Xenova/whisper-base">Whisper base · doğru (~80 MB)</option><option value="Xenova/whisper-tiny">Whisper tiny · hızlı (~40 MB)</option><option value="Xenova/whisper-small">Whisper small · en doğru, yavaş (~250 MB)</option><option value="chrome">Chrome · anlık, İngilizcede zayıf</option></select>
   <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
   <select id="trLevel" hidden aria-label="Kapsam"><option value="all">Batı + eski Arapça/Farsça</option><option value="bati">Yalnız Batı kökenli</option></select>
   <button class="btn" id="paste">✎ Metin yapıştır</button>
@@ -145,7 +146,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <button class="btn" id="reset">Temizle</button>
 </div>
 <div id="msg"></div>
-<div id="ver">sürüm 2026-11-11 16:45</div>
+<div id="ver">sürüm 2026-11-12 08:48</div>
 </div>
 <dialog id="dlg">
   <h2>Dosya ya da metin ekle</h2>
@@ -969,25 +970,109 @@ function showCap(fin,interim){const f=fin.slice(-220);cap.innerHTML=capMarkForei
 // ---------- mikrofon ----------
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
-let rec=null,listening=false,done=[];
-if(!SR){msg.innerHTML="Bu tarayıcı konuşma tanımayı desteklemiyor (Chrome, Edge veya Safari gerekiyor). <a href='yukle.html' style='color:var(--text)'>Sen yükle</a> sekmesinden belge, altyazı, ses ya da video ekleyebilirsin.";micBtn.disabled=true;micBtn.style.opacity=.5}
-else msg.textContent="Konuşma tanıma tarayıcının kendi hizmetiyle yapılır (Chrome'da ses Google sunucularında metne çevrilir). Kelimeler ve ağ sadece bu sayfada tutulur.";
+let rec=null,listening=false,done=[],lastEvT=0,watchT=null;
+const engSel=document.getElementById("engine");
+function engine(){return engSel?engSel.value:"chrome"}
+function engineNote(){
+  if(engine()==="chrome"){msg.innerHTML=SR?"Tanıma: Chrome (anlık; ses Google sunucularında metne çevrilir). İngilizce kelimeleri Türkçe konuşma içinde iyi tanımaz; bunun için <b>Whisper</b>'ı seç.":"Bu tarayıcı Chrome tanımayı desteklemiyor. Whisper'ı seç ya da <a href='yukle.html' style='color:var(--text)'>Sen yükle</a> sekmesini kullan."}
+  else msg.innerHTML="Tanıma: Whisper, tamamen tarayıcında çalışır, ses hiçbir yere gönderilmez. Karışık Türkçe-İngilizce konuşmayı daha iyi yazar; birkaç saniye gecikmeyle, cümle cümle gelir. Model ilk seferde indirilir ve saklanır."}
+// --- Chrome (Web Speech API): kendi kendine kapanınca güvenli yeniden başlatma + bekçi
 function startRec(){
-  rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];
-  rec.onresult=e=>{let interim="";
+  rec=new SR();rec.lang=LANG;rec.continuous=true;rec.interimResults=true;done=[];lastEvT=Date.now();
+  const bump=()=>{lastEvT=Date.now()};rec.onstart=bump;rec.onaudiostart=bump;rec.onspeechstart=bump;
+  rec.onresult=e=>{bump();let interim="";
     for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i],t=res[0].transcript.trim(),ws=t.split(/\s+/).filter(Boolean);
       const upto=res.isFinal?ws.length:Math.max(0,ws.length-1);const from=done[i]||0;
       if(from===0&&upto>0)atStart=true;
       for(let k=from;k<upto;k++)ingest(ws[k],"mic");done[i]=Math.max(from,upto);
       if(res.isFinal){flushAll();atStart=true;transcript+=(transcript?" ":"")+t+(/[.!?…]$/.test(t)?"":".")}else interim+=t+" "}
     showCap(transcript,interim.trim())};
-  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
-  rec.onend=()=>{if(listening){try{startRec()}catch(_){}}};
-  try{rec.start()}catch(_){}
+  rec.onerror=e=>{bump();if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}
+    else if(e.error==="network")msg.textContent="Chrome tanıma hizmetine ulaşılamadı (internet?). Yeniden deneniyor… Sorun sürerse Whisper'ı seç.";
+    else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
+  rec.onend=()=>{if(listening&&engine()==="chrome")setTimeout(()=>{if(listening&&engine()==="chrome"){try{startRec()}catch(_){}}},250)};
+  try{rec.start()}catch(_){setTimeout(()=>{if(listening)try{rec.start()}catch(__){}},400)}
 }
-function stopRec(){if(micStart){micMs+=Date.now()-micStart;micStart=null}const was=listening;listening=false;if(rec)try{rec.stop()}catch(_){};micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary");if(was&&nWords>=30)openReport()}
-micBtn.onclick=()=>{if(listening){stopRec();return}listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()};
-document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");startRec()}};
+function watchdog(){clearInterval(watchT);watchT=setInterval(()=>{if(!listening||engine()!=="chrome")return;
+  if(Date.now()-lastEvT>15000){try{rec&&rec.abort()}catch(_){}lastEvT=Date.now();setTimeout(()=>{if(listening)try{startRec()}catch(_){}},300)}},3000)}
+// --- Whisper canlı: mikrofon → 16 kHz → sessizlikte kes → Worker'da yazıya dök
+const WL={ctx:null,stream:null,node:null,parts:[],len:0,speechMs:0,silMs:0,floor:0.004,q:[],busy:false,acc:[],accN:0};
+const WORKLET=`class Cap extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c)this.port.postMessage(c.slice(0));return true}};registerProcessor('cap',Cap);`;
+const HALLU=/(altyaz[ıi]|abone ol|izlediğiniz için|teşekkürler izlediğiniz|subtitles? by|thanks for watching|amara\.org|www\.|\.com)/i;
+async function startWhisper(){
+  const model=engine();
+  try{await asrLoad(model)}catch(e){msg.textContent="Whisper modeli yüklenemedi: "+(e.message||e)+". Chrome motoruna geçebilirsin.";stopRec();return}
+  if(!listening)return;
+  job(null);
+  try{WL.stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
+  catch(e){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec();return}
+  WL.ctx=new (window.AudioContext||window.webkitAudioContext)();
+  await WL.ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET],{type:"text/javascript"})));
+  const src=WL.ctx.createMediaStreamSource(WL.stream);WL.node=new AudioWorkletNode(WL.ctx,"cap");
+  const mute=WL.ctx.createGain();mute.gain.value=0;src.connect(WL.node);WL.node.connect(mute);mute.connect(WL.ctx.destination);
+  const ratio=WL.ctx.sampleRate/16000;let carry=0;WL.parts=[];WL.len=0;WL.speechMs=0;WL.silMs=0;WL.acc=[];WL.accN=0;
+  WL.node.port.onmessage=e=>{if(!listening)return;const x=e.data;
+    // basit seyreltme ile 16 kHz
+    const n=Math.floor((x.length-carry)/ratio);const y=new Float32Array(Math.max(0,n));for(let i=0;i<n;i++){const p=carry+i*ratio,j=Math.floor(p);y[i]=x[j]}
+    carry=(carry+n*ratio)-x.length;if(carry<0)carry=0;
+    WL.acc.push(y);WL.accN+=y.length;if(WL.accN<1600)return; // 100 ms
+    const blk=new Float32Array(WL.accN);let o=0;for(const a of WL.acc){blk.set(a,o);o+=a.length}WL.acc=[];WL.accN=0;
+    let s=0;for(let i=0;i<blk.length;i++)s+=blk[i]*blk[i];const rms=Math.sqrt(s/blk.length);
+    WL.floor=Math.min(Math.max(WL.floor*0.995+rms*0.005,0.002),rms<WL.floor?rms:WL.floor*1.002);
+    const speech=rms>Math.max(0.012,WL.floor*3);
+    WL.parts.push(blk);WL.len+=blk.length;
+    if(speech){WL.speechMs+=100;WL.silMs=0}else WL.silMs+=100;
+    const ms=WL.len/16;
+    if(WL.speechMs<200&&ms>=1500){const keep=WL.parts.slice(-3);WL.parts=keep;WL.len=keep.reduce((a,b)=>a+b.length,0);WL.speechMs=0;return}
+    if((WL.speechMs>=400&&WL.silMs>=700)||ms>=9000)cutChunk();
+    showCap(transcript,WL.speechMs>0&&WL.silMs<700?"🎙 …":"")};
+}
+function cutChunk(){if(!WL.len)return;const a=new Float32Array(WL.len);let o=0;for(const p of WL.parts){a.set(p,o);o+=p.length}
+  const sp=WL.speechMs;WL.parts=[];WL.len=0;WL.speechMs=0;WL.silMs=0;if(sp<300)return;WL.q.push(a);pump()}
+async function pump(){if(WL.busy)return;WL.busy=true;
+  while(WL.q.length){const a=WL.q.shift();if(WL.q.length>=2)msg.textContent=`Whisper geride kaldı: ${WL.q.length} parça sırada. Daha hızlı sonuç için "Whisper tiny"yi seçebilirsin.`;
+    try{const txt=(await asrRun(a,LANG.startsWith("tr")?"turkish":"english")).trim();
+      if(txt&&!HALLU.test(txt)&&/\p{L}/u.test(txt)){atStart=true;for(const w of txt.split(/\s+/))ingest(w,"mic");flushAll();transcript+=(transcript?" ":"")+txt+(/[.!?…]$/.test(txt)?"":".");showCap(transcript,"")}}
+    catch(e){msg.textContent="Whisper hatası: "+(e.message||e)}}
+  WL.busy=false}
+function stopWhisper(){if(WL.len)cutChunk();try{WL.node&&WL.node.disconnect()}catch(_){}try{WL.stream&&WL.stream.getTracks().forEach(t=>t.stop())}catch(_){}try{WL.ctx&&WL.ctx.close()}catch(_){}WL.node=WL.stream=WL.ctx=null}
+// --- ortak başlat / durdur
+function stopRec(){if(micStart){micMs+=Date.now()-micStart;micStart=null}const was=listening;listening=false;clearInterval(watchT);
+  if(rec)try{rec.stop()}catch(_){};stopWhisper();
+  micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary");if(was&&nWords>=30)setTimeout(openReport,WL.busy?2500:0)}
+function startListening(){listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");
+  if(engine()==="chrome"){if(!SR){msg.textContent="Bu tarayıcıda Chrome tanıma yok, Whisper'ı seç.";stopRec();return}startRec();watchdog()}else startWhisper()}
+micBtn.onclick=()=>{if(listening){stopRec();return}startListening()};
+if(engSel&&MODE==="genel")engSel.value="chrome";
+if(engSel){try{const v=localStorage.getItem("sm-engine-"+MODE);if(v&&[...engSel.options].some(o=>o.value===v))engSel.value=v}catch(_){}
+  engSel.onchange=()=>{try{localStorage.setItem("sm-engine-"+MODE,engSel.value)}catch(_){}engineNote();if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;startListening()}}}
+engineNote();
+document.getElementById("lang").onchange=e=>{LANG=e.target.value;if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;startListening()}};
+// --- Whisper Web Worker (arayüz donmasın diye ayrı iş parçacığında)
+const WCODE=`let pipe=null,cur="";
+self.onmessage=async e=>{const m=e.data;
+  try{
+    if(m.type==="load"){
+      if(!pipe||cur!==m.model){const T=await import(m.tf);
+        pipe=await T.pipeline("automatic-speech-recognition",m.model,{progress_callback:p=>self.postMessage({type:"progress",p}),device:"wasm",dtype:"q8"});cur=m.model}
+      self.postMessage({type:"ready"})}
+    else if(m.type==="run"){const out=await pipe(m.audio,{language:m.lang,task:"transcribe",chunk_length_s:30,stride_length_s:5});self.postMessage({type:"result",id:m.id,text:(out&&out.text)||""})}
+  }catch(err){self.postMessage({type:"error",id:m.id,msg:String(err&&err.message||err)})}};`;
+let asrW=null,asrReady=null,asrModel="",wSeq=0;const wPend=new Map();
+function asrWorker(){if(asrW)return asrW;
+  asrW=new Worker(URL.createObjectURL(new Blob([WCODE],{type:"text/javascript"})),{type:"module"});
+  const prog={};
+  asrW.onmessage=e=>{const m=e.data;
+    if(m.type==="progress"){const p=m.p;if(p.status==="progress"&&p.file){prog[p.file]=[p.loaded||0,p.total||0];let a=0,b=0;for(const [l,t] of Object.values(prog)){a+=l;b+=t}if(b)job(`Whisper modeli indiriliyor: ${(a/1e6).toFixed(0)} / ${(b/1e6).toFixed(0)} MB (ilk seferde)`,a/b*100)}}
+    else if(m.type==="ready"){asrReady&&asrReady.ok()}
+    else if(m.type==="result"){const r=wPend.get(m.id);if(r){wPend.delete(m.id);r.ok(m.text)}}
+    else if(m.type==="error"){if(m.id&&wPend.has(m.id)){const r=wPend.get(m.id);wPend.delete(m.id);r.no(new Error(m.msg))}else if(asrReady)asrReady.no(new Error(m.msg))}};
+  asrW.onerror=e=>{if(asrReady)asrReady.no(new Error(e.message||"Worker hatası"))};
+  return asrW}
+function asrLoad(model){if(asrModel===model&&asrReady&&asrReady.done)return Promise.resolve();
+  job("Whisper modeli hazırlanıyor…",null);
+  return new Promise((ok,no)=>{asrReady={ok:()=>{asrReady.done=true;asrModel=model;ok()},no,done:false};asrWorker().postMessage({type:"load",model,tf:CDN.tf})})}
+function asrRun(audio,lang){return new Promise((ok,no)=>{const id=++wSeq;wPend.set(id,{ok,no});const copy=new Float32Array(audio);asrWorker().postMessage({type:"run",id,audio:copy,lang},[copy.buffer])})}
 // ---------- kaynaklar: metin, dosya, ses/video ----------
 const CDN={tf:"https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2/dist/transformers.web.min.js",
   pdf:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.min.mjs",pdfw:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.worker.min.mjs",
@@ -1014,23 +1099,17 @@ async function pdfText(file){const pdfjs=await import(CDN.pdf);pdfjs.GlobalWorke
   return out}
 async function docxText(file){if(!window.mammoth)await loadScript(CDN.mammoth);const r=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});return r.value}
 // ses / video
-let asr=null,asrModel="";
+
 async function decodeAudio(file){
   job("Ses çözülüyor…",null);
   const buf=await file.arrayBuffer();const ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
   let ab;try{ab=await ctx.decodeAudioData(buf)}finally{ctx.close&&ctx.close()}
   if(ab.numberOfChannels===1)return ab.getChannelData(0);
   const L=ab.length,out=new Float32Array(L);for(let c=0;c<ab.numberOfChannels;c++){const d=ab.getChannelData(c);for(let i=0;i<L;i++)out[i]+=d[i]/ab.numberOfChannels}return out}
-async function getASR(model){
-  if(asr&&asrModel===model)return asr;
-  job("Konuşma tanıma modeli indiriliyor (ilk seferde bir kaç dakika sürebilir, sonra tarayıcıda saklanır)…",0);
-  const T=await import(CDN.tf);
-  const prog={};const cb=p=>{if(p.status==="progress"&&p.file){prog[p.file]=[p.loaded||0,p.total||0];let a=0,b=0;for(const [l,t] of Object.values(prog)){a+=l;b+=t}if(b)job(`Model indiriliyor: ${(a/1e6).toFixed(0)} / ${(b/1e6).toFixed(0)} MB`,a/b*100)}};
-  asr=await T.pipeline("automatic-speech-recognition",model,{progress_callback:cb});asrModel=model;return asr}
 async function transcribe(file){
   const model=document.getElementById("asrModel").value;
   const audio=await decodeAudio(file);const total=audio.length/16000;
-  const pipe=await getASR(model);
+  await asrLoad(model);
   const lang=LANG.startsWith("tr")?"turkish":"english";
   const BLOCK=60*16000;srcOpen=true;cancelJob=false;const t0=performance.now();
   try{
@@ -1040,8 +1119,7 @@ async function transcribe(file){
       job(`Yazıya dökülüyor: ${fmtMin(done)} / ${fmtMin(total)}${eta!=null?` · kalan ~${fmtMin(eta)}`:""}`,done/total*100,true);
       const chunk=audio.subarray(s,Math.min(audio.length,s+BLOCK));
       if(chunk.length<16000*0.5)continue;
-      const out=await pipe(chunk,{language:lang,task:"transcribe",chunk_length_s:30,stride_length_s:5});
-      const txt=(out&&out.text||"").trim();if(txt)enqueue(txt+(/[.!?…]$/.test(txt)?"":"."));
+      const txt=(await asrRun(chunk,lang)).trim();if(txt)enqueue(txt+(/[.!?…]$/.test(txt)?"":"."));
       await new Promise(r=>setTimeout(r,0));
     }
   }finally{srcOpen=false;startPlayer();job(cancelJob?"Yazıya dökme durduruldu.":"Yazıya dökme tamamlandı.",100);setTimeout(()=>job(null),2500)}
@@ -1283,7 +1361,7 @@ cv.addEventListener("mousemove",e=>{const r=cv.getBoundingClientRect(),x=e.clien
 cv.addEventListener("mouseleave",()=>{hover=null;tip.style.opacity=0});
 window.__ingest=ingest;
 document.querySelectorAll(".tabs a[data-m]").forEach(a=>{if(a.dataset.m===MODE)a.classList.add("on")});
-if(MODE==="yukle"){for(const id of ["mic","eMic"])document.getElementById(id).remove();
+if(MODE==="yukle"){for(const id of ["mic","eMic","engine"])document.getElementById(id).remove();
   document.querySelector("#empty .ewrap p").textContent="Bir dosya seç ya da ekrana sürükle:";
   msg.innerHTML="Dosyalar tarayıcında işlenir, hiçbir sunucuya yüklenmez. Ses ve video, ilk kullanımda indirilen Whisper modeliyle yazıya dökülür. Dil seçimi tanıma dilini ve kök bulmayı belirler.";
   const e=document.getElementById("eUp");e.insertAdjacentHTML("afterend",`<button class="eopt" id="ePaste"><span>✎</span><b>Metin yapıştır</b><small>Bir konuşma metnini ya da yazıyı doğrudan yapıştır</small></button>`);

@@ -24,6 +24,19 @@ Canlı sürümde kök bulma tarayıcıda çalışan kural tabanlı bir ek ayıkl
 
 İsimler de birleştirilir: küçük harfle tanınan haller ("turkcell" → Turkcell), türev halleri ("Galatasaraylı" → Galatasaray) ve tam adın kısmi geçişleri ("Bozok Üniversitesi" → Yozgat Bozok Üniversitesi, "Anıl" → Anıl Kuş, tek bir eşleşme varsa) aynı düğümde toplanır.
 
+## Tanıma motorları (Konuş ve Türkçe konuş)
+
+Alt çubuktaki menüden seçilir, seçim tarayıcıda hatırlanır:
+
+| Motor | Nasıl | Artı | Eksi |
+|---|---|---|---|
+| **Chrome** (Konuş'ta varsayılan) | Web Speech API | Anlık, kelime kelime | Ses Google'a gider; Türkçe modda İngilizce kelimeleri çoğunlukla yazamaz ya da Türkçeye benzetir; Chrome/Edge/Safari gerekir |
+| **Whisper base / tiny / small** (Türkçe konuş'ta varsayılan) | [Transformers.js](https://github.com/huggingface/transformers.js) ile tarayıcıda, ayrı bir Web Worker'da | Karışık Türkçe-İngilizce konuşmayı iyi yazar, ses hiçbir yere gitmez, Firefox'ta da çalışır | Cümle cümle, birkaç saniye gecikmeyle gelir; model ilk seferde indirilir (tiny ~40, base ~80, small ~250 MB); yavaş bilgisayarda "tiny" seçilmeli |
+
+Whisper modunda mikrofon sesi 16 kHz'e indirilir, basit bir enerji tabanlı sessizlik algılayıcısıyla cümle sonlarında (en geç 9 saniyede) parçalanır ve sırayla yazıya dökülür. Whisper'ın sessizlikte uydurduğu bilinen kalıplar ("Altyazı M.K.", "İzlediğiniz için teşekkürler") süzülür.
+
+Chrome motoru belli aralıklarla kendi kendine kapanır; sayfa onu kısa bir beklemeyle yeniden başlatır ve 15 saniye hiç olay gelmezse bir bekçi tanımayı sıfırdan başlatır.
+
 ## Canlı sürüm hakkında
 
 - Konuşma tanıma tarayıcının yerleşik **Web Speech API**'si ile yapılır: Chrome, Edge ve Safari'de çalışır, Firefox'ta çalışmaz.
