@@ -134,7 +134,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
 <div class="controls">
   <button class="btn primary" id="mic">🎙 Dinlemeye başla</button>
   <button class="btn" id="upBtn">📁 Dosya yükle</button>
-  <select id="engine" aria-label="Tanıma motoru"><option value="Xenova/whisper-base">Whisper base · doğru (~80 MB)</option><option value="Xenova/whisper-tiny">Whisper tiny · hızlı (~40 MB)</option><option value="Xenova/whisper-small">Whisper small · en doğru, yavaş (~250 MB)</option><option value="chrome">Chrome · anlık, İngilizcede zayıf</option></select>
+  <select id="engine" aria-label="Tanıma motoru"><option value="hibrit">Hibrit · anlık + Whisper (önerilen)</option><option value="Xenova/whisper-base">Whisper base · doğru (~80 MB)</option><option value="Xenova/whisper-tiny">Whisper tiny · hızlı (~40 MB)</option><option value="Xenova/whisper-small">Whisper small · en doğru, yavaş (~250 MB)</option><option value="chrome">Chrome · anlık, İngilizcede zayıf</option></select>
   <select id="lang" aria-label="Dil"><option value="tr-TR">Türkçe</option><option value="en-US">English</option></select>
   <select id="trLevel" hidden aria-label="Kapsam"><option value="all">Batı + eski Arapça/Farsça</option><option value="bati">Yalnız Batı kökenli</option></select>
   <button class="btn" id="paste">✎ Metin yapıştır</button>
@@ -333,7 +333,7 @@ function ingest(raw,src){
   const tl=(LANG.startsWith("tr")?trLower(raw):raw.toLowerCase()).replace(/[^\p{L}]/gu,"");
   if(TITLES.has(tl)&&/^\p{Lu}/u.test(raw)){titleNext=true;return}
   const start=atStart&&!titleNext,end=/[.!?…]["')»]*$/.test(raw),brk=end||/[,;:]["')»]*$/.test(raw);atStart=end;const wasTitle=titleNext;void wasTitle;titleNext=false;
-  if(MODE==="turkce"){const f=foreignOf(raw,start);if(f){commitHold();flushP();onForeign(f);if(brk)flushAll();clearTimeout(idleT);idleT=setTimeout(flushAll,1500);return}}
+  if(MODE==="turkce"){const f=foreignOf(raw,start);if(f){commitHold();flushP();onForeign(f,src);if(brk)flushAll();clearTimeout(idleT);idleT=setTimeout(flushAll,1500);return}}
   const c=classify(raw,start);
   if(c.kind==="proper"){
     if(hold&&hold.cap&&!pendP.length&&c.type==="ozel"&&!/(da|de|ta|te|dan|den|tan|ten|nın|nin|nun|nün|ın|un|ün|ya|ye|yla|yle|lar|ler|ları|leri|ki|daki|deki)$/.test(hold.cap.low)){pendP.push({kind:"proper",low:hold.cap.low,form:hold.cap.form,type:"ozel"});knownProper.add(hold.cap.low);tokCount.set(hold.k,(tokCount.get(hold.k)||1)-1);hold=null}
@@ -831,7 +831,1082 @@ super|süper, harika|b
 lucky|şanslı|b
 thank|teşekkürler|b
 welcome|hoş geldin|b
-congrats|tebrikler|b`;
+congrats|tebrikler|b
+from|-den, -dan|b
+back|geri, arka|b
+something|bir şey|b
+too|de, çok fazla|b
+way|yol, yöntem|b
+down|aşağı|b
+little|küçük, biraz|b
+mean|demek istemek|b
+two|iki|b
+much|çok|b
+doing|yapmak|b
+thing|şey|b
+anything|herhangi bir şey|b
+still|hâlâ|b
+find|bulmak|b
+nothing|hiçbir şey|b
+sir|efendim|b
+work|iş, çalışmak|b
+must|-meli, zorunda|b
+before|önce|b
+after|sonra|b
+talk|konuşmak|b
+away|uzakta|b
+better|daha iyi|b
+everything|her şey|b
+things|şeyler|b
+keep|tutmak, devam etmek|b
+years|yıllar|b
+leave|ayrılmak, bırakmak|b
+around|etrafında|b
+name|ad, isim|b
+place|yer|b
+ever|hiç, şimdiye kadar|b
+feel|hissetmek|b
+guys|arkadaşlar|b
+father|baba|b
+lot|çok|b
+believe|inanmak|b
+someone|biri|b
+fine|iyi, tamam|b
+wanted|istedi|b
+kind|tür, nazik|b
+coming|geliyor|b
+every|her|b
+course|ders, elbette|b
+stay|kalmak|b
+left|sol, kaldı|b
+enough|yeterli|b
+happened|oldu|b
+mother|anne|b
+wrong|yanlış|b
+might|-ebilir|b
+three|üç|b
+listen|dinle|b
+another|başka|b
+understand|anlamak|b
+hear|duymak|b
+remember|hatırlamak|b
+ask|sormak|b
+else|başka|b
+care|ilgilenmek, önemsemek|b
+looking|bakıyor|b
+try|denemek|b
+dead|ölü|b
+many|çok|b
+mind|akıl, zihin|b
+together|birlikte|b
+without|olmadan|b
+already|zaten|b
+move|hareket etmek, taşınmak|b
+miss|özlemek, kaçırmak|b
+heard|duydu|b
+head|baş, kafa|b
+called|aradı, denilen|b
+used|kullanılmış|b
+hold|tutmak|b
+door|kapı|b
+pretty|güzel, oldukça|b
+bit|biraz|b
+yet|henüz|b
+men|adamlar|b
+whole|bütün|b
+use|kullanmak|b
+since|-den beri|b
+wife|eş, karı|b
+days|günler|b
+guess|tahmin etmek|b
+matter|önemli olmak, konu|b
+meet|tanışmak, buluşmak|b
+bring|getirmek|b
+tonight|bu gece|b
+everyone|herkes|b
+run|koşmak|b
+alone|yalnız|b
+end|son|b
+saying|söylemek|b
+play|oynamak|b
+looks|görünüyor|b
+ago|önce|b
+anyone|kimse, herhangi biri|b
+hope|umut|b
+face|yüz|b
+lost|kayıp|b
+police|polis|b
+excuse|bahane|b
+turn|dönmek, sıra|b
+wants|istiyor|b
+die|ölmek|b
+soon|yakında|b
+worry|endişelenmek|b
+later|sonra|b
+year|yıl|b
+watch|izlemek|b
+hand|el|b
+having|sahip olmak|b
+probably|muhtemelen, büyük olasılıkla|b
+doctor|doktor, hekim|b
+sit|oturmak|b
+eat|yemek|b
+thinking|düşünmek|b
+young|genç|b
+second|ikinci, saniye|b
+working|çalışmak|b
+water|su|b
+person|kişi|b
+kids|çocuklar|b
+late|geç|b
+stuff|şeyler|b
+exactly|aynen, tam olarak|b
+death|ölüm|b
+minute|dakika|b
+forget|unutmak|b
+everybody|herkes|b
+change|değişiklik, değiştirmek|b
+happen|olmak|b
+five|beş|b
+drink|içmek, içecek|b
+far|uzak|b
+knows|biliyor|b
+eyes|gözler|b
+hit|vurmak|b
+taking|almak|b
+times|kez, zamanlar|b
+hands|eller|b
+minutes|dakikalar|b
+different|farklı|b
+means|anlamına gelir|b
+point|nokta, mesele|b
+inside|içeride|b
+makes|yapar|b
+asked|sordu|b
+somebody|biri|b
+making|yapmak|b
+body|vücut, beden|b
+afraid|korkmuş|b
+sleep|uyumak|b
+chance|şans, fırsat|b
+dear|sevgili|b
+quite|oldukça|b
+four|dört|b
+against|karşı|b
+word|sözcük, kelime|b
+comes|gelir|b
+number|sayı|b
+daughter|kız evlat|b
+least|en az|b
+waiting|beklemek|b
+hurt|incitmek, acımak|b
+wish|dilek|b
+moment|an|b
+fight|kavga|b
+week|hafta|b
+husband|koca, eş|b
+girls|kızlar|b
+rest|dinlenmek|b
+married|evli|b
+fire|ateş, yangın|b
+nobody|hiç kimse|b
+children|çocuklar|b
+side|taraf|b
+stand|ayakta durmak|b
+read|okumak|b
+though|yine de|b
+cut|kesmek|b
+started|başladı|b
+supposed|gerekiyordu|b
+between|arasında|b
+child|çocuk|b
+goes|gider|b
+hours|saatler|b
+speak|konuşmak|b
+women|kadınlar|b
+behind|arkasında|b
+almost|neredeyse|b
+truth|gerçek|b
+blood|kan|b
+able|yapabilen|b
+lady|hanımefendi|b
+anymore|artık|b
+playing|oynamak|b
+shot|atış|b
+reason|neden, sebep|b
+trouble|dert, sorun|b
+war|savaş|b
+walk|yürümek|b
+town|kasaba|b
+trust|güven|b
+met|tanıştı|b
+brought|getirdi|b
+couple|çift|b
+half|yarım|b
+died|öldü|b
+either|ya da|b
+seems|görünüyor|b
+buy|satın almak|b
+telling|söylemek|b
+honey|tatlım|b
+tried|denedi|b
+front|ön|b
+line|çizgi, sıra|b
+send|göndermek|b
+stupid|aptal|b
+bed|yatak|b
+hurry|acele|b
+full|dolu, tam|b
+months|aylar|b
+save|kurtarmak, kaydetmek|b
+become|olmak|b
+along|boyunca|b
+hate|nefret etmek|b
+outside|dışarıda|b
+light|ışık|b
+needs|ihtiyaçlar|b
+dog|köpek|b
+clear|açık, net|b
+order|sipariş, düzen|b
+fact|gerçek|b
+captain|kaptan|b
+six|altı|b
+black|siyah|b
+alive|canlı, hayatta|b
+pick|seçmek|b
+feeling|duygu|b
+living|yaşamak|b
+cause|neden|b
+ahead|ileride|b
+sort|tür, sıralamak|b
+leaving|ayrılmak|b
+running|koşmak|b
+alright|tamam|b
+promise|söz|b
+taken|alınmış|b
+safe|güvenli|b
+book|kitap|b
+sent|gönderdi|b
+hour|saat|b
+anybody|herhangi biri|b
+lives|hayatlar|b
+parents|ebeveynler, anne baba|b
+perhaps|belki|b
+sounds|kulağa geliyor|b
+serious|ciddi|b
+sick|hasta|b
+scared|korkmuş|b
+uncle|amca, dayı|b
+poor|fakir, zavallı|b
+past|geçmiş|b
+earth|dünya|b
+possible|mümkün, olası|b
+shoot|ateş etmek, çekmek|b
+touch|dokunmak|b
+sound|ses|b
+cannot|-amaz|b
+asking|sormak|b
+glad|memnun|b
+control|kontrol, denetim|b
+human|insan|b
+drive|sürmek|b
+hair|saç|b
+luck|şans|b
+murder|cinayet|b
+happens|olur|b
+air|hava|b
+daddy|babacığım|b
+finally|sonunda|b
+seem|görünmek|b
+words|sözcükler|b
+hospital|hastane|b
+street|sokak|b
+hang|asmak|b
+dance|dans|b
+till|-e kadar|b
+others|diğerleri|b
+catch|yakalamak|b
+sense|anlam, his|b
+lie|yalan|b
+evening|akşam|b
+master|usta|b
+known|bilinen|b
+dream|rüya, hayal|b
+write|yazmak|b
+million|milyon|b
+voice|ses|b
+rather|oldukça, tercihen|b
+felt|hissetti|b
+sign|işaret, imzalamak|b
+somewhere|bir yerde|b
+bet|bahse girerim|b
+longer|daha uzun|b
+calling|aramak|b
+worked|çalıştı|b
+quiet|sessiz|b
+less|daha az|b
+pull|çekmek|b
+beat|yenmek|b
+careful|dikkatli|b
+return|dönüş|b
+secret|sır|b
+weeks|haftalar|b
+date|tarih, randevu|b
+seeing|görmek|b
+fall|düşmek, sonbahar|b
+given|verilmiş|b
+fault|hata, kusur|b
+straight|düz, doğrudan|b
+takes|alır|b
+future|gelecek|b
+gentlemen|beyler|b
+loved|sevdi|b
+changed|değişti|b
+road|yol|b
+calm|sakin|b
+wonderful|harika|b
+turned|döndü|b
+drop|bırakmak, damla|b
+ladies|hanımlar|b
+learn|öğrenmek|b
+step|adım|b
+absolutely|kesinlikle|b
+early|erken|b
+explain|açıklamak|b
+clean|temiz|b
+piece|parça|b
+yesterday|dün|b
+throw|atmak|b
+picture|resim, fotoğraf|b
+land|kara, arazi|b
+feet|ayaklar|b
+wonder|merak etmek|b
+questions|sorular|b
+speaking|konuşmak|b
+worth|değer|b
+darling|sevgilim|b
+dude|kanka, dostum|b
+giving|vermek|b
+president|başkan|b
+eye|göz|b
+quick|hızlı|b
+moving|hareket etmek, taşınmak|b
+figure|anlamak, şekil|b
+state|durum, devlet|b
+strong|güçlü|b
+none|hiçbiri|b
+ones|olanlar|b
+works|çalışır|b
+act|davranmak, eylem|b
+needed|gerekli|b
+law|hukuk, yasa|b
+worried|endişeli|b
+goodbye|hoşça kal|b
+missing|kayıp, eksik|b
+choice|seçim, tercih|b
+happening|oluyor|b
+chief|şef, amir|b
+wedding|düğün|b
+pain|acı|b
+kidding|şaka yapmak|b
+decided|karar verdi|b
+class|sınıf, ders|b
+officer|memur|b
+kept|tuttu|b
+wake|uyanmak|b
+worse|daha kötü|b
+mistake|hata|b
+kiss|öpücük|b
+court|mahkeme|b
+building|bina|b
+during|sırasında|b
+age|yaş|b
+ship|gemi|b
+caught|yakaladı|b
+marry|evlenmek|b
+meant|demek istedi|b
+sell|satmak|b
+dark|karanlık|b
+watching|izlemek|b
+system|sistem, dizge|b
+suppose|sanmak, varsaymak|b
+evidence|kanıt|b
+movie|film|b
+ride|binmek|b
+completely|tamamen|b
+mouth|ağız|b
+totally|tamamen|b
+birthday|doğum günü|b
+forgive|affetmek|b
+born|doğmuş|b
+imagine|hayal etmek|b
+information|bilgi|b
+instead|yerine|b
+definitely|kesinlikle|b
+security|güvenlik|b
+certainly|kesinlikle|b
+month|ay|b
+lying|yalan söylemek|b
+unless|-medikçe|b
+train|tren, eğitmek|b
+wear|giymek|b
+clothes|kıyafetler|b
+attack|saldırı|b
+round|tur, yuvarlak|b
+expect|beklemek|b
+sing|şarkı söylemek|b
+terrible|berbat|b
+bag|çanta|b
+history|tarih|b
+near|yakın|b
+broke|bozuldu, beş parasız|b
+station|istasyon|b
+seriously|cidden|b
+forever|sonsuza dek|b
+except|hariç|b
+thinks|düşünüyor|b
+entire|bütün|b
+table|masa, tablo|b
+talked|konuştu|b
+lovely|hoş, sevimli|b
+handle|halletmek|b
+middle|orta|b
+paid|ödendi|b
+protect|korumak|b
+using|kullanmak|b
+floor|zemin, kat|b
+ran|koştu|b
+swear|yemin etmek|b
+spend|harcamak|b
+situation|durum|b
+anywhere|herhangi bir yer|b
+dangerous|tehlikeli|b
+army|ordu|b
+lead|liderlik etmek, öncülük|b
+bought|satın aldı|b
+finished|bitti|b
+fair|adil|b
+letter|mektup, harf|b
+fool|aptal|b
+attention|dikkat|b
+club|kulüp|b
+space|uzay, alan|b
+box|kutu|b
+group|grup, topluluk|b
+single|tek, bekâr|b
+sitting|oturmak|b
+marriage|evlilik|b
+join|katılmak|b
+fear|korku|b
+peace|barış, huzur|b
+forgot|unuttu|b
+force|güç|b
+present|hediye, şimdiki|b
+crime|suç|b
+horse|at|b
+ground|zemin|b
+count|saymak|b
+area|alan, bölge|b
+charge|ücret, şarj etmek|b
+honor|onur|b
+radio|radyo|b
+idiot|aptal|b
+ball|top|b
+surprise|sürpriz|b
+key|anahtar|b
+boat|tekne|b
+quickly|hızlıca|b
+gold|altın|b
+fish|balık|b
+wearing|giymek|b
+crying|ağlamak|b
+accident|kaza|b
+government|hükümet|b
+eight|sekiz|b
+fell|düştü|b
+cover|kapak, örtmek|b
+certain|kesin, belirli|b
+interested|ilgili, meraklı|b
+deep|derin|b
+sea|deniz|b
+agree|katılmak, aynı fikirde olmak|b
+problems|sorunlar|b
+detective|dedektif|b
+prison|hapishane|b
+major|büyük, ana|b
+stick|sopa, yapışmak|b
+difficult|zor|b
+smart|akıllı|b
+personal|kişisel|b
+record|kayıt|b
+stopped|durdu|b
+hide|saklamak|b
+whether|-ip -mediği|b
+public|halk, kamu|b
+afternoon|öğleden sonra|b
+brain|beyin|b
+fix|düzeltmek, onarmak|b
+proud|gururlu|b
+tea|çay|b
+angry|kızgın|b
+soul|ruh|b
+fighting|kavga etmek|b
+rich|zengin|b
+agent|ajan, temsilci|b
+blow|üflemek|b
+dress|elbise|b
+missed|özledi, kaçırdı|b
+scene|sahne|b
+standing|ayakta|b
+saved|kurtardı, kaydetti|b
+respect|saygı|b
+ice|buz|b
+mess|dağınıklık, karmaşa|b
+tough|zor, sert|b
+feels|hissettiriyor|b
+church|kilise|b
+cell|hücre|b
+drunk|sarhoş|b
+camera|kamera|b
+within|içinde|b
+card|kart|b
+fly|uçmak|b
+girlfriend|kız arkadaş|b
+laugh|gülmek|b
+smell|koku|b
+broken|kırık, bozuk|b
+honest|dürüst|b
+often|sık sık|b
+starting|başlamak|b
+calls|aramalar|b
+spent|harcadı|b
+third|üçüncü|b
+english|İngilizce|b
+visit|ziyaret|b
+judge|yargıç|b
+window|pencere|b
+hungry|aç|b
+dare|cesaret etmek|b
+relationship|ilişki|b
+moved|taşındı|b
+prove|kanıtlamak|b
+private|özel|b
+wall|duvar|b
+seat|koltuk|b
+position|konum, pozisyon|b
+realize|fark etmek|b
+especially|özellikle|b
+machine|makine|b
+walking|yürümek|b
+pleasure|zevk, memnuniyet|b
+college|üniversite|b
+involved|dâhil, ilgili|b
+cry|ağlamak|b
+became|oldu|b
+lived|yaşadı|b
+impossible|imkânsız, olanaksız|b
+obviously|belli ki|b
+neither|hiçbiri|b
+accept|kabul etmek|b
+boyfriend|erkek arkadaş|b
+besides|ayrıca|b
+teacher|öğretmen|b
+sake|hatır|b
+loves|seviyor|b
+carry|taşımak|b
+teach|öğretmek|b
+apartment|daire|b
+upset|üzgün|b
+liked|beğendi|b
+evil|kötü|b
+professor|profesör|b
+contact|iletişim|b
+joke|şaka|b
+huge|devasa, kocaman|b
+holy|kutsal|b
+jail|hapishane|b
+likes|beğeniyor|b
+lawyer|avukat|b
+doubt|şüphe|b
+continue|devam etmek|b
+appreciate|takdir etmek|b
+driving|araba sürmek|b
+congratulations|tebrikler|b
+wrote|yazdı|b
+village|köy|b
+quit|bırakmak|b
+field|alan|b
+wine|şarap|b
+decision|karar|b
+sleeping|uyumak|b
+glass|bardak, cam|b
+beginning|başlangıç|b
+dying|ölmek|b
+hundred|yüz|b
+difference|fark|b
+plane|uçak|b
+push|itmek|b
+continues|devam ediyor|b
+singing|şarkı söylemek|b
+eating|yemek yemek|b
+north|kuzey|b
+tree|ağaç|b
+gift|hediye|b
+truck|kamyon|b
+putting|koymak|b
+bear|ayı|b
+board|tahta, kurul|b
+grab|kapmak|b
+beer|bira|b
+stuck|sıkışmış|b
+magic|sihir|b
+rules|kurallar|b
+reach|ulaşmak|b
+wind|rüzgâr|b
+immediately|hemen|b
+seconds|saniyeler|b
+thousand|bin|b
+gives|verir|b
+cheers|şerefe|b
+victim|kurban|b
+upon|üzerine|b
+planet|gezegen|b
+promised|söz verdi|b
+bus|otobüs|b
+dirty|kirli|b
+search|aramak, arama|b
+staying|kalmak|b
+dreams|rüyalar, hayaller|b
+arrest|tutuklamak|b
+holding|tutmak|b
+suddenly|aniden|b
+usually|genellikle|b
+lots|çok|b
+shoes|ayakkabılar|b
+jump|zıplamak|b
+rid|kurtulmak|b
+knock|kapı çalmak|b
+owe|borçlu olmak|b
+grow|büyümek|b
+worst|en kötü|b
+aunt|teyze, hala|b
+patient|hasta, sabırlı|b
+kitchen|mutfak|b
+fat|şişman|b
+passed|geçti|b
+listening|dinlemek|b
+escape|kaçmak|b
+everywhere|her yerde|b
+arms|kollar|b
+turns|döner|b
+address|adres|b
+match|maç, eşleşmek|b
+yep|evet|b
+nervous|gergin|b
+choose|seçmek|b
+decide|karar vermek|b
+mate|dostum|b
+drinking|içmek|b
+press|basmak, basın|b
+bother|rahatsız etmek|b
+foot|ayak|b
+blame|suçlamak|b
+drugs|uyuşturucu, ilaçlar|b
+type|tür, yazmak|b
+rings|yüzükler|b
+mission|görev|b
+named|adlı|b
+heaven|cennet|b
+picked|seçti|b
+race|yarış|b
+books|kitaplar|b
+action|eylem, aksiyon|b
+allowed|izin verilen|b
+orders|emirler, siparişler|b
+learned|öğrendi|b
+arrived|vardı|b
+otherwise|aksi hâlde|b
+pictures|resimler|b
+favor|iyilik|b
+played|oynadı|b
+notice|fark etmek|b
+smile|gülümseme|b
+director|yönetmen, müdür|b
+guard|nöbetçi, koruma|b
+begin|başlamak|b
+surprised|şaşırmış|b
+innocent|masum|b
+feelings|duygular|b
+enemy|düşman|b
+battle|savaş|b
+dollars|dolar|b
+allow|izin vermek|b
+department|bölüm|b
+guilty|suçlu|b
+apart|ayrı|b
+earlier|daha önce|b
+duty|görev|b
+suit|takım elbise|b
+legs|bacaklar|b
+hero|kahraman|b
+destroy|yok etmek|b
+stage|sahne, aşama|b
+bunch|demet, bir sürü|b
+according|-e göre|b
+chicken|tavuk|b
+bigger|daha büyük|b
+helping|yardım etmek|b
+admit|kabul etmek|b
+closed|kapalı|b
+names|isimler|b
+witness|tanık|b
+upstairs|üst kat|b
+arm|kol|b
+steal|çalmak|b
+kick|tekme|b
+twice|iki kez|b
+ways|yollar|b
+indeed|gerçekten|b
+gas|gaz, benzin|b
+keeping|tutmak|b
+pregnant|hamile|b
+waste|israf etmek|b
+helped|yardım etti|b
+fired|kovuldu|b
+favorite|en sevilen|b
+taste|tat|b
+locked|kilitli|b
+places|yerler|b
+writing|yazmak|b
+brothers|kardeşler|b
+starts|başlar|b
+sold|satıldı|b
+silly|saçma|b
+mention|bahsetmek|b
+build|inşa etmek, kurmak|b
+throat|boğaz|b
+hole|delik|b
+figured|anladı|b
+track|iz, parça|b
+lock|kilit|b
+leg|bacak|b
+above|üstünde|b
+hiding|saklanmak|b
+seemed|göründü|b
+breakfast|kahvaltı|b
+engine|motor|b
+written|yazılı|b
+complete|tamamlamak|b
+however|ancak|b
+pressure|baskı|b
+fresh|taze|b
+weapon|silah|b
+stole|çaldı|b
+reading|okumak|b
+crowd|kalabalık|b
+treat|davranmak, ikram|b
+double|çift|b
+spirit|ruh|b
+danger|tehlike|b
+cost|maliyet|b
+empty|boş|b
+memory|bellek, anı|b
+acting|oyunculuk|b
+interest|ilgi|b
+nose|burun|b
+plans|planlar|b
+following|takip eden|b
+bathroom|banyo|b
+built|inşa edildi|b
+closer|daha yakın|b
+apparently|görünüşe göre|b
+excited|heyecanlı|b
+losing|kaybetmek|b
+animals|hayvanlar|b
+nature|doğa|b
+raise|yükseltmek, zam|b
+neck|boyun|b
+suspect|şüpheli|b
+warm|sıcak|b
+bottle|şişe|b
+heavy|ağır|b
+wild|vahşi|b
+ridiculous|saçma|b
+simply|basitçe|b
+animal|hayvan|b
+showed|gösterdi|b
+shooting|çekim, ateş etme|b
+keeps|tutar|b
+camp|kamp|b
+medical|tıbbi|b
+shame|utanç, yazık|b
+hoping|ummak|b
+bird|kuş|b
+flowers|çiçekler|b
+famous|ünlü|b
+asleep|uykuda|b
+beauty|güzellik|b
+driver|sürücü|b
+rain|yağmur|b
+awful|berbat|b
+large|büyük|b
+local|yerel|b
+deserve|hak etmek|b
+consider|düşünmek|b
+wondering|merak etmek|b
+plenty|bol|b
+willing|istekli|b
+pants|pantolon|b
+sweetheart|tatlım|b
+skin|cilt, deri|b
+excellent|mükemmel|b
+faith|inanç|b
+beg|yalvarmak|b
+responsible|sorumlu|b
+military|askerî|b
+opportunity|fırsat|b
+common|yaygın, ortak|b
+bottom|alt|b
+german|Almanca|b
+whoever|her kim|b
+cook|aşçı, pişirmek|b
+walked|yürüdü|b
+papers|belgeler|b
+justice|adalet|b
+main|ana|b
+knife|bıçak|b
+devil|şeytan|b
+necessary|gerekli|b
+although|-e rağmen|b
+lights|ışıklar|b
+flying|uçmak|b
+knowing|bilmek|b
+clearly|açıkça|b
+agreed|anlaştık|b
+corner|köşe|b
+code|kod|b
+note|not|b
+due|nedeniyle|b
+correct|doğru|b
+apologize|özür dilemek|b
+language|dil|b
+stars|yıldızlar|b
+faster|daha hızlı|b
+cars|arabalar|b
+folks|millet, ahali|b
+fellow|adam, arkadaş|b
+several|birkaç|b
+shows|gösteriler|b
+leaves|yapraklar, ayrılır|b
+restaurant|restoran, lokanta|b
+east|doğu|b
+blind|kör|b
+cup|fincan, kupa|b
+tight|sıkı|b
+conversation|sohbet, konuşma|b
+tells|söyler|b
+lies|yalanlar|b
+pulled|çekti|b
+hanging|asılı|b
+speed|hız|b
+stories|hikâyeler|b
+health|sağlık|b
+advice|tavsiye, öğüt|b
+held|tuttu|b
+beyond|ötesinde|b
+rule|kural|b
+hardly|neredeyse hiç|b
+possibly|muhtemelen|b
+cousin|kuzen|b
+trial|deneme, dava|b
+emergency|acil durum|b
+somehow|bir şekilde|b
+hearing|duymak, duruşma|b
+account|hesap|b
+file|dosya|b
+understood|anlaşıldı|b
+milk|süt|b
+powerful|güçlü|b
+weapons|silahlar|b
+practice|pratik, alıştırma|b
+vote|oy|b
+national|ulusal|b
+minister|bakan|b
+taught|öğretti|b
+biggest|en büyük|b
+natural|doğal|b
+dancing|dans etmek|b
+copy|kopya|b
+cake|kek, pasta|b
+freedom|özgürlük|b
+among|arasında|b
+breath|nefes|b
+operation|operasyon, işlem|b
+crew|ekip|b
+meat|et|b
+towards|doğru|b
+bringing|getirmek|b
+dropped|düşürdü|b
+student|öğrenci|b
+strength|güç|b
+breathe|nefes almak|b
+color|renk|b
+monster|canavar|b
+loud|yüksek sesle|b
+photo|fotoğraf|b
+nearly|neredeyse|b
+sight|görüş, manzara|b
+greatest|en büyük|b
+games|oyunlar|b
+bridge|köprü|b
+dressed|giyinmiş|b
+arrested|tutuklandı|b
+horrible|korkunç|b
+coach|antrenör, çalıştırıcı|b
+planning|planlama|b
+checked|kontrol etti|b
+breaking|kırmak|b
+noticed|fark etti|b
+fantastic|harika, olağanüstü|b
+serve|hizmet etmek|b
+ideas|fikirler|b
+investigation|soruşturma|b
+center|merkez|b
+older|daha yaşlı|b
+pack|paket, toplamak|b
+soldiers|askerler|b
+nonsense|saçmalık|b
+example|örnek|b
+trick|hile, numara|b
+prepared|hazırlıklı|b
+science|bilim|b
+incredible|inanılmaz|b
+paying|ödemek|b
+character|karakter|b
+teeth|dişler|b
+criminal|suçlu|b
+truly|gerçekten|b
+honestly|açıkçası, dürüst olmak gerekirse|b
+survive|hayatta kalmak|b
+feed|beslemek|b
+nurse|hemşire|b
+records|kayıtlar|b
+breathing|nefes almak|b
+sweetie|tatlım|b
+numbers|sayılar|b
+oil|yağ, petrol|b
+belong|ait olmak|b
+perfectly|mükemmel bir şekilde|b
+forgotten|unutulmuş|b
+remain|kalmak|b
+concerned|endişeli|b
+credit|kredi|b
+invited|davet edildi|b
+discuss|tartışmak|b
+easier|daha kolay|b
+view|görüş, manzara|b
+chair|sandalye|b
+hurts|acıtıyor|b
+strike|grev, vurmak|b
+fill|doldurmak|b
+condition|durum, koşul|b
+mountain|dağ|b
+nowhere|hiçbir yerde|b
+turning|dönmek|b
+recognize|tanımak|b
+heads|kafalar|b
+audience|seyirci, dinleyici|b
+jealous|kıskanç|b
+pretend|rol yapmak|b
+society|toplum|b
+finding|bulmak|b
+shirt|gömlek|b
+comfortable|rahat|b
+meaning|anlam|b
+guest|misafir|b
+pieces|parçalar|b
+dry|kuru|b
+letting|izin vermek|b
+began|başladı|b
+female|kadın, dişi|b
+cards|kartlar|b
+pray|dua etmek|b
+unfortunately|maalesef, ne yazık ki|b
+ended|bitti|b
+universe|evren|b
+prepare|hazırlamak|b
+opinion|görüş, fikir|b
+movies|filmler|b
+soldier|asker|b
+wash|yıkamak|b
+heat|ısı|b
+usual|olağan|b
+prefer|tercih etmek|b
+aware|farkında|b
+surely|kesinlikle|b
+male|erkek|b
+base|temel, üs|b
+matters|önemli|b
+lift|kaldırmak|b
+command|komut, emir|b
+proof|kanıt|b
+cream|krem|b
+selling|satmak|b
+believed|inandı|b
+create|oluşturmak|b
+afford|karşılamak|b
+sunday|pazar|b
+dumb|aptal|b
+threw|attı|b
+birth|doğum|b
+created|oluşturdu|b
+realized|fark etti|b
+noise|gürültü|b
+students|öğrenciler|b
+birds|kuşlar|b
+social|sosyal, toplumsal|b
+brilliant|parlak, dâhice|b
+opened|açtı|b
+ugly|çirkin|b
+exist|var olmak|b
+followed|takip etti|b
+draw|çizmek|b
+purpose|amaç|b
+letters|mektuplar|b
+opening|açılış|b
+lately|son zamanlarda|b
+stayed|kaldı|b
+falling|düşmek|b
+season|mevsim, sezon|b
+ends|biter|b
+suggest|önermek|b
+distance|mesafe, uzaklık|b
+responsibility|sorumluluk|b
+whenever|ne zaman|b
+thousands|binlerce|b
+process|süreç|b
+shower|duş|b
+weak|zayıf|b
+lonely|yalnız|b
+happiness|mutluluk|b
+tiny|minik|b
+desk|masa|b
+pool|havuz|b
+property|mülk|b
+forced|zorlanmış|b
+settle|yerleşmek|b
+weight|ağırlık|b
+received|aldı|b
+friday|cuma|b
+disappeared|kayboldu|b
+expecting|beklemek|b
+surgery|ameliyat|b
+saturday|cumartesi|b
+staff|personel|b
+lines|satırlar|b
+unit|birim|b
+gentleman|beyefendi|b
+handsome|yakışıklı|b`;
 const FMAP=new Map();
 for(const l of FD.trim().split("\n")){const [ks,sug,k]=l.split("|");const vars=ks.split(",").map(s=>s.trim()).filter(Boolean);const main=vars[0];for(const v of vars)FMAP.set(v,{key:main,sug,k})}
 const ENDOM=new Set("__ENDOM__".split(" ").filter(Boolean)),TRX=new Set("__TRX__".split(" ").filter(Boolean));
@@ -857,7 +1932,9 @@ function foreignOf(raw,start){
   if(low.length>=4&&!isCapMid&&!/^\p{Lu}/u.test(base)&&!GAZ.has(low)&&(/[wxq]/.test(low)||/(th|sh|ck|oo|ee|ea|ou|tion|ing)$/.test(low)||/^(th|sh|wh)/.test(low)))
     return {key:low,sug:"",k:"o",form:base};
   return null}
-function onForeign(f){
+const lastHit=new Map();
+function onForeign(f,src){
+  const nowT=performance.now(),lh=lastHit.get(f.key);if(lh&&nowT-lh.t<12000&&lh.src!==(src||"mic"))return;lastHit.set(f.key,{t:nowT,src:src||"mic"});
   fHits++;const s=fStats.get(f.key)||{key:f.key,sug:f.sug,k:f.k,c:0,forms:new Map()};s.c++;s.forms.set(f.form,(s.forms.get(f.form)||0)+1);s.t=performance.now();fStats.set(f.key,s);lastF=f.key;renderBoard(f.key);
   addNode("F:"+f.key,f.form,"yabanci");const n=words.get("F:"+f.key);if(n){n.sug=f.sug;n.fk=f.k}
   const now=performance.now();if(MODE!=="turkce"&&f.k!=="e"&&(!lastToast.has(f.key)||now-lastToast.get(f.key)>20000)){lastToast.set(f.key,now);toast(f)}}
@@ -965,7 +2042,10 @@ const msg=document.getElementById("msg"),micBtn=document.getElementById("mic");
 let rec=null,listening=false,done=[],lastEvT=0,watchT=null;
 const engSel=document.getElementById("engine");
 function engine(){return engSel?engSel.value:"chrome"}
+function usesChrome(){return engine()==="chrome"||engine()==="hibrit"}
+function whisperModel(){return engine()==="hibrit"?"Xenova/whisper-base":engine()}
 function engineNote(){
+  if(engine()==="hibrit"){msg.innerHTML=SR?"Hibrit: Chrome anlık dinler (ses Google'da metne çevrilir), tarayıcında çalışan Whisper aynı sesi arka planda dinleyip Chrome'un kaçırdığı yabancı kelimeleri birkaç saniye sonra ekler. Whisper modeli ilk seferde indirilir (~80 MB).":"Bu tarayıcıda Chrome tanıma yok, hibrit mod sadece Whisper ile çalışacak.";return}
   if(engine()==="chrome"){msg.innerHTML=SR?"Tanıma: Chrome (anlık; ses Google sunucularında metne çevrilir). İngilizce kelimeleri Türkçe konuşma içinde iyi tanımaz; bunun için <b>Whisper</b>'ı seç.":"Bu tarayıcı Chrome tanımayı desteklemiyor. Whisper'ı seç ya da <a href='yukle.html' style='color:var(--text)'>Sen yükle</a> sekmesini kullan."}
   else msg.innerHTML="Tanıma: Whisper, tamamen tarayıcında çalışır, ses hiçbir yere gönderilmez. Karışık Türkçe-İngilizce konuşmayı daha iyi yazar; birkaç saniye gecikmeyle, cümle cümle gelir. Model ilk seferde indirilir ve saklanır."}
 // --- Chrome (Web Speech API): kendi kendine kapanınca güvenli yeniden başlatma + bekçi
@@ -982,18 +2062,18 @@ function startRec(){
   rec.onerror=e=>{bump();if(e.error==="not-allowed"||e.error==="service-not-allowed"){msg.textContent="Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden izin verip tekrar dene.";stopRec()}
     else if(e.error==="network")msg.textContent="Chrome tanıma hizmetine ulaşılamadı (internet?). Yeniden deneniyor… Sorun sürerse Whisper'ı seç.";
     else if(e.error!=="no-speech"&&e.error!=="aborted")msg.textContent="Konuşma tanıma hatası: "+e.error};
-  rec.onend=()=>{if(listening&&engine()==="chrome")setTimeout(()=>{if(listening&&engine()==="chrome"){try{startRec()}catch(_){}}},250)};
+  rec.onend=()=>{if(listening&&usesChrome())setTimeout(()=>{if(listening&&usesChrome()){try{startRec()}catch(_){}}},250)};
   try{rec.start()}catch(_){setTimeout(()=>{if(listening)try{rec.start()}catch(__){}},400)}
 }
-function watchdog(){clearInterval(watchT);watchT=setInterval(()=>{if(!listening||engine()!=="chrome")return;
+function watchdog(){clearInterval(watchT);watchT=setInterval(()=>{if(!listening||!usesChrome())return;
   if(Date.now()-lastEvT>15000){try{rec&&rec.abort()}catch(_){}lastEvT=Date.now();setTimeout(()=>{if(listening)try{startRec()}catch(_){}},300)}},3000)}
 // --- Whisper canlı: mikrofon → 16 kHz → sessizlikte kes → Worker'da yazıya dök
-const WL={ctx:null,stream:null,node:null,parts:[],len:0,speechMs:0,silMs:0,floor:0.004,q:[],busy:false,acc:[],accN:0};
+const WL={foreignOnly:false,ctx:null,stream:null,node:null,parts:[],len:0,speechMs:0,silMs:0,floor:0.004,q:[],busy:false,acc:[],accN:0};
 const WORKLET=`class Cap extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c)this.port.postMessage(c.slice(0));return true}};registerProcessor('cap',Cap);`;
 const HALLU=/(altyaz[ıi]|abone ol|izlediğiniz için|teşekkürler izlediğiniz|subtitles? by|thanks for watching|amara\.org|www\.|\.com)/i;
-async function startWhisper(){
-  const model=engine();
-  try{await asrLoad(model)}catch(e){job(null);asrW&&asrW.terminate();asrW=null;asrReady=null;asrModel="";msg.textContent="Whisper modeli yüklenemedi: "+(e.message||e)+". İnternet bağlantını kontrol edip tekrar dene ya da Chrome motoruna geç.";stopRec();return}
+async function startWhisper(foreignOnly){
+  const model=whisperModel();WL.foreignOnly=!!foreignOnly;
+  try{await asrLoad(model)}catch(e){job(null);if(WL.foreignOnly){msg.textContent="Whisper yüklenemedi ("+(e.message||e)+"), sadece Chrome ile devam ediliyor.";asrW&&asrW.terminate();asrW=null;asrReady=null;asrModel="";return}asrW&&asrW.terminate();asrW=null;asrReady=null;asrModel="";msg.textContent="Whisper modeli yüklenemedi: "+(e.message||e)+". İnternet bağlantını kontrol edip tekrar dene ya da Chrome motoruna geç.";stopRec();return}
   if(!listening)return;
   job(null);
   try{WL.stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
@@ -1016,15 +2096,16 @@ async function startWhisper(){
     if(speech){WL.speechMs+=100;WL.silMs=0}else WL.silMs+=100;
     const ms=WL.len/16;
     if(WL.speechMs<200&&ms>=1500){const keep=WL.parts.slice(-3);WL.parts=keep;WL.len=keep.reduce((a,b)=>a+b.length,0);WL.speechMs=0;return}
-    if((WL.speechMs>=400&&WL.silMs>=700)||ms>=9000)cutChunk();
-    showCap(transcript,WL.speechMs>0&&WL.silMs<700?"🎙 …":"")};
+    if((WL.speechMs>=300&&WL.silMs>=500)||ms>=6000)cutChunk();
+    if(!WL.foreignOnly)showCap(transcript,WL.speechMs>0&&WL.silMs<500?"🎙 …":"")};
 }
 function cutChunk(){if(!WL.len)return;const a=new Float32Array(WL.len);let o=0;for(const p of WL.parts){a.set(p,o);o+=p.length}
   const sp=WL.speechMs;WL.parts=[];WL.len=0;WL.speechMs=0;WL.silMs=0;if(sp<300)return;WL.q.push(a);pump()}
 async function pump(){if(WL.busy)return;WL.busy=true;
   while(WL.q.length){const a=WL.q.shift();if(WL.q.length>=2)msg.textContent=`Whisper geride kaldı: ${WL.q.length} parça sırada. Daha hızlı sonuç için "Whisper tiny"yi seçebilirsin.`;
     try{const txt=(await asrRun(a,LANG.startsWith("tr")?"turkish":"english")).trim();
-      if(txt&&!HALLU.test(txt)&&/\p{L}/u.test(txt)){atStart=true;for(const w of txt.split(/\s+/))ingest(w,"mic");flushAll();transcript+=(transcript?" ":"")+txt+(/[.!?…]$/.test(txt)?"":".");showCap(transcript,"")}}
+      if(txt&&!HALLU.test(txt)&&/\p{L}/u.test(txt)&&WL.foreignOnly){let st=true;for(const w of txt.split(/\s+/)){const f=foreignOf(w,st);st=/[.!?…]$/.test(w);if(f&&f.k!=="o")onForeign(f,"whisper")}}
+      else if(txt&&!HALLU.test(txt)&&/\p{L}/u.test(txt)){atStart=true;for(const w of txt.split(/\s+/))ingest(w,"mic");flushAll();transcript+=(transcript?" ":"")+txt+(/[.!?…]$/.test(txt)?"":".");showCap(transcript,"")}}
     catch(e){msg.textContent="Whisper hatası: "+(e.message||e)}}
   WL.busy=false}
 function stopWhisper(){if(WL.len)cutChunk();try{WL.node&&WL.node.disconnect()}catch(_){}try{WL.stream&&WL.stream.getTracks().forEach(t=>t.stop())}catch(_){}try{WL.ctx&&WL.ctx.close()}catch(_){}WL.node=WL.stream=WL.ctx=null}
@@ -1033,9 +2114,11 @@ function stopRec(){if(micStart){micMs+=Date.now()-micStart;micStart=null}const w
   if(rec)try{rec.stop()}catch(_){};stopWhisper();
   micBtn.textContent="🎙 Dinlemeye başla";micBtn.classList.remove("rec");micBtn.classList.add("primary");if(was&&nWords>=30)setTimeout(openReport,WL.busy?2500:0)}
 function startListening(){listening=true;micStart=Date.now();micBtn.textContent="Dinleniyor… durdur";micBtn.classList.add("rec");micBtn.classList.remove("primary");
-  if(engine()==="chrome"){if(!SR){msg.textContent="Bu tarayıcıda Chrome tanıma yok, Whisper'ı seç.";stopRec();return}startRec();watchdog()}else startWhisper()}
+  if(engine()==="chrome"){if(!SR){msg.textContent="Bu tarayıcıda Chrome tanıma yok, Whisper'ı seç.";stopRec();return}startRec();watchdog()}
+  else if(engine()==="hibrit"){if(SR){startRec();watchdog();startWhisper(true)}else startWhisper(false)}
+  else startWhisper(false)}
 micBtn.onclick=()=>{if(listening){stopRec();return}startListening()};
-if(engSel&&MODE==="genel")engSel.value="chrome";
+if(engSel&&MODE==="genel"){engSel.querySelector('option[value="hibrit"]').remove();engSel.value="chrome"}
 if(engSel){try{const v=localStorage.getItem("sm-engine-"+MODE);if(v&&[...engSel.options].some(o=>o.value===v))engSel.value=v}catch(_){}
   engSel.onchange=()=>{try{localStorage.setItem("sm-engine-"+MODE,engSel.value)}catch(_){}engineNote();if(listening){const nw=nWords;nWords=0;stopRec();nWords=nw;startListening()}}}
 engineNote();

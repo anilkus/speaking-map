@@ -1,0 +1,1544 @@
+meeting|toplantı|b
+call|görüşme, çağrı|b
+deadline,dedlayn|son tarih, teslim tarihi|b
+feedback,fidbek,fidback|geri bildirim|b
+brief,brif|kısa bilgi, bilgilendirme|b
+briefing,brifing|bilgilendirme toplantısı|b
+update,apdeyt,updatele|güncelleme|b
+check,çekle|kontrol, denetim|b
+mail,email,imeyl,meyl,meil|e-posta|b
+cv|özgeçmiş|b
+offer|teklif|b
+deal|anlaşma|b
+target|hedef|b
+timing|zamanlama|b
+team|ekip|b
+teamwork|ekip çalışması|b
+task|görev|b
+startup,startap|girişim|b
+workshop,vörkşop|çalıştay|b
+brainstorming|beyin fırtınası|b
+background,bekgraund|geçmiş, arka plan|b
+knowhow,know-how|uzmanlık, bilgi birikimi|b
+networking|ilişki ağı kurma|b
+skill|beceri|b
+performans|başarım, verim|b
+motivasyon|güdülenme, isteklendirme|b
+konsept|kavram, tasarım|b
+spesifik|belirli, özgül|b
+enteresan|ilginç|b
+prosedür|yöntem, işlem süreci|b
+organizasyon|düzenleme, örgütlenme|b
+organize|düzenlemek|b
+opsiyon|seçenek|b
+alternatif|seçenek, başka yol|b
+problem|sorun|b
+prensip|ilke|b
+departman|bölüm, birim|b
+avantaj|üstünlük, yarar|b
+dezavantaj|sakınca|b
+potansiyel|gizil güç, olası|b
+efektif|etkili|b
+ekstra|ek, fazladan|b
+ekstrem|aşırı|b
+minimum|en az|b
+maksimum|en çok|b
+optimum|en uygun|b
+optimize|iyileştirmek, en uygun hâle getirmek|b
+spontane|kendiliğinden|b
+total|toplam|b
+global|küresel|b
+globalleşme,globalizm|küreselleşme|b
+lokal|yerel|b
+online,onlayn|çevrim içi|b
+offline,oflayn|çevrim dışı|b
+download,davnlod|indirme|b
+upload,aplod|yükleme|b
+link|bağlantı|b
+password|parola|b
+software|yazılım|b
+hardware|donanım|b
+server|sunucu|b
+laptop,leptop|dizüstü bilgisayar|b
+smartphone|akıllı telefon|b
+selfie,selfi|özçekim|b
+hashtag|etiket|b
+influencer,infulencer|sosyal medya fenomeni|b
+follower|takipçi|b
+like,layk|beğeni|b
+story|hikâye, an|b
+post|gönderi, paylaşım|b
+trend|eğilim, akım|b
+viral|hızla yayılan|b
+podcast|sesli yayın|b
+streaming,stream|canlı yayın|b
+content,kontent|içerik|b
+creator|içerik üreticisi|b
+marketing|pazarlama|b
+branding|markalaşma|b
+sales|satış|b
+business,biznis|iş|b
+fulltime,full-time|tam zamanlı|b
+parttime,part-time|yarı zamanlı|b
+remote|uzaktan|b
+freelance,freelancer,frilans|serbest çalışan|b
+okay,okey,okei|tamam|b
+sorry,sori|özür dilerim|b
+thanks,thank|teşekkürler, sağ ol|b
+nice|güzel|b
+cool|havalı, güzel|b
+weekend|hafta sonu|b
+shopping|alışveriş|b
+event,ivent|etkinlik|b
+şov,show|gösteri|b
+break|ara|b
+lunch|öğle yemeği|b
+dinner|akşam yemeği|b
+outfit|kıyafet|b
+dizayn,design|tasarım|b
+designer,dizayner|tasarımcı|b
+level|düzey|b
+sponsor|destekçi|b
+partner|ortak|b
+partnership|ortaklık|b
+investor|yatırımcı|b
+budget|bütçe|b
+data|veri|b
+dataset|veri kümesi|b
+learning|öğrenme|b
+chatbot|sohbet robotu|b
+prompt|istem, komut|b
+output|çıktı|b
+input|girdi|b
+feature|özellik|b
+bug|hata|b
+debug|hata ayıklama|b
+deploy|yayına alma|b
+release|sürüm|b
+version,versiyon|sürüm|b
+backup|yedek|b
+user|kullanıcı|b
+interface|arayüz|b
+cloud|bulut|b
+framework|çerçeve, çatı|b
+benchmark|karşılaştırma ölçütü|b
+paper|makale, bildiri|b
+review|değerlendirme, inceleme|b
+reviewer|hakem|b
+submission|gönderim|b
+abstract|özet|b
+case|durum, örnek olay|b
+challenge|zorluk|b
+issue|sorun, konu|b
+insight|içgörü|b
+impact|etki|b
+mindset|bakış açısı|b
+vizyon|ileri görüş|b
+misyon|görev, amaç|b
+enformasyon|bilgi|b
+komünikasyon,kominikasyon|iletişim|b
+prezentasyon|sunum|b
+diskalifiye|yarışma dışı|b
+konjonktür|koşullar, genel durum|b
+akredite|onaylı, yetkili|b
+manipülasyon|yönlendirme|b
+manipüle|yönlendirmek|b
+sinerji|ortak güç|b
+spekülasyon|söylenti, tahmin|b
+rasyonel|akılcı|b
+irrasyonel|akıl dışı|b
+objektif|nesnel|b
+sübjektif|öznel|b
+pozitif|olumlu|b
+negatif|olumsuz|b
+realist|gerçekçi|b
+kreatif|yaratıcı|b
+inovasyon|yenilik|b
+inovatif|yenilikçi|b
+fonksiyon|işlev|b
+fonksiyonel|işlevsel|b
+kompleks|karmaşık|b
+konsantrasyon|odaklanma|b
+konsantre|odaklanmış|b
+koordinasyon|eş güdüm|b
+koordinatör|eş güdümcü|b
+dominant|baskın|b
+agresif|saldırgan|b
+detay|ayrıntı|b
+detaylı|ayrıntılı|b
+faktör|etken|b
+perspektif|bakış açısı|b
+prestij|saygınlık|b
+empati|duygudaşlık|b
+tolerans|hoşgörü|b
+aktif|etkin|b
+pasif|edilgen|b
+aktivite|etkinlik|b
+interaktif|etkileşimli|b
+reaksiyon|tepki|b
+transfer|aktarım|b
+transparan|saydam|b
+fiks|sabit|b
+start|başlangıç|b
+finish|bitiş|b
+oryantasyon|uyum|b
+adapte|uyum sağlamak|b
+adaptasyon|uyum|b
+entegre|bütünleşik|b
+entegrasyon|bütünleşme|b
+dijital,digital|sayısal|b
+virtüel,virtual|sanal|b
+mentalite|zihniyet|b
+rutin|olağan, alışılmış|b
+konfor|rahatlık|b
+share,şeyr|paylaşmak|b
+confirm|onaylamak|b
+approve|onaylamak|b
+cancel|iptal etmek|b
+postpone|ertelemek|b
+schedule|takvim|b
+invite|davet|b
+attach|eklemek|b
+forward,forvard|iletmek|b
+reply|yanıtlamak|b
+focus,fokus,fokuslan|odak, odaklanmak|b
+plaza|iş merkezi|b
+istikbal|gelecek|e
+tahsil|öğrenim|e
+imtihan|sınav|e
+talebe|öğrenci|e
+muallim|öğretmen|e
+mesele|sorun, konu|e
+sual|soru|e
+cevap,cevab|yanıt|e
+misal|örnek|e
+mukayese|karşılaştırma|e
+tesir|etki|e
+netice|sonuç|e
+ihtiyaç|gereksinim|e
+vazife|görev|e
+hadise|olay|e
+hürriyet|özgürlük|e
+imkan,imkân|olanak|e
+ihtimal|olasılık|e
+muhtemelen|olasılıkla|e
+kabiliyet|yetenek|e
+şahıs,şahs|kişi|e
+mevzu|konu|e
+münakaşa|tartışma|e
+müsaade|izin|e
+kelime|sözcük|e
+cümle|tümce|e
+lisan|dil|e
+tercüme|çeviri|e
+ilim,ilm|bilim,ilm|e
+fikir,fikr|düşünce|e
+hikaye,hikâye|öykü|e
+muvaffakiyet|başarı|e
+ehemmiyet|önem|e
+mühim|önemli|e
+ekseriya|çoğunlukla|e
+ekseriyet|çoğunluk|e
+asır,asr|yüzyıl|e
+sene|yıl|e
+merhale|aşama|e
+zaviye|açı|e
+mütemadiyen|sürekli|e
+daima|her zaman|e
+evvela|önce, ilk olarak|e
+malumat|bilgi|e
+tecrübe|deneyim|e
+izah|açıklama|e
+mütalaa|görüş|e
+mütehassıs|uzman|e
+müracaat|başvuru|e
+mümkün|olası|e
+maalesef|ne yazık ki|e
+şayet|eğer|e
+lakin|ama, ancak|e
+ilaveten|ek olarak|e
+binaenaleyh|bu nedenle|e
+hususi|özel|e
+umumi|genel|e
+istifade|yararlanma|e
+teşebbüs|girişim|e
+iştirak|katılım|e
+tatbik|uygulama|e
+tetkik|inceleme|e
+tahlil|çözümleme|e
+hülasa|özet|e
+takriben|yaklaşık|e
+kafi,kâfi|yeterli|e
+lüzum|gerek|e
+lüzumlu|gerekli|e
+mecburiyet|zorunluluk|e
+mecbur|zorunlu|e
+muhakkak|kesinlikle|e
+katiyen|asla, kesinlikle|e
+bilhassa|özellikle|e
+bilakis|tersine|e
+mukavemet|direnç|e
+tazyik|baskı|e
+muvakkat|geçici|e
+daimi|kalıcı|e
+muhit|çevre|e
+sathi|yüzeysel|e
+amazing|harika, inanılmaz|b
+awesome|müthiş, harika|b
+perfect|mükemmel, kusursuz|b
+cute|tatlı, şirin|b
+crazy|çılgın, deli|b
+random|rastgele|b
+literally|resmen, kelimenin tam anlamıyla|b
+basically|temelde, kısacası|b
+whatever|her neyse|b
+anyway|neyse|b
+actually|aslında|b
+happy|mutlu|b
+sad|üzgün|b
+bad|kötü|b
+good|iyi|b
+great|harika, çok iyi|b
+best|en iyi|b
+love|aşk, sevgi|b
+baby|bebeğim, canım|b
+friend|arkadaş|b
+job|iş|b
+money|para|b
+life|hayat, yaşam|b
+time|zaman|b
+family|aile|b
+home|ev|b
+house|ev|b
+car|araba|b
+school|okul|b
+game|oyun|b
+music|müzik|b
+song|şarkı|b
+party|eğlence, parti|b
+food|yemek|b
+coffee|kahve|b
+boss|patron|b
+win|kazanmak|b
+lose|kaybetmek|b
+fail|başarısızlık|b
+success|başarı|b
+easy|kolay|b
+hard|zor|b
+fast|hızlı|b
+slow|yavaş|b
+please|lütfen|b
+yes|evet|b
+yeah|evet|b
+wow|vay, vay be|b
+bye|hoşça kal, görüşürüz|b
+hello|merhaba|b
+sure|tabii, elbette|b
+really|gerçekten|b
+maybe|belki|b
+always|her zaman|b
+never|asla|b
+sometimes|bazen|b
+enjoy|keyfini çıkar|b
+fun|eğlence|b
+funny|komik|b
+boring|sıkıcı|b
+interesting|ilginç|b
+important|önemli|b
+special|özel|b
+free|ücretsiz, serbest|b
+busy|meşgul, yoğun|b
+tired|yorgun|b
+ready|hazır|b
+done|bitti, tamam|b
+wait|bekle|b
+stop|dur|b
+idea|fikir, düşünce|b
+chill|rahat, sakin|b
+relax|rahatla|b
+vibe|hava, atmosfer|b
+mood|ruh hâli|b
+style|tarz|b
+fashion|moda|b
+sale|indirim|b
+discount|indirim|b
+price|fiyat|b
+cash|nakit|b
+shop|dükkân|b
+store|mağaza|b
+brand|marka|b
+quality|nitelik, kalite|b
+service|hizmet|b
+customer|müşteri|b
+client|müşteri|b
+product|ürün|b
+office|ofis, büro|b
+report|rapor|b
+project|proje|b
+goal|hedef, amaç|b
+strategy|strateji, yol haritası|b
+manager|yönetici|b
+leader|önder, lider|b
+employee|çalışan|b
+company|şirket|b
+message|mesaj, ileti|b
+chat|sohbet|b
+phone|telefon|b
+computer|bilgisayar|b
+screen|ekran|b
+app|uygulama|b
+website|web sitesi|b
+click|tıklamak|b
+scroll|kaydırmak|b
+follow|takip etmek|b
+subscribe|abone olmak|b
+live|canlı|b
+news|haber|b
+comment|yorum|b
+support|destek|b
+help|yardım|b
+solution|çözüm|b
+answer|yanıt, cevap|b
+question|soru|b
+research|araştırma|b
+study|çalışma|b
+training|eğitim|b
+experience|deneyim|b
+career|kariyer, meslek yaşamı|b
+interview|görüşme, mülakat|b
+salary|maaş|b
+bonus|prim|b
+holiday|tatil|b
+travel|seyahat, yolculuk|b
+trip|gezi|b
+flight|uçuş|b
+ticket|bilet|b
+hotel|otel|b
+room|oda|b
+city|şehir, kent|b
+country|ülke|b
+world|dünya|b
+people|insanlar|b
+guy|adam|b
+girl|kız|b
+woman|kadın|b
+kid|çocuk|b
+brother|kardeş|b
+sister|kız kardeş|b
+mom|anne|b
+dad|baba|b
+heart|kalp, yürek|b
+beautiful|güzel|b
+sweet|tatlı|b
+hot|sıcak|b
+cold|soğuk|b
+weird|tuhaf|b
+strange|garip|b
+true|doğru|b
+real|gerçek|b
+fake|sahte|b
+original|özgün|b
+new|yeni|b
+big|büyük|b
+small|küçük|b
+short|kısa|b
+long|uzun|b
+high|yüksek|b
+low|düşük|b
+next|sonraki|b
+last|son|b
+first|ilk|b
+open|açık|b
+close|kapat, yakın|b
+simple|basit, yalın|b
+basic|temel|b
+power|güç|b
+energy|enerji, erke|b
+healthy|sağlıklı|b
+gym|spor salonu|b
+diet|diyet, perhiz|b
+morning|sabah|b
+night|gece|b
+today|bugün|b
+tomorrow|yarın|b
+friends|arkadaşlar|b
+super|süper, harika|b
+lucky|şanslı|b
+thank|teşekkürler|b
+welcome|hoş geldin|b
+congrats|tebrikler|b
+from|-den, -dan|b
+back|geri, arka|b
+something|bir şey|b
+too|de, çok fazla|b
+way|yol, yöntem|b
+down|aşağı|b
+little|küçük, biraz|b
+mean|demek istemek|b
+two|iki|b
+much|çok|b
+doing|yapmak|b
+thing|şey|b
+anything|herhangi bir şey|b
+still|hâlâ|b
+find|bulmak|b
+nothing|hiçbir şey|b
+sir|efendim|b
+work|iş, çalışmak|b
+must|-meli, zorunda|b
+before|önce|b
+after|sonra|b
+talk|konuşmak|b
+away|uzakta|b
+better|daha iyi|b
+everything|her şey|b
+things|şeyler|b
+keep|tutmak, devam etmek|b
+years|yıllar|b
+leave|ayrılmak, bırakmak|b
+around|etrafında|b
+name|ad, isim|b
+place|yer|b
+ever|hiç, şimdiye kadar|b
+feel|hissetmek|b
+guys|arkadaşlar|b
+father|baba|b
+lot|çok|b
+believe|inanmak|b
+someone|biri|b
+fine|iyi, tamam|b
+wanted|istedi|b
+kind|tür, nazik|b
+coming|geliyor|b
+every|her|b
+course|ders, elbette|b
+stay|kalmak|b
+left|sol, kaldı|b
+enough|yeterli|b
+happened|oldu|b
+mother|anne|b
+wrong|yanlış|b
+might|-ebilir|b
+three|üç|b
+listen|dinle|b
+another|başka|b
+understand|anlamak|b
+hear|duymak|b
+remember|hatırlamak|b
+ask|sormak|b
+else|başka|b
+care|ilgilenmek, önemsemek|b
+looking|bakıyor|b
+try|denemek|b
+dead|ölü|b
+many|çok|b
+mind|akıl, zihin|b
+together|birlikte|b
+without|olmadan|b
+already|zaten|b
+move|hareket etmek, taşınmak|b
+miss|özlemek, kaçırmak|b
+heard|duydu|b
+head|baş, kafa|b
+called|aradı, denilen|b
+used|kullanılmış|b
+hold|tutmak|b
+door|kapı|b
+pretty|güzel, oldukça|b
+bit|biraz|b
+yet|henüz|b
+men|adamlar|b
+whole|bütün|b
+use|kullanmak|b
+since|-den beri|b
+wife|eş, karı|b
+days|günler|b
+guess|tahmin etmek|b
+matter|önemli olmak, konu|b
+meet|tanışmak, buluşmak|b
+bring|getirmek|b
+tonight|bu gece|b
+everyone|herkes|b
+run|koşmak|b
+alone|yalnız|b
+end|son|b
+saying|söylemek|b
+play|oynamak|b
+looks|görünüyor|b
+ago|önce|b
+anyone|kimse, herhangi biri|b
+hope|umut|b
+face|yüz|b
+lost|kayıp|b
+police|polis|b
+excuse|bahane|b
+turn|dönmek, sıra|b
+wants|istiyor|b
+die|ölmek|b
+soon|yakında|b
+worry|endişelenmek|b
+later|sonra|b
+year|yıl|b
+watch|izlemek|b
+hand|el|b
+having|sahip olmak|b
+probably|muhtemelen, büyük olasılıkla|b
+doctor|doktor, hekim|b
+sit|oturmak|b
+eat|yemek|b
+thinking|düşünmek|b
+young|genç|b
+second|ikinci, saniye|b
+working|çalışmak|b
+water|su|b
+person|kişi|b
+kids|çocuklar|b
+late|geç|b
+stuff|şeyler|b
+exactly|aynen, tam olarak|b
+death|ölüm|b
+minute|dakika|b
+forget|unutmak|b
+everybody|herkes|b
+change|değişiklik, değiştirmek|b
+happen|olmak|b
+five|beş|b
+drink|içmek, içecek|b
+far|uzak|b
+knows|biliyor|b
+eyes|gözler|b
+hit|vurmak|b
+taking|almak|b
+times|kez, zamanlar|b
+hands|eller|b
+minutes|dakikalar|b
+different|farklı|b
+means|anlamına gelir|b
+point|nokta, mesele|b
+inside|içeride|b
+makes|yapar|b
+asked|sordu|b
+somebody|biri|b
+making|yapmak|b
+body|vücut, beden|b
+afraid|korkmuş|b
+sleep|uyumak|b
+chance|şans, fırsat|b
+dear|sevgili|b
+quite|oldukça|b
+four|dört|b
+against|karşı|b
+word|sözcük, kelime|b
+comes|gelir|b
+number|sayı|b
+daughter|kız evlat|b
+least|en az|b
+waiting|beklemek|b
+hurt|incitmek, acımak|b
+wish|dilek|b
+moment|an|b
+fight|kavga|b
+week|hafta|b
+husband|koca, eş|b
+girls|kızlar|b
+rest|dinlenmek|b
+married|evli|b
+fire|ateş, yangın|b
+nobody|hiç kimse|b
+children|çocuklar|b
+side|taraf|b
+stand|ayakta durmak|b
+read|okumak|b
+though|yine de|b
+cut|kesmek|b
+started|başladı|b
+supposed|gerekiyordu|b
+between|arasında|b
+child|çocuk|b
+goes|gider|b
+hours|saatler|b
+speak|konuşmak|b
+women|kadınlar|b
+behind|arkasında|b
+almost|neredeyse|b
+truth|gerçek|b
+blood|kan|b
+able|yapabilen|b
+lady|hanımefendi|b
+anymore|artık|b
+playing|oynamak|b
+shot|atış|b
+reason|neden, sebep|b
+trouble|dert, sorun|b
+war|savaş|b
+walk|yürümek|b
+town|kasaba|b
+trust|güven|b
+met|tanıştı|b
+brought|getirdi|b
+couple|çift|b
+half|yarım|b
+died|öldü|b
+either|ya da|b
+seems|görünüyor|b
+buy|satın almak|b
+telling|söylemek|b
+honey|tatlım|b
+tried|denedi|b
+front|ön|b
+line|çizgi, sıra|b
+send|göndermek|b
+stupid|aptal|b
+bed|yatak|b
+hurry|acele|b
+full|dolu, tam|b
+months|aylar|b
+save|kurtarmak, kaydetmek|b
+become|olmak|b
+along|boyunca|b
+hate|nefret etmek|b
+outside|dışarıda|b
+light|ışık|b
+needs|ihtiyaçlar|b
+dog|köpek|b
+clear|açık, net|b
+order|sipariş, düzen|b
+fact|gerçek|b
+captain|kaptan|b
+six|altı|b
+black|siyah|b
+alive|canlı, hayatta|b
+pick|seçmek|b
+feeling|duygu|b
+living|yaşamak|b
+cause|neden|b
+ahead|ileride|b
+sort|tür, sıralamak|b
+leaving|ayrılmak|b
+running|koşmak|b
+alright|tamam|b
+promise|söz|b
+taken|alınmış|b
+safe|güvenli|b
+book|kitap|b
+sent|gönderdi|b
+hour|saat|b
+anybody|herhangi biri|b
+lives|hayatlar|b
+parents|ebeveynler, anne baba|b
+perhaps|belki|b
+sounds|kulağa geliyor|b
+serious|ciddi|b
+sick|hasta|b
+scared|korkmuş|b
+uncle|amca, dayı|b
+poor|fakir, zavallı|b
+past|geçmiş|b
+earth|dünya|b
+possible|mümkün, olası|b
+shoot|ateş etmek, çekmek|b
+touch|dokunmak|b
+sound|ses|b
+cannot|-amaz|b
+asking|sormak|b
+glad|memnun|b
+control|kontrol, denetim|b
+human|insan|b
+drive|sürmek|b
+hair|saç|b
+luck|şans|b
+murder|cinayet|b
+happens|olur|b
+air|hava|b
+daddy|babacığım|b
+finally|sonunda|b
+seem|görünmek|b
+words|sözcükler|b
+hospital|hastane|b
+street|sokak|b
+hang|asmak|b
+dance|dans|b
+till|-e kadar|b
+others|diğerleri|b
+catch|yakalamak|b
+sense|anlam, his|b
+lie|yalan|b
+evening|akşam|b
+master|usta|b
+known|bilinen|b
+dream|rüya, hayal|b
+write|yazmak|b
+million|milyon|b
+voice|ses|b
+rather|oldukça, tercihen|b
+felt|hissetti|b
+sign|işaret, imzalamak|b
+somewhere|bir yerde|b
+bet|bahse girerim|b
+longer|daha uzun|b
+calling|aramak|b
+worked|çalıştı|b
+quiet|sessiz|b
+less|daha az|b
+pull|çekmek|b
+beat|yenmek|b
+careful|dikkatli|b
+return|dönüş|b
+secret|sır|b
+weeks|haftalar|b
+date|tarih, randevu|b
+seeing|görmek|b
+fall|düşmek, sonbahar|b
+given|verilmiş|b
+fault|hata, kusur|b
+straight|düz, doğrudan|b
+takes|alır|b
+future|gelecek|b
+gentlemen|beyler|b
+loved|sevdi|b
+changed|değişti|b
+road|yol|b
+calm|sakin|b
+wonderful|harika|b
+turned|döndü|b
+drop|bırakmak, damla|b
+ladies|hanımlar|b
+learn|öğrenmek|b
+step|adım|b
+absolutely|kesinlikle|b
+early|erken|b
+explain|açıklamak|b
+clean|temiz|b
+piece|parça|b
+yesterday|dün|b
+throw|atmak|b
+picture|resim, fotoğraf|b
+land|kara, arazi|b
+feet|ayaklar|b
+wonder|merak etmek|b
+questions|sorular|b
+speaking|konuşmak|b
+worth|değer|b
+darling|sevgilim|b
+dude|kanka, dostum|b
+giving|vermek|b
+president|başkan|b
+eye|göz|b
+quick|hızlı|b
+moving|hareket etmek, taşınmak|b
+figure|anlamak, şekil|b
+state|durum, devlet|b
+strong|güçlü|b
+none|hiçbiri|b
+ones|olanlar|b
+works|çalışır|b
+act|davranmak, eylem|b
+needed|gerekli|b
+law|hukuk, yasa|b
+worried|endişeli|b
+goodbye|hoşça kal|b
+missing|kayıp, eksik|b
+choice|seçim, tercih|b
+happening|oluyor|b
+chief|şef, amir|b
+wedding|düğün|b
+pain|acı|b
+kidding|şaka yapmak|b
+decided|karar verdi|b
+class|sınıf, ders|b
+officer|memur|b
+kept|tuttu|b
+wake|uyanmak|b
+worse|daha kötü|b
+mistake|hata|b
+kiss|öpücük|b
+court|mahkeme|b
+building|bina|b
+during|sırasında|b
+age|yaş|b
+ship|gemi|b
+caught|yakaladı|b
+marry|evlenmek|b
+meant|demek istedi|b
+sell|satmak|b
+dark|karanlık|b
+watching|izlemek|b
+system|sistem, dizge|b
+suppose|sanmak, varsaymak|b
+evidence|kanıt|b
+movie|film|b
+ride|binmek|b
+completely|tamamen|b
+mouth|ağız|b
+totally|tamamen|b
+birthday|doğum günü|b
+forgive|affetmek|b
+born|doğmuş|b
+imagine|hayal etmek|b
+information|bilgi|b
+instead|yerine|b
+definitely|kesinlikle|b
+security|güvenlik|b
+certainly|kesinlikle|b
+month|ay|b
+lying|yalan söylemek|b
+unless|-medikçe|b
+train|tren, eğitmek|b
+wear|giymek|b
+clothes|kıyafetler|b
+attack|saldırı|b
+round|tur, yuvarlak|b
+expect|beklemek|b
+sing|şarkı söylemek|b
+terrible|berbat|b
+bag|çanta|b
+history|tarih|b
+near|yakın|b
+broke|bozuldu, beş parasız|b
+station|istasyon|b
+seriously|cidden|b
+forever|sonsuza dek|b
+except|hariç|b
+thinks|düşünüyor|b
+entire|bütün|b
+table|masa, tablo|b
+talked|konuştu|b
+lovely|hoş, sevimli|b
+handle|halletmek|b
+middle|orta|b
+paid|ödendi|b
+protect|korumak|b
+using|kullanmak|b
+floor|zemin, kat|b
+ran|koştu|b
+swear|yemin etmek|b
+spend|harcamak|b
+situation|durum|b
+anywhere|herhangi bir yer|b
+dangerous|tehlikeli|b
+army|ordu|b
+lead|liderlik etmek, öncülük|b
+bought|satın aldı|b
+finished|bitti|b
+fair|adil|b
+letter|mektup, harf|b
+fool|aptal|b
+attention|dikkat|b
+club|kulüp|b
+space|uzay, alan|b
+box|kutu|b
+group|grup, topluluk|b
+single|tek, bekâr|b
+sitting|oturmak|b
+marriage|evlilik|b
+join|katılmak|b
+fear|korku|b
+peace|barış, huzur|b
+forgot|unuttu|b
+force|güç|b
+present|hediye, şimdiki|b
+crime|suç|b
+horse|at|b
+ground|zemin|b
+count|saymak|b
+area|alan, bölge|b
+charge|ücret, şarj etmek|b
+honor|onur|b
+radio|radyo|b
+idiot|aptal|b
+ball|top|b
+surprise|sürpriz|b
+key|anahtar|b
+boat|tekne|b
+quickly|hızlıca|b
+gold|altın|b
+fish|balık|b
+wearing|giymek|b
+crying|ağlamak|b
+accident|kaza|b
+government|hükümet|b
+eight|sekiz|b
+fell|düştü|b
+cover|kapak, örtmek|b
+certain|kesin, belirli|b
+interested|ilgili, meraklı|b
+deep|derin|b
+sea|deniz|b
+agree|katılmak, aynı fikirde olmak|b
+problems|sorunlar|b
+detective|dedektif|b
+prison|hapishane|b
+major|büyük, ana|b
+stick|sopa, yapışmak|b
+difficult|zor|b
+smart|akıllı|b
+personal|kişisel|b
+record|kayıt|b
+stopped|durdu|b
+hide|saklamak|b
+whether|-ip -mediği|b
+public|halk, kamu|b
+afternoon|öğleden sonra|b
+brain|beyin|b
+fix|düzeltmek, onarmak|b
+proud|gururlu|b
+tea|çay|b
+angry|kızgın|b
+soul|ruh|b
+fighting|kavga etmek|b
+rich|zengin|b
+agent|ajan, temsilci|b
+blow|üflemek|b
+dress|elbise|b
+missed|özledi, kaçırdı|b
+scene|sahne|b
+standing|ayakta|b
+saved|kurtardı, kaydetti|b
+respect|saygı|b
+ice|buz|b
+mess|dağınıklık, karmaşa|b
+tough|zor, sert|b
+feels|hissettiriyor|b
+church|kilise|b
+cell|hücre|b
+drunk|sarhoş|b
+camera|kamera|b
+within|içinde|b
+card|kart|b
+fly|uçmak|b
+girlfriend|kız arkadaş|b
+laugh|gülmek|b
+smell|koku|b
+broken|kırık, bozuk|b
+honest|dürüst|b
+often|sık sık|b
+starting|başlamak|b
+calls|aramalar|b
+spent|harcadı|b
+third|üçüncü|b
+english|İngilizce|b
+visit|ziyaret|b
+judge|yargıç|b
+window|pencere|b
+hungry|aç|b
+dare|cesaret etmek|b
+relationship|ilişki|b
+moved|taşındı|b
+prove|kanıtlamak|b
+private|özel|b
+wall|duvar|b
+seat|koltuk|b
+position|konum, pozisyon|b
+realize|fark etmek|b
+especially|özellikle|b
+machine|makine|b
+walking|yürümek|b
+pleasure|zevk, memnuniyet|b
+college|üniversite|b
+involved|dâhil, ilgili|b
+cry|ağlamak|b
+became|oldu|b
+lived|yaşadı|b
+impossible|imkânsız, olanaksız|b
+obviously|belli ki|b
+neither|hiçbiri|b
+accept|kabul etmek|b
+boyfriend|erkek arkadaş|b
+besides|ayrıca|b
+teacher|öğretmen|b
+sake|hatır|b
+loves|seviyor|b
+carry|taşımak|b
+teach|öğretmek|b
+apartment|daire|b
+upset|üzgün|b
+liked|beğendi|b
+evil|kötü|b
+professor|profesör|b
+contact|iletişim|b
+joke|şaka|b
+huge|devasa, kocaman|b
+holy|kutsal|b
+jail|hapishane|b
+likes|beğeniyor|b
+lawyer|avukat|b
+doubt|şüphe|b
+continue|devam etmek|b
+appreciate|takdir etmek|b
+driving|araba sürmek|b
+congratulations|tebrikler|b
+wrote|yazdı|b
+village|köy|b
+quit|bırakmak|b
+field|alan|b
+wine|şarap|b
+decision|karar|b
+sleeping|uyumak|b
+glass|bardak, cam|b
+beginning|başlangıç|b
+dying|ölmek|b
+hundred|yüz|b
+difference|fark|b
+plane|uçak|b
+push|itmek|b
+continues|devam ediyor|b
+singing|şarkı söylemek|b
+eating|yemek yemek|b
+north|kuzey|b
+tree|ağaç|b
+gift|hediye|b
+truck|kamyon|b
+putting|koymak|b
+bear|ayı|b
+board|tahta, kurul|b
+grab|kapmak|b
+beer|bira|b
+stuck|sıkışmış|b
+magic|sihir|b
+rules|kurallar|b
+reach|ulaşmak|b
+wind|rüzgâr|b
+immediately|hemen|b
+seconds|saniyeler|b
+thousand|bin|b
+gives|verir|b
+cheers|şerefe|b
+victim|kurban|b
+upon|üzerine|b
+planet|gezegen|b
+promised|söz verdi|b
+bus|otobüs|b
+dirty|kirli|b
+search|aramak, arama|b
+staying|kalmak|b
+dreams|rüyalar, hayaller|b
+arrest|tutuklamak|b
+holding|tutmak|b
+suddenly|aniden|b
+usually|genellikle|b
+lots|çok|b
+shoes|ayakkabılar|b
+jump|zıplamak|b
+rid|kurtulmak|b
+knock|kapı çalmak|b
+owe|borçlu olmak|b
+grow|büyümek|b
+worst|en kötü|b
+aunt|teyze, hala|b
+patient|hasta, sabırlı|b
+kitchen|mutfak|b
+fat|şişman|b
+passed|geçti|b
+listening|dinlemek|b
+escape|kaçmak|b
+everywhere|her yerde|b
+arms|kollar|b
+turns|döner|b
+address|adres|b
+match|maç, eşleşmek|b
+yep|evet|b
+nervous|gergin|b
+choose|seçmek|b
+decide|karar vermek|b
+mate|dostum|b
+drinking|içmek|b
+press|basmak, basın|b
+bother|rahatsız etmek|b
+foot|ayak|b
+blame|suçlamak|b
+drugs|uyuşturucu, ilaçlar|b
+type|tür, yazmak|b
+rings|yüzükler|b
+mission|görev|b
+named|adlı|b
+heaven|cennet|b
+picked|seçti|b
+race|yarış|b
+books|kitaplar|b
+action|eylem, aksiyon|b
+allowed|izin verilen|b
+orders|emirler, siparişler|b
+learned|öğrendi|b
+arrived|vardı|b
+otherwise|aksi hâlde|b
+pictures|resimler|b
+favor|iyilik|b
+played|oynadı|b
+notice|fark etmek|b
+smile|gülümseme|b
+director|yönetmen, müdür|b
+guard|nöbetçi, koruma|b
+begin|başlamak|b
+surprised|şaşırmış|b
+innocent|masum|b
+feelings|duygular|b
+enemy|düşman|b
+battle|savaş|b
+dollars|dolar|b
+allow|izin vermek|b
+department|bölüm|b
+guilty|suçlu|b
+apart|ayrı|b
+earlier|daha önce|b
+duty|görev|b
+suit|takım elbise|b
+legs|bacaklar|b
+hero|kahraman|b
+destroy|yok etmek|b
+stage|sahne, aşama|b
+bunch|demet, bir sürü|b
+according|-e göre|b
+chicken|tavuk|b
+bigger|daha büyük|b
+helping|yardım etmek|b
+admit|kabul etmek|b
+closed|kapalı|b
+names|isimler|b
+witness|tanık|b
+upstairs|üst kat|b
+arm|kol|b
+steal|çalmak|b
+kick|tekme|b
+twice|iki kez|b
+ways|yollar|b
+indeed|gerçekten|b
+gas|gaz, benzin|b
+keeping|tutmak|b
+pregnant|hamile|b
+waste|israf etmek|b
+helped|yardım etti|b
+fired|kovuldu|b
+favorite|en sevilen|b
+taste|tat|b
+locked|kilitli|b
+places|yerler|b
+writing|yazmak|b
+brothers|kardeşler|b
+starts|başlar|b
+sold|satıldı|b
+silly|saçma|b
+mention|bahsetmek|b
+build|inşa etmek, kurmak|b
+throat|boğaz|b
+hole|delik|b
+figured|anladı|b
+track|iz, parça|b
+lock|kilit|b
+leg|bacak|b
+above|üstünde|b
+hiding|saklanmak|b
+seemed|göründü|b
+breakfast|kahvaltı|b
+engine|motor|b
+written|yazılı|b
+complete|tamamlamak|b
+however|ancak|b
+pressure|baskı|b
+fresh|taze|b
+weapon|silah|b
+stole|çaldı|b
+reading|okumak|b
+crowd|kalabalık|b
+treat|davranmak, ikram|b
+double|çift|b
+spirit|ruh|b
+danger|tehlike|b
+cost|maliyet|b
+empty|boş|b
+memory|bellek, anı|b
+acting|oyunculuk|b
+interest|ilgi|b
+nose|burun|b
+plans|planlar|b
+following|takip eden|b
+bathroom|banyo|b
+built|inşa edildi|b
+closer|daha yakın|b
+apparently|görünüşe göre|b
+excited|heyecanlı|b
+losing|kaybetmek|b
+animals|hayvanlar|b
+nature|doğa|b
+raise|yükseltmek, zam|b
+neck|boyun|b
+suspect|şüpheli|b
+warm|sıcak|b
+bottle|şişe|b
+heavy|ağır|b
+wild|vahşi|b
+ridiculous|saçma|b
+simply|basitçe|b
+animal|hayvan|b
+showed|gösterdi|b
+shooting|çekim, ateş etme|b
+keeps|tutar|b
+camp|kamp|b
+medical|tıbbi|b
+shame|utanç, yazık|b
+hoping|ummak|b
+bird|kuş|b
+flowers|çiçekler|b
+famous|ünlü|b
+asleep|uykuda|b
+beauty|güzellik|b
+driver|sürücü|b
+rain|yağmur|b
+awful|berbat|b
+large|büyük|b
+local|yerel|b
+deserve|hak etmek|b
+consider|düşünmek|b
+wondering|merak etmek|b
+plenty|bol|b
+willing|istekli|b
+pants|pantolon|b
+sweetheart|tatlım|b
+skin|cilt, deri|b
+excellent|mükemmel|b
+faith|inanç|b
+beg|yalvarmak|b
+responsible|sorumlu|b
+military|askerî|b
+opportunity|fırsat|b
+common|yaygın, ortak|b
+bottom|alt|b
+german|Almanca|b
+whoever|her kim|b
+cook|aşçı, pişirmek|b
+walked|yürüdü|b
+papers|belgeler|b
+justice|adalet|b
+main|ana|b
+knife|bıçak|b
+devil|şeytan|b
+necessary|gerekli|b
+although|-e rağmen|b
+lights|ışıklar|b
+flying|uçmak|b
+knowing|bilmek|b
+clearly|açıkça|b
+agreed|anlaştık|b
+corner|köşe|b
+code|kod|b
+note|not|b
+due|nedeniyle|b
+correct|doğru|b
+apologize|özür dilemek|b
+language|dil|b
+stars|yıldızlar|b
+faster|daha hızlı|b
+cars|arabalar|b
+folks|millet, ahali|b
+fellow|adam, arkadaş|b
+several|birkaç|b
+shows|gösteriler|b
+leaves|yapraklar, ayrılır|b
+restaurant|restoran, lokanta|b
+east|doğu|b
+blind|kör|b
+cup|fincan, kupa|b
+tight|sıkı|b
+conversation|sohbet, konuşma|b
+tells|söyler|b
+lies|yalanlar|b
+pulled|çekti|b
+hanging|asılı|b
+speed|hız|b
+stories|hikâyeler|b
+health|sağlık|b
+advice|tavsiye, öğüt|b
+held|tuttu|b
+beyond|ötesinde|b
+rule|kural|b
+hardly|neredeyse hiç|b
+possibly|muhtemelen|b
+cousin|kuzen|b
+trial|deneme, dava|b
+emergency|acil durum|b
+somehow|bir şekilde|b
+hearing|duymak, duruşma|b
+account|hesap|b
+file|dosya|b
+understood|anlaşıldı|b
+milk|süt|b
+powerful|güçlü|b
+weapons|silahlar|b
+practice|pratik, alıştırma|b
+vote|oy|b
+national|ulusal|b
+minister|bakan|b
+taught|öğretti|b
+biggest|en büyük|b
+natural|doğal|b
+dancing|dans etmek|b
+copy|kopya|b
+cake|kek, pasta|b
+freedom|özgürlük|b
+among|arasında|b
+breath|nefes|b
+operation|operasyon, işlem|b
+crew|ekip|b
+meat|et|b
+towards|doğru|b
+bringing|getirmek|b
+dropped|düşürdü|b
+student|öğrenci|b
+strength|güç|b
+breathe|nefes almak|b
+color|renk|b
+monster|canavar|b
+loud|yüksek sesle|b
+photo|fotoğraf|b
+nearly|neredeyse|b
+sight|görüş, manzara|b
+greatest|en büyük|b
+games|oyunlar|b
+bridge|köprü|b
+dressed|giyinmiş|b
+arrested|tutuklandı|b
+horrible|korkunç|b
+coach|antrenör, çalıştırıcı|b
+planning|planlama|b
+checked|kontrol etti|b
+breaking|kırmak|b
+noticed|fark etti|b
+fantastic|harika, olağanüstü|b
+serve|hizmet etmek|b
+ideas|fikirler|b
+investigation|soruşturma|b
+center|merkez|b
+older|daha yaşlı|b
+pack|paket, toplamak|b
+soldiers|askerler|b
+nonsense|saçmalık|b
+example|örnek|b
+trick|hile, numara|b
+prepared|hazırlıklı|b
+science|bilim|b
+incredible|inanılmaz|b
+paying|ödemek|b
+character|karakter|b
+teeth|dişler|b
+criminal|suçlu|b
+truly|gerçekten|b
+honestly|açıkçası, dürüst olmak gerekirse|b
+survive|hayatta kalmak|b
+feed|beslemek|b
+nurse|hemşire|b
+records|kayıtlar|b
+breathing|nefes almak|b
+sweetie|tatlım|b
+numbers|sayılar|b
+oil|yağ, petrol|b
+belong|ait olmak|b
+perfectly|mükemmel bir şekilde|b
+forgotten|unutulmuş|b
+remain|kalmak|b
+concerned|endişeli|b
+credit|kredi|b
+invited|davet edildi|b
+discuss|tartışmak|b
+easier|daha kolay|b
+view|görüş, manzara|b
+chair|sandalye|b
+hurts|acıtıyor|b
+strike|grev, vurmak|b
+fill|doldurmak|b
+condition|durum, koşul|b
+mountain|dağ|b
+nowhere|hiçbir yerde|b
+turning|dönmek|b
+recognize|tanımak|b
+heads|kafalar|b
+audience|seyirci, dinleyici|b
+jealous|kıskanç|b
+pretend|rol yapmak|b
+society|toplum|b
+finding|bulmak|b
+shirt|gömlek|b
+comfortable|rahat|b
+meaning|anlam|b
+guest|misafir|b
+pieces|parçalar|b
+dry|kuru|b
+letting|izin vermek|b
+began|başladı|b
+female|kadın, dişi|b
+cards|kartlar|b
+pray|dua etmek|b
+unfortunately|maalesef, ne yazık ki|b
+ended|bitti|b
+universe|evren|b
+prepare|hazırlamak|b
+opinion|görüş, fikir|b
+movies|filmler|b
+soldier|asker|b
+wash|yıkamak|b
+heat|ısı|b
+usual|olağan|b
+prefer|tercih etmek|b
+aware|farkında|b
+surely|kesinlikle|b
+male|erkek|b
+base|temel, üs|b
+matters|önemli|b
+lift|kaldırmak|b
+command|komut, emir|b
+proof|kanıt|b
+cream|krem|b
+selling|satmak|b
+believed|inandı|b
+create|oluşturmak|b
+afford|karşılamak|b
+sunday|pazar|b
+dumb|aptal|b
+threw|attı|b
+birth|doğum|b
+created|oluşturdu|b
+realized|fark etti|b
+noise|gürültü|b
+students|öğrenciler|b
+birds|kuşlar|b
+social|sosyal, toplumsal|b
+brilliant|parlak, dâhice|b
+opened|açtı|b
+ugly|çirkin|b
+exist|var olmak|b
+followed|takip etti|b
+draw|çizmek|b
+purpose|amaç|b
+letters|mektuplar|b
+opening|açılış|b
+lately|son zamanlarda|b
+stayed|kaldı|b
+falling|düşmek|b
+season|mevsim, sezon|b
+ends|biter|b
+suggest|önermek|b
+distance|mesafe, uzaklık|b
+responsibility|sorumluluk|b
+whenever|ne zaman|b
+thousands|binlerce|b
+process|süreç|b
+shower|duş|b
+weak|zayıf|b
+lonely|yalnız|b
+happiness|mutluluk|b
+tiny|minik|b
+desk|masa|b
+pool|havuz|b
+property|mülk|b
+forced|zorlanmış|b
+settle|yerleşmek|b
+weight|ağırlık|b
+received|aldı|b
+friday|cuma|b
+disappeared|kayboldu|b
+expecting|beklemek|b
+surgery|ameliyat|b
+saturday|cumartesi|b
+staff|personel|b
+lines|satırlar|b
+unit|birim|b
+gentleman|beyefendi|b
+handsome|yakışıklı|b
