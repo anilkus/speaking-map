@@ -146,7 +146,7 @@ textarea{width:100%;height:140px;background:var(--bg);color:var(--text);border:1
   <button class="btn" id="reset">Temizle</button>
 </div>
 <div id="msg"></div>
-<div id="ver">sürüm 2026-11-12 08:48</div>
+<div id="ver">sürüm 2026-11-12 08:52</div>
 </div>
 <dialog id="dlg">
   <h2>Dosya ya da metin ekle</h2>
@@ -1001,7 +1001,7 @@ const WORKLET=`class Cap extends AudioWorkletProcessor{process(i){const c=i[0]&&
 const HALLU=/(altyaz[ıi]|abone ol|izlediğiniz için|teşekkürler izlediğiniz|subtitles? by|thanks for watching|amara\.org|www\.|\.com)/i;
 async function startWhisper(){
   const model=engine();
-  try{await asrLoad(model)}catch(e){msg.textContent="Whisper modeli yüklenemedi: "+(e.message||e)+". Chrome motoruna geçebilirsin.";stopRec();return}
+  try{await asrLoad(model)}catch(e){job(null);asrW&&asrW.terminate();asrW=null;asrReady=null;asrModel="";msg.textContent="Whisper modeli yüklenemedi: "+(e.message||e)+". İnternet bağlantını kontrol edip tekrar dene ya da Chrome motoruna geç.";stopRec();return}
   if(!listening)return;
   job(null);
   try{WL.stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
@@ -1074,7 +1074,7 @@ function asrLoad(model){if(asrModel===model&&asrReady&&asrReady.done)return Prom
   return new Promise((ok,no)=>{asrReady={ok:()=>{asrReady.done=true;asrModel=model;ok()},no,done:false};asrWorker().postMessage({type:"load",model,tf:CDN.tf})})}
 function asrRun(audio,lang){return new Promise((ok,no)=>{const id=++wSeq;wPend.set(id,{ok,no});const copy=new Float32Array(audio);asrWorker().postMessage({type:"run",id,audio:copy,lang},[copy.buffer])})}
 // ---------- kaynaklar: metin, dosya, ses/video ----------
-const CDN={tf:"https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2/dist/transformers.web.min.js",
+const CDN={tf:"https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2/dist/transformers.min.js",
   pdf:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.min.mjs",pdfw:"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.worker.min.mjs",
   mammoth:"https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js"};
 const dlg=document.getElementById("dlg"),jobEl=document.getElementById("job");
