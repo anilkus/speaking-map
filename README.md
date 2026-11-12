@@ -1,6 +1,6 @@
 # Speaking Map
 
-Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli görselleştirmeler: Atatürk'ün **Nutuk**'u (1919-1927) üzerine üç sayfa ve mikrofonla konuştukça kendi kelime ağını kuran canlı bir sürüm.
+Konuşmayı, söylendikçe büyüyen bir kelime ağına çeviren etkileşimli görselleştirmeler: Atatürk'ün **Nutuk**'u (1919-1927) üzerine üç sayfa ve mikrofonla konuştukça kendi kelime ağını kuran canlı bir sürüm..
 
 **Canlı site:** https://anilkus.github.io/speaking-map/
 
